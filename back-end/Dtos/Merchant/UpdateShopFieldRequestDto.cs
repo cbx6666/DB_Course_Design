@@ -1,14 +1,22 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BackEnd.Dtos.Merchant
+namespace BackEnd.DTOs.Merchant
 {
-    // 用于接收更新店铺字段的请求数据
+    /// <summary>
+    /// 更新店铺字段请求
+    /// </summary>
     public class UpdateShopFieldRequestDto
     {
         [Required]
-        public string Field { get; set; } = string.Empty;  // 字段名（'Address'/'address' | 'OpenTime'/'openTime'/'startTime' | 'CloseTime'/'closeTime'/'endTime' | 'Feature'/'feature'）
+        /// <summary>
+        /// 字段名（'Address'/'address' | 'OpenTime'/'openTime'/'startTime' | 'CloseTime'/'closeTime'/'endTime' | 'Feature'/'feature'）
+        /// </summary>
+        public string Field { get; set; } = string.Empty;
         
         [Required]
-        public string Value { get; set; } = string.Empty;  // 字段值
+        /// <summary>
+        /// 字段值
+        /// </summary>
+        public string Value { get; set; } = string.Empty;
     }
 } 

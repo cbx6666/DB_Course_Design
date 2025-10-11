@@ -4,43 +4,63 @@ using BackEnd.Models.Enums;
 
 namespace BackEnd.Models
 {
+    /// <summary>
+    /// 菜品信息模型
+    /// </summary>
     public class Dish
     {
-        // 菜品类
-        // 主码：DishID
-
+        /// <summary>
+        /// 菜品ID（主键）
+        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int DishID { get; set; }
 
+        /// <summary>
+        /// 菜品名称
+        /// </summary>
         [Required]
         [StringLength(50)]
         public string DishName { get; set; } = null!;
 
+        /// <summary>
+        /// 菜品价格
+        /// </summary>
         [Required]
         [Column(TypeName = "decimal(10,2)")]
         public decimal Price { get; set; }
 
+        /// <summary>
+        /// 菜品描述
+        /// </summary>
         [Required]
         [StringLength(500)]
         public string Description { get; set; } = null!;
 
+        /// <summary>
+        /// 菜品售罄状态
+        /// </summary>
         [Required]
         public DishIsSoldOut IsSoldOut { get; set; } = DishIsSoldOut.IsSoldOut;
-        public DishTypes Type { get; set; } = DishTypes.SignatureRecommendation;
 
-        // 新增菜品图片
+        /// <summary>
+        /// 菜品图片
+        /// </summary>
         public string? DishImage { get; set; }
 
-        // 一对多导航属性
-        // 购物车项
+        /// <summary>
+        /// 购物车项集合
+        /// </summary>
         public ICollection<ShoppingCartItem>? ShoppingCartItems { get; set; }
 
-        // 多对多关系
-        // 一个菜品可以出现在多个菜单中
+        /// <summary>
+        /// 菜单菜品关联集合
+        /// </summary>
         public ICollection<Menu_Dish> MenuDishes { get; set; } = new List<Menu_Dish>();
 
-        // 便捷属性：获取包含此菜品的菜单
+        /// <summary>
+        /// 包含此菜品的菜单集合（计算属性）
+        /// </summary>
         [NotMapped]
         public IEnumerable<Menu> Menus => MenuDishes.Select(md => md.Menu);
     }

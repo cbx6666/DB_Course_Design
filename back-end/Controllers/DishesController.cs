@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
-using BackEnd.Dtos.Dish;
+using BackEnd.DTOs.Dish;
 using BackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 
 namespace BackEnd.Controllers
 {
+    /// <summary>
+    /// 菜品管理控制器
+    /// </summary>
     [ApiController]
     [Route("api/dishes")]
     public class DishesController : ControllerBase
@@ -16,6 +19,11 @@ namespace BackEnd.Controllers
             _dishService = dishService;
         }
 
+        /// <summary>
+        /// 获取菜品列表
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>菜品列表</returns>
         [HttpGet]
         public async Task<IActionResult> GetDishes([FromQuery] int? sellerId)
         {
@@ -24,22 +32,11 @@ namespace BackEnd.Controllers
                 if (sellerId.HasValue && sellerId == 3)
                 {
                     var dishes = await _dishService.GetAllDishesAsync();
-
-                    // 确保返回的是数组
-                    var dishDtos = dishes?.Select(d => new DishDto
-                    {
-                        DishId = d.DishId,
-                        DishName = d.DishName,
-                        Price = d.Price,
-                        Description = d.Description,
-                        IsSoldOut = (int)d.IsSoldOut,
-                    }).ToList() ?? new List<DishDto>();
-
+                    var dishDtos = dishes ?? new List<DishDto>();
                     return Ok(dishDtos);
                 }
                 else
                 {
-                    // 返回空数组而不是单个对象
                     return Ok(new List<DishDto>());
                 }
             }
@@ -49,6 +46,11 @@ namespace BackEnd.Controllers
             }
         }
 
+        /// <summary>
+        /// 创建新菜品
+        /// </summary>
+        /// <param name="dto">菜品创建信息</param>
+        /// <returns>创建的菜品</returns>
         [HttpPost]
         public async Task<IActionResult> CreateDish([FromBody] CreateDishDto dto)
         {
@@ -63,6 +65,11 @@ namespace BackEnd.Controllers
             }
         }
 
+        /// <summary>
+        /// 根据ID获取菜品详情
+        /// </summary>
+        /// <param name="dishId">菜品ID</param>
+        /// <returns>菜品详情</returns>
         [HttpGet("{dishId}")]
         public async Task<IActionResult> GetDishById(int dishId)
         {
@@ -77,6 +84,12 @@ namespace BackEnd.Controllers
             }
         }
 
+        /// <summary>
+        /// 更新菜品信息
+        /// </summary>
+        /// <param name="dishId">菜品ID</param>
+        /// <param name="dto">更新信息</param>
+        /// <returns>更新后的菜品</returns>
         [HttpPatch("{dishId}")]
         public async Task<IActionResult> UpdateDish(int dishId, [FromBody] UpdateDishDto dto)
         {
@@ -91,6 +104,12 @@ namespace BackEnd.Controllers
             }
         }
 
+        /// <summary>
+        /// 切换菜品售罄状态
+        /// </summary>
+        /// <param name="dishId">菜品ID</param>
+        /// <param name="dto">售罄状态</param>
+        /// <returns>操作结果</returns>
         [HttpPatch("{dishId}/soldout")]
         public async Task<IActionResult> ToggleSoldOut(int dishId, [FromBody] ToggleSoldOutDto dto)
         {
@@ -103,6 +122,23 @@ namespace BackEnd.Controllers
             {
                 return BadRequest(new { code = 400, message = ex.Message });
             }
+        }
+
+        /// <summary>
+        /// 将菜品实体映射为DTO
+        /// </summary>
+        /// <param name="dish">菜品实体</param>
+        /// <returns>菜品DTO</returns>
+        private static DishDto MapToDishDto(Models.Dish dish)
+        {
+            return new DishDto
+            {
+                DishId = dish.DishID,
+                DishName = dish.DishName,
+                Price = dish.Price,
+                Description = dish.Description,
+                IsSoldOut = (int)dish.IsSoldOut,
+            };
         }
     }
 }

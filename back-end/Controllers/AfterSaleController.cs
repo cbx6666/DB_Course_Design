@@ -1,12 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
-using BackEnd.Dtos.AfterSale;
+using BackEnd.DTOs.AfterSale;
 using BackEnd.Services.Interfaces;
 using System.Security.Claims;
 
 namespace BackEnd.Controllers
 {
+    /// <summary>
+    /// 售后服务管理控制器
+    /// </summary>
     [ApiController]
     [Route("api/aftersale")]
     public class AfterSalesController : ControllerBase
@@ -18,6 +21,13 @@ namespace BackEnd.Controllers
             _afterSaleService = afterSaleService;
         }
 
+        /// <summary>
+        /// 获取售后服务列表
+        /// </summary>
+        /// <param name="page">页码</param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="keyword">关键词</param>
+        /// <returns>售后服务列表</returns>
         [HttpGet]
         public async Task<IActionResult> GetAfterSales([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? keyword)
         {
@@ -26,28 +36,34 @@ namespace BackEnd.Controllers
                 return BadRequest(new { code = 400, message = "页码和每页数量必须大于0" });
             }
 
-            var sellerIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(sellerIdString, out int sellerId))
+            var sellerId = GetSellerIdFromToken();
+            if (sellerId == null)
             {
                 return Unauthorized("无效的Token");
             }
 
-            var result = await _afterSaleService.GetAfterSalesAsync(sellerId, page, pageSize, keyword);
+            var result = await _afterSaleService.GetAfterSalesAsync(sellerId.Value, page, pageSize, keyword);
             return Ok(result);
         }
 
+        /// <summary>
+        /// 根据ID获取售后服务详情
+        /// </summary>
+        /// <param name="id">售后服务ID</param>
+        /// <returns>售后服务详情</returns>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAfterSaleById(int id)
         {
             var afterSale = await _afterSaleService.GetAfterSaleByIdAsync(id);
-            if (afterSale == null)
-            {
-                return NotFound(new { code = 404, message = "售后申请不存在" });
-            }
-            return Ok(afterSale);
+            return afterSale == null ? NotFound(new { code = 404, message = "售后申请不存在" }) : Ok(afterSale);
         }
 
+        /// <summary>
+        /// 处理售后服务申请
+        /// </summary>
+        /// <param name="id">售后服务ID</param>
+        /// <param name="processDto">处理信息</param>
+        /// <returns>处理结果</returns>
         [HttpPost("{id}/decide")]
         public async Task<IActionResult> ProcessAfterSale(int id, [FromBody] ProcessAfterSaleDto processDto)
         {
@@ -63,6 +79,16 @@ namespace BackEnd.Controllers
 
             var result = await _afterSaleService.ProcessAfterSaleAsync(id, processDto);
             return Ok(result);
+        }
+
+        /// <summary>
+        /// 从Token中获取商家ID
+        /// </summary>
+        /// <returns>商家ID，如果无效则返回null</returns>
+        private int? GetSellerIdFromToken()
+        {
+            var sellerIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(sellerIdString, out int sellerId) ? sellerId : null;
         }
     }
 }

@@ -1,16 +1,28 @@
-using BackEnd.Dtos.User;
+using BackEnd.DTOs.User;
 using BackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace BackEnd.Controllers
 {
+    /// <summary>
+    /// 用户结账控制器
+    /// </summary>
     [ApiController]
     [Route("api")]
+    [Authorize] // 添加认证要求
     public class UserCheckoutController : ControllerBase
     {
         private readonly IUserCheckoutService _userCheckoutService;
         private readonly ILogger<UserCheckoutController> _logger;
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="userCheckoutService">用户结账服务</param>
+        /// <param name="logger">日志记录器</param>
         public UserCheckoutController(
             IUserCheckoutService userCheckoutService,
             ILogger<UserCheckoutController> logger)
@@ -19,15 +31,25 @@ namespace BackEnd.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// 获取用户优惠券
+        /// </summary>
+        /// <returns>用户优惠券列表</returns>
         [HttpGet("user/coupons")]
         [ProducesResponseType(typeof(List<UserCouponDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IEnumerable<UserCouponDto>>> GetUserCoupons(
-            [FromQuery, Required] int userId)
+        public async Task<ActionResult<IEnumerable<UserCouponDto>>> GetUserCoupons()
         {
             try
             {
+                // 从 Token 中安全地获取用户 ID
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(userIdString, out int userId))
+                {
+                    return Unauthorized("无效的Token");
+                }
+
                 var coupons = await _userCheckoutService.GetUserCouponsAsync(userId);
                 return Ok(coupons);
             }
@@ -37,22 +59,33 @@ namespace BackEnd.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "获取用户 {UserId} 的优惠券信息时发生错误", userId);
+                _logger.LogError(ex, "获取用户优惠券信息时发生错误");
                 return StatusCode(500, new { message = "获取优惠券信息时发生错误" });
             }
         }
 
+        /// <summary>
+        /// 获取购物车
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>购物车信息</returns>
         [HttpGet("store/shoppingcart")]
         [ProducesResponseType(typeof(ShoppingCartItemDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ShoppingCartItemDto>> GetShoppingCart(
-            [FromQuery, Required] int userId,
             [FromQuery, Required] int storeId)
         {
             try
             {
+                // 从 Token 中安全地获取用户 ID
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(userIdString, out int userId))
+                {
+                    return Unauthorized("无效的Token");
+                }
+
                 var shoppingCart = await _userCheckoutService.GetShoppingCartAsync(userId, storeId);
                 return Ok(shoppingCart);
             }
@@ -62,12 +95,16 @@ namespace BackEnd.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "获取用户 {UserId} 在店铺 {StoreId} 的购物车信息时发生错误", userId, storeId);
+                _logger.LogError(ex, "获取用户在店铺 {StoreId} 的购物车信息时发生错误", storeId);
                 return StatusCode(500, new { message = "获取购物车信息时发生错误" });
             }
         }
 
-        // 添加或更新购物车项
+        /// <summary>
+        /// 添加或更新购物车项
+        /// </summary>
+        /// <param name="dto">更新购物车项请求</param>
+        /// <returns>更新结果</returns>
         [HttpPost("store/cart/change")]
         [ProducesResponseType(typeof(CartResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -94,7 +131,11 @@ namespace BackEnd.Controllers
             }
         }
 
-        // 删除购物车项
+        /// <summary>
+        /// 删除购物车项
+        /// </summary>
+        /// <param name="dto">删除购物车项请求</param>
+        /// <returns>删除结果</returns>
         [HttpDelete("store/cart/remove")]
         [ProducesResponseType(typeof(CartResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -121,5 +162,4 @@ namespace BackEnd.Controllers
             }
         }
     }
-
 }

@@ -1,8 +1,13 @@
-namespace BackEnd.Dtos.Merchant
+namespace BackEnd.DTOs.Merchant
 {
-    // 用于返回操作结果的通用响应
+    /// <summary>
+    /// 通用响应数据传输对象
+    /// </summary>
     public class CommonResponseDto
     {
-        public bool Success { get; set; }  // 操作是否成功
+        /// <summary>
+        /// 操作是否成功
+        /// </summary>
+        public bool Success { get; set; }
     }
 } 

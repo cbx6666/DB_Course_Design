@@ -2,20 +2,29 @@ using BackEnd.Data;
 using BackEnd.Models;
 using BackEnd.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace BackEnd.Repositories
 {
+    /// <summary>
+    /// 管理员仓储
+    /// </summary>
     public class AdministratorRepository : IAdministratorRepository
     {
         private readonly AppDbContext _context;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="context">数据库上下文</param>
         public AdministratorRepository(AppDbContext context)
         {
             _context = context;
         }
 
-        // 管理员
+        /// <summary>
+        /// 获取所有管理员
+        /// </summary>
+        /// <returns>管理员列表</returns>
         public async Task<IEnumerable<Administrator>> GetAllAsync()
         {
             return await _context.Administrators
@@ -31,6 +40,11 @@ namespace BackEnd.Repositories
                                  .ToListAsync();
         }
 
+        /// <summary>
+        /// 根据ID获取管理员
+        /// </summary>
+        /// <param name="id">管理员ID</param>
+        /// <returns>管理员</returns>
         public async Task<Administrator?> GetByIdAsync(int id)
         {
             return await _context.Administrators
@@ -46,6 +60,11 @@ namespace BackEnd.Repositories
                                  .FirstOrDefaultAsync(a => a.UserID == id);
         }
 
+        /// <summary>
+        /// 根据管理实体获取管理员
+        /// </summary>
+        /// <param name="managedEntity">管理实体</param>
+        /// <returns>管理员列表</returns>
         public async Task<IEnumerable<Administrator>> GetAdministratorsByManagedEntityAsync(string managedEntity)
         {
             return await _context.Administrators
@@ -54,6 +73,11 @@ namespace BackEnd.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// 更新管理员
+        /// </summary>
+        /// <param name="administrator">管理员</param>
+        /// <returns>是否成功</returns>
         public async Task<bool> UpdateAdministratorAsync(Administrator administrator)
         {
             try
@@ -68,7 +92,11 @@ namespace BackEnd.Repositories
             }
         }
 
-        // 售后申请
+        /// <summary>
+        /// 根据管理员ID获取售后申请
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>售后申请列表</returns>
         public async Task<IEnumerable<AfterSaleApplication>> GetAfterSaleApplicationsByAdminIdAsync(int adminId)
         {
             var applications = await _context.Evaluate_AfterSales
@@ -79,12 +107,22 @@ namespace BackEnd.Repositories
             return applications;
         }
 
+        /// <summary>
+        /// 根据ID获取售后申请
+        /// </summary>
+        /// <param name="applicationId">申请ID</param>
+        /// <returns>售后申请</returns>
         public async Task<AfterSaleApplication?> GetAfterSaleApplicationByIdAsync(int applicationId)
         {
             return await _context.AfterSaleApplications
                 .FirstOrDefaultAsync(app => app.ApplicationID == applicationId);
         }
 
+        /// <summary>
+        /// 更新售后申请
+        /// </summary>
+        /// <param name="application">售后申请</param>
+        /// <returns>是否成功</returns>
         public async Task<bool> UpdateAfterSaleApplicationAsync(AfterSaleApplication application)
         {
             try
@@ -99,7 +137,11 @@ namespace BackEnd.Repositories
             }
         }
 
-        // 配送投诉
+        /// <summary>
+        /// 根据管理员ID获取配送投诉
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>配送投诉列表</returns>
         public async Task<IEnumerable<DeliveryComplaint>> GetDeliveryComplaintsByAdminIdAsync(int adminId)
         {
             var complaints = await _context.Evaluate_Complaints
@@ -113,6 +155,11 @@ namespace BackEnd.Repositories
             return complaints;
         }
 
+        /// <summary>
+        /// 根据ID获取配送投诉
+        /// </summary>
+        /// <param name="complaintId">投诉ID</param>
+        /// <returns>配送投诉</returns>
         public async Task<DeliveryComplaint?> GetDeliveryComplaintByIdAsync(int complaintId)
         {
             return await _context.DeliveryComplaints
@@ -121,6 +168,11 @@ namespace BackEnd.Repositories
                .FirstOrDefaultAsync(dc => dc.ComplaintID == complaintId);
         }
 
+        /// <summary>
+        /// 更新配送投诉
+        /// </summary>
+        /// <param name="complaint">配送投诉</param>
+        /// <returns>是否成功</returns>
         public async Task<bool> UpdateDeliveryComplaintAsync(DeliveryComplaint complaint)
         {
             try
@@ -135,19 +187,28 @@ namespace BackEnd.Repositories
             }
         }
 
-        // 违规处罚
+        /// <summary>
+        /// 根据管理员ID获取违规处罚
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>违规处罚列表</returns>
         public async Task<IEnumerable<StoreViolationPenalty>> GetViolationPenaltiesByAdminIdAsync(int adminId)
         {
             var penalties = await _context.Supervise_s
                                           .Where(s => s.AdminID == adminId)
                                           .Include(s => s.Penalty)
-                                              .ThenInclude(p => p.Store) // 先Include所有需要的导航属性
-                                          .Select(s => s.Penalty) // 然后再Select
+                                              .ThenInclude(p => p.Store)
+                                          .Select(s => s.Penalty)
                                           .ToListAsync();
 
             return penalties;
         }
 
+        /// <summary>
+        /// 根据ID获取违规处罚
+        /// </summary>
+        /// <param name="penaltyId">处罚ID</param>
+        /// <returns>违规处罚</returns>
         public async Task<StoreViolationPenalty?> GetViolationPenaltyByIdAsync(int penaltyId)
         {
             return await _context.StoreViolationPenalties
@@ -157,6 +218,11 @@ namespace BackEnd.Repositories
                 .FirstOrDefaultAsync(p => p.PenaltyID == penaltyId);
         }
 
+        /// <summary>
+        /// 更新违规处罚
+        /// </summary>
+        /// <param name="penalty">违规处罚</param>
+        /// <returns>是否成功</returns>
         public async Task<bool> UpdateViolationPenaltyAsync(StoreViolationPenalty penalty)
         {
             try
@@ -171,20 +237,29 @@ namespace BackEnd.Repositories
             }
         }
 
-        // 评论审核
+        /// <summary>
+        /// 根据管理员ID获取评论审核
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>评论列表</returns>
         public async Task<IEnumerable<Comment>> GetReviewCommentsByAdminIdAsync(int adminId)
         {
             var comments = await _context.Review_Comments
                                         .Where(rc => rc.AdminID == adminId)
                                         .Include(rc => rc.Comment)
-                                            .ThenInclude(c => c.Commenter) // 先Include所有需要的导航属性
+                                            .ThenInclude(c => c.Commenter)
                                                 .ThenInclude(customer => customer.User)
-                                        .Select(rc => rc.Comment) // 然后再Select
+                                        .Select(rc => rc.Comment)
                                         .ToListAsync();
 
             return comments;
         }
 
+        /// <summary>
+        /// 根据ID获取评论审核
+        /// </summary>
+        /// <param name="commentId">评论ID</param>
+        /// <returns>评论</returns>
         public async Task<Comment?> GetReviewCommentByIdAsync(int commentId)
         {
             return await _context.Comments
@@ -195,6 +270,11 @@ namespace BackEnd.Repositories
                 .FirstOrDefaultAsync(c => c.CommentID == commentId);
         }
 
+        /// <summary>
+        /// 更新评论审核
+        /// </summary>
+        /// <param name="comment">评论</param>
+        /// <returns>是否成功</returns>
         public async Task<bool> UpdateReviewCommentAsync(Comment comment)
         {
             try
@@ -209,24 +289,43 @@ namespace BackEnd.Repositories
             }
         }
 
+        /// <summary>
+        /// 添加管理员
+        /// </summary>
+        /// <param name="administrator">管理员</param>
+        /// <returns>任务</returns>
         public async Task AddAsync(Administrator administrator)
         {
             await _context.Administrators.AddAsync(administrator);
             await SaveAsync();
         }
 
+        /// <summary>
+        /// 更新管理员
+        /// </summary>
+        /// <param name="administrator">管理员</param>
+        /// <returns>任务</returns>
         public async Task UpdateAsync(Administrator administrator)
         {
             _context.Administrators.Update(administrator);
             await SaveAsync();
         }
 
+        /// <summary>
+        /// 删除管理员
+        /// </summary>
+        /// <param name="administrator">管理员</param>
+        /// <returns>任务</returns>
         public async Task DeleteAsync(Administrator administrator)
         {
             _context.Administrators.Remove(administrator);
             await SaveAsync();
         }
 
+        /// <summary>
+        /// 保存更改
+        /// </summary>
+        /// <returns>任务</returns>
         public async Task SaveAsync()
         {
             await _context.SaveChangesAsync();

@@ -1,6 +1,6 @@
-using BackEnd.Dtos.Cart;
-using BackEnd.Dtos.Coupon;
-using BackEnd.Dtos.Order;
+using BackEnd.DTOs.Cart;
+using BackEnd.DTOs.Coupon;
+using BackEnd.DTOs.Order;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
@@ -8,12 +8,21 @@ using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 订单服务
+    /// </summary>
     public class OrderService : IOrderService
     {
         private readonly IFoodOrderRepository _orderRepo;
         private readonly IShoppingCartItemRepository _cartItemRepo;
         private readonly IStoreRepository _storeRepo;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="orderRepo">订单仓储</param>
+        /// <param name="cartItemRepo">购物车项仓储</param>
+        /// <param name="storeRepo">店铺仓储</param>
         public OrderService(IFoodOrderRepository orderRepo,
                            IShoppingCartItemRepository cartItemRepo,
                            IStoreRepository storeRepo)
@@ -23,6 +32,12 @@ namespace BackEnd.Services
             _storeRepo = storeRepo;
         }
 
+        /// <summary>
+        /// 获取订单列表
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>订单列表</returns>
         public async Task<IEnumerable<FoodOrderDto>> GetOrdersAsync(int? sellerId, int? storeId)
         {
             var orders = await _orderRepo.GetAllAsync();
@@ -48,6 +63,11 @@ namespace BackEnd.Services
             });
         }
 
+        /// <summary>
+        /// 根据ID获取订单
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>订单信息</returns>
         public async Task<FoodOrderDto?> GetOrderByIdAsync(int orderId)
         {
             var order = await _orderRepo.GetByIdAsync(orderId);
@@ -68,6 +88,11 @@ namespace BackEnd.Services
             };
         }
 
+        /// <summary>
+        /// 接受订单
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>订单决策结果</returns>
         public async Task<OrderDecisionDto> AcceptOrderAsync(int orderId)
         {
             var order = await _orderRepo.GetByIdAsync(orderId)
@@ -85,6 +110,11 @@ namespace BackEnd.Services
             };
         }
 
+        /// <summary>
+        /// 标记为已出餐
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>订单决策结果</returns>
         public async Task<OrderDecisionDto> MarkAsReadyAsync(int orderId)
         {
             var order = await _orderRepo.GetByIdAsync(orderId)
@@ -102,6 +132,12 @@ namespace BackEnd.Services
             };
         }
 
+        /// <summary>
+        /// 拒绝订单
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <param name="reason">拒绝原因</param>
+        /// <returns>订单决策结果</returns>
         public async Task<OrderDecisionDto> RejectOrderAsync(int orderId, string? reason)
         {
             var order = await _orderRepo.GetByIdAsync(orderId)
@@ -116,6 +152,11 @@ namespace BackEnd.Services
             };
         }
 
+        /// <summary>
+        /// 获取购物车项
+        /// </summary>
+        /// <param name="cartId">购物车ID</param>
+        /// <returns>购物车项列表</returns>
         public async Task<IEnumerable<ShoppingCartItemDto>> GetCartItemsAsync(int cartId)
         {
             var items = await _cartItemRepo.GetByCartIdAsync(cartId);
@@ -137,6 +178,11 @@ namespace BackEnd.Services
             });
         }
 
+        /// <summary>
+        /// 获取订单优惠券信息
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>优惠券信息列表</returns>
         public async Task<IEnumerable<OrderCouponInfoDto>> GetOrderCouponsAsync(int orderId)
         {
             var order = await _orderRepo.GetByIdAsync(orderId)

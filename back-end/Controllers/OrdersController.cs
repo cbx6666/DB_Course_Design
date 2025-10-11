@@ -1,9 +1,12 @@
-using BackEnd.Dtos.Order;
+using BackEnd.DTOs.Order;
 using BackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BackEnd.Controllers
 {
+    /// <summary>
+    /// 订单管理控制器
+    /// </summary>
     [ApiController]
     [Route("api/orders")]
     public class OrdersController : ControllerBase
@@ -17,6 +20,12 @@ namespace BackEnd.Controllers
             _deliveryService = deliveryService;
         }
 
+        /// <summary>
+        /// 获取订单列表
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>订单列表</returns>
         [HttpGet]
         public async Task<IActionResult> GetOrders([FromQuery] int? sellerId, [FromQuery] int? storeId)
         {
@@ -31,6 +40,11 @@ namespace BackEnd.Controllers
             }
         }
 
+        /// <summary>
+        /// 根据ID获取订单详情
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>订单详情</returns>
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetOrderById(int orderId)
         {
@@ -45,6 +59,11 @@ namespace BackEnd.Controllers
             }
         }
 
+        /// <summary>
+        /// 接受订单
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>操作结果</returns>
         [HttpPost("{orderId}/accept")]
         public async Task<IActionResult> AcceptOrder(int orderId)
         {
@@ -63,6 +82,11 @@ namespace BackEnd.Controllers
             }
         }
 
+        /// <summary>
+        /// 标记订单为准备完成
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>操作结果</returns>
         [HttpPost("{orderId}/ready")]
         public async Task<IActionResult> MarkAsReady(int orderId)
         {
@@ -81,6 +105,12 @@ namespace BackEnd.Controllers
             }
         }
 
+        /// <summary>
+        /// 拒绝订单
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <param name="dto">拒绝原因</param>
+        /// <returns>操作结果</returns>
         [HttpPost("{orderId}/reject")]
         public async Task<IActionResult> RejectOrder(int orderId, [FromBody] RejectOrderDto dto)
         {
@@ -99,6 +129,11 @@ namespace BackEnd.Controllers
             }
         }
 
+        /// <summary>
+        /// 获取订单优惠券信息
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>优惠券信息</returns>
         [HttpGet("{orderId}/coupons")]
         public async Task<IActionResult> GetOrderCoupons(int orderId)
         {
@@ -117,6 +152,11 @@ namespace BackEnd.Controllers
             }
         }
 
+        /// <summary>
+        /// 获取订单配送信息
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>配送信息</returns>
         [HttpGet("{orderId}/delivery-info")]
         public async Task<IActionResult> GetOrderDeliveryInfo(int orderId)
         {

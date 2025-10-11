@@ -1,17 +1,26 @@
 using BackEnd.Data;
-using BackEnd.Dtos.DeliveryComplaint;
+using BackEnd.DTOs.DeliveryComplaint;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 配送投诉评估服务
+    /// </summary>
     public class Evaluate_DeliveryComplaintService : IEvaluate_DeliveryComplaintService
     {
         private readonly IAdministratorRepository _administratorRepository;
         private readonly ICourierRepository _courierRepository;
         private readonly AppDbContext _context;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="administratorRepository">管理员仓储</param>
+        /// <param name="courierRepository">配送员仓储</param>
+        /// <param name="context">数据库上下文</param>
         public Evaluate_DeliveryComplaintService(
            IAdministratorRepository administratorRepository,
            ICourierRepository courierRepository,
@@ -22,9 +31,14 @@ namespace BackEnd.Services
             _context = context;
         }
 
+        /// <summary>
+        /// 获取管理员处理的投诉列表
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>投诉信息列表</returns>
         public async Task<IEnumerable<GetComplaintInfo>> GetComplaintsForAdminAsync(int adminId)
         {
-            // 1. 调用仓储层，从数据库获取原始的、未经处理的数据模型
+            // 调用仓储层，从数据库获取原始的、未经处理的数据模型
             var complaintsFromDb = await _administratorRepository.GetDeliveryComplaintsByAdminIdAsync(adminId);
 
             // 如果找不到任何投诉，返回一个空的列表，而不是 null
@@ -33,7 +47,7 @@ namespace BackEnd.Services
                 return Enumerable.Empty<GetComplaintInfo>();
             }
 
-            // 2. 将数据模型映射/转换为 DTO
+            // 将数据模型映射/转换为 DTO
             var complaintDtos = complaintsFromDb.Select(complaint =>
             {
                 string targetName = "未知目标";
@@ -59,12 +73,17 @@ namespace BackEnd.Services
             return complaintDtos;
         }
 
+        /// <summary>
+        /// 更新投诉处理信息
+        /// </summary>
+        /// <param name="request">设置投诉信息请求</param>
+        /// <returns>更新结果</returns>
         public async Task<SetComplaintInfoResponse> UpdateComplaintAsync(SetComplaintInfo request)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // 1. 验证输入参数
+                // 验证输入参数
                 if (!int.TryParse(request.ComplaintId, out int complaintId))
                 {
                     return new SetComplaintInfoResponse
@@ -98,7 +117,7 @@ namespace BackEnd.Services
                     return new SetComplaintInfoResponse { Success = false, Message = "罚款金额格式无效或为负数" };
                 }
 
-                // 2. 获取现有的配送投诉
+                // 获取现有的配送投诉
                 var existingComplaint = await _administratorRepository.GetDeliveryComplaintByIdAsync(complaintId);
                 if (existingComplaint == null)
                 {
@@ -119,14 +138,14 @@ namespace BackEnd.Services
                     };
                 }
 
-                // 3. 更新配送投诉信息
+                // 更新配送投诉信息
                 existingComplaint.ComplaintState = ComplaintState.Completed;
                 existingComplaint.ProcessingResult = request.Punishment;
                 existingComplaint.ProcessingReason = request.PunishmentReason;
                 existingComplaint.ProcessingRemark = request.ProcessingNote;
                 existingComplaint.FineAmount = fineAmount;
 
-                // 4. 获取骑手信息并扣除薪资
+                // 获取骑手信息并扣除薪资
                 if (fineAmount > 0)
                 {
                     var courier = await _courierRepository.GetByIdAsync(existingComplaint.CourierID);
@@ -140,11 +159,11 @@ namespace BackEnd.Services
                     _context.Couriers.Update(courier);
                 }
 
-                // 5. 保存更改
+                // 保存更改
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                // 6. 返回更新后的完整信息
+                // 返回更新后的完整信息
                 string targetName = existingComplaint.Courier.User.FullName ?? existingComplaint.Courier.User.Username;
 
                 var updatedComplaintDto = new GetComplaintInfo

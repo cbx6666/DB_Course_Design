@@ -1,4 +1,4 @@
-using BackEnd.Dtos.User;
+using BackEnd.DTOs.User;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
@@ -7,6 +7,9 @@ using System.Text.RegularExpressions;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 用户调试服务
+    /// </summary>
     public class UserDebugService : IUserDebugService
     {
         private readonly IUserRepository _userRepository;
@@ -14,10 +17,18 @@ namespace BackEnd.Services
         private readonly IShoppingCartRepository _shoppingCartRepository;
         private readonly ICouponRepository _couponRepository;
 
-        public UserDebugService(IUserRepository userRepository,
-                                IFoodOrderRepository foodOrderRepository,
-                                IShoppingCartRepository shoppingCartRepository,
-                                ICouponRepository couponRepository)
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="userRepository">用户仓储</param>
+        /// <param name="foodOrderRepository">订单仓储</param>
+        /// <param name="shoppingCartRepository">购物车仓储</param>
+        /// <param name="couponRepository">优惠券仓储</param>
+        public UserDebugService(
+            IUserRepository userRepository,
+            IFoodOrderRepository foodOrderRepository,
+            IShoppingCartRepository shoppingCartRepository,
+            ICouponRepository couponRepository)
         {
             _userRepository = userRepository;
             _foodOrderRepository = foodOrderRepository;
@@ -25,6 +36,11 @@ namespace BackEnd.Services
             _couponRepository = couponRepository;
         }
 
+        /// <summary>
+        /// 获取用户信息
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>用户信息响应</returns>
         public async Task<UserInfoResponseDto> GetUserInfoAsync(int userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
@@ -46,6 +62,11 @@ namespace BackEnd.Services
             return dto;
         }
 
+        /// <summary>
+        /// 提交订单
+        /// </summary>
+        /// <param name="dto">提交订单请求</param>
+        /// <returns>任务</returns>
         public async Task SubmitOrderAsync(SubmitOrderRequestDto dto)
         {
             // 找到用户未锁定的购物车
@@ -97,6 +118,8 @@ namespace BackEnd.Services
         /// <summary>
         /// 使用优惠券（直接删除）
         /// </summary>
+        /// <param name="couponId">优惠券ID</param>
+        /// <returns>任务</returns>
         public async Task UseCouponAsync(int couponId)
         {
             var coupon = await _couponRepository.GetByIdAsync(couponId);
@@ -107,6 +130,11 @@ namespace BackEnd.Services
             await _couponRepository.DeleteAsync(coupon);
         }
 
+        /// <summary>
+        /// 获取用户ID
+        /// </summary>
+        /// <param name="dto">获取用户ID请求</param>
+        /// <returns>获取用户ID响应</returns>
         public async Task<GetUserIdResponseDto> GetUserIdAsync(GetUserIdRequestDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Account))

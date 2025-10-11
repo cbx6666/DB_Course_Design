@@ -4,57 +4,99 @@ using BackEnd.Models.Enums;
 
 namespace BackEnd.Models
 {
+    /// <summary>
+    /// 优惠券管理模型
+    /// </summary>
     public class CouponManager
     {
-        // 优惠券管理类
-        // 主码：CouponManagerID
-        // 外码：SellerID，StoreID
-
+        /// <summary>
+        /// 优惠券管理ID（主键）
+        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int CouponManagerID { get; set; }
 
+        /// <summary>
+        /// 优惠券名称
+        /// </summary>
         [Required]
         [MaxLength(100)]
         public string CouponName { get; set; } = string.Empty;
 
+        /// <summary>
+        /// 优惠券类型
+        /// </summary>
         [Required]
         public CouponType CouponType { get; set; }
 
+        /// <summary>
+        /// 最低消费金额
+        /// </summary>
         [Required]
         [Column(TypeName = "decimal(10,2)")]
         public decimal MinimumSpend { get; set; }
 
+        /// <summary>
+        /// 折扣金额
+        /// </summary>
         [Required]
         [Column(TypeName = "decimal(10,2)")]
         public decimal DiscountAmount { get; set; }
 
+        /// <summary>
+        /// 折扣率
+        /// </summary>
         [Column(TypeName = "decimal(3,2)")]
         public decimal? DiscountRate { get; set; }
 
+        /// <summary>
+        /// 总数量
+        /// </summary>
         [Required]
         public int TotalQuantity { get; set; }
 
+        /// <summary>
+        /// 已使用数量
+        /// </summary>
         public int UsedQuantity { get; set; } = 0;
 
+        /// <summary>
+        /// 有效期开始时间
+        /// </summary>
         [Required]
         public DateTime ValidFrom { get; set; }
 
+        /// <summary>
+        /// 有效期结束时间
+        /// </summary>
         [Required]
         public DateTime ValidTo { get; set; }
 
+        /// <summary>
+        /// 描述
+        /// </summary>
         [MaxLength(500)]
         public string? Description { get; set; }
 
+        /// <summary>
+        /// 店铺ID（外键）
+        /// </summary>
         public int StoreID { get; set; }
+
+        /// <summary>
+        /// 关联的店铺
+        /// </summary>
         [ForeignKey("StoreID")]
         public Store Store { get; set; } = null!;
 
-        // 一对多导航属性
-        // 优惠券
+        /// <summary>
+        /// 优惠券集合
+        /// </summary>
         public ICollection<Coupon>? Coupons { get; set; }
 
-        // 计算属性：优惠券状态
+        /// <summary>
+        /// 优惠券状态（计算属性）
+        /// </summary>
         [NotMapped]
         public string Status
         {
@@ -67,11 +109,15 @@ namespace BackEnd.Models
             }
         }
 
-        // 计算属性：是否过期
+        /// <summary>
+        /// 是否已过期（计算属性）
+        /// </summary>
         [NotMapped]
         public bool IsExpired => DateTime.Now > ValidTo;
 
-        // 计算属性：是否未开始
+        /// <summary>
+        /// 是否未开始（计算属性）
+        /// </summary>
         [NotMapped]
         public bool IsUpcoming => DateTime.Now < ValidFrom;
     }

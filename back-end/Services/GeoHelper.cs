@@ -1,12 +1,25 @@
-// 文件路径: back-end/Services/GeoHelper.cs
-using BackEnd.Services.Interfaces; // 引用接口
+using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Services
 {
-    public class GeoHelper : IGeoHelper // 实现接口
+    /// <summary>
+    /// 地理位置辅助服务
+    /// </summary>
+    public class GeoHelper : IGeoHelper
     {
+        /// <summary>
+        /// 地球半径（公里）
+        /// </summary>
         private const double EarthRadiusKm = 6371.0;
 
+        /// <summary>
+        /// 计算两点之间的距离
+        /// </summary>
+        /// <param name="lat1">第一个点的纬度</param>
+        /// <param name="lon1">第一个点的经度</param>
+        /// <param name="lat2">第二个点的纬度</param>
+        /// <param name="lon2">第二个点的经度</param>
+        /// <returns>两点之间的距离（公里）</returns>
         public double CalculateDistance(decimal lat1, decimal lon1, decimal lat2, decimal lon2)
         {
             var dLat = ToRadians((double)(lat2 - lat1));
@@ -20,9 +33,14 @@ namespace BackEnd.Services
             return EarthRadiusKm * c;
         }
 
+        /// <summary>
+        /// 将角度转换为弧度
+        /// </summary>
+        /// <param name="angle">角度</param>
+        /// <returns>弧度</returns>
         private static double ToRadians(double angle)
         {
-            return Math.PI * angle / 180.0;  
+            return Math.PI * angle / 180.0;
         }
     }
 }

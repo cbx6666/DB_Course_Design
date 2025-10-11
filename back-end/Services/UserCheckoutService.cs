@@ -1,4 +1,4 @@
-using BackEnd.Dtos.User;
+using BackEnd.DTOs.User;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
@@ -7,6 +7,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 用户结账服务
+    /// </summary>
     public class UserCheckoutService : IUserCheckoutService
     {
         private readonly IUserRepository _userRepository;
@@ -16,7 +19,22 @@ namespace BackEnd.Services
         private readonly IShoppingCartItemRepository _shoppingCartItemRepository;
         private readonly IDishRepository _dishRepository; // 用于获取菜品单价
 
-        public UserCheckoutService(IUserRepository userRepository, ICouponRepository couponRepository, IShoppingCartRepository shoppingCartRepository, ICustomerRepository customerRepository, IShoppingCartItemRepository shoppingCartItemRepository, IDishRepository dishRepository)
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="userRepository">用户仓储</param>
+        /// <param name="couponRepository">优惠券仓储</param>
+        /// <param name="shoppingCartRepository">购物车仓储</param>
+        /// <param name="customerRepository">客户仓储</param>
+        /// <param name="shoppingCartItemRepository">购物车项仓储</param>
+        /// <param name="dishRepository">菜品仓储</param>
+        public UserCheckoutService(
+            IUserRepository userRepository, 
+            ICouponRepository couponRepository, 
+            IShoppingCartRepository shoppingCartRepository, 
+            ICustomerRepository customerRepository, 
+            IShoppingCartItemRepository shoppingCartItemRepository, 
+            IDishRepository dishRepository)
         {
             _userRepository = userRepository;
             _couponRepository = couponRepository;
@@ -26,6 +44,11 @@ namespace BackEnd.Services
             _dishRepository = dishRepository;
         }
 
+        /// <summary>
+        /// 获取用户优惠券
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>用户优惠券列表</returns>
         public async Task<List<UserCouponDto>> GetUserCouponsAsync(int userId)
         {
             // 验证用户是否存在
@@ -57,6 +80,11 @@ namespace BackEnd.Services
             }).ToList();
         }
 
+        /// <summary>
+        /// 获取实际优惠券状态
+        /// </summary>
+        /// <param name="coupon">优惠券</param>
+        /// <returns>优惠券状态</returns>
         private CouponState GetActualCouponState(Coupon coupon)
         {
             // 如果优惠券已过期且未使用，返回过期状态
@@ -68,6 +96,12 @@ namespace BackEnd.Services
             return coupon.CouponState;
         }
 
+        /// <summary>
+        /// 获取购物车
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>购物车响应</returns>
         public async Task<CartResponseDto> GetShoppingCartAsync(int userId, int storeId)
         {
             // 验证用户是否存在
@@ -125,6 +159,11 @@ namespace BackEnd.Services
             };
         }
 
+        /// <summary>
+        /// 更新购物车项
+        /// </summary>
+        /// <param name="dto">更新购物车项请求</param>
+        /// <returns>任务</returns>
         public async Task UpdateCartItemAsync(UpdateCartItemDto dto)
         {
             // 1. 获取购物车
@@ -165,6 +204,11 @@ namespace BackEnd.Services
             await UpdateCartTotalPriceAsync(shoppingCart);
         }
 
+        /// <summary>
+        /// 移除购物车项
+        /// </summary>
+        /// <param name="dto">移除购物车项请求</param>
+        /// <returns>任务</returns>
         public async Task RemoveCartItemAsync(RemoveCartItemDto dto)
         {
             // 1. 获取购物车
@@ -190,6 +234,11 @@ namespace BackEnd.Services
             await UpdateCartTotalPriceAsync(shoppingCart);
         }
 
+        /// <summary>
+        /// 更新购物车总价
+        /// </summary>
+        /// <param name="cart">购物车</param>
+        /// <returns>任务</returns>
         private async Task UpdateCartTotalPriceAsync(ShoppingCart cart)
         {
             var cartItems = await _shoppingCartItemRepository.GetByCartIdAsync(cart.CartID);

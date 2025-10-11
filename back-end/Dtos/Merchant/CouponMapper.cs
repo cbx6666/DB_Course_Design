@@ -1,7 +1,7 @@
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 
-namespace BackEnd.Dtos.Merchant
+namespace BackEnd.DTOs.Merchant
 {
     /// <summary>
     /// 优惠券映射器 - 用于模型和DTO之间的转换
@@ -11,6 +11,8 @@ namespace BackEnd.Dtos.Merchant
         /// <summary>
         /// 将CouponManager模型转换为CouponDto
         /// </summary>
+        /// <param name="coupon">优惠券管理器模型</param>
+        /// <returns>优惠券DTO</returns>
         public static CouponDto ToDto(this CouponManager coupon)
         {
             return new CouponDto
@@ -32,13 +34,19 @@ namespace BackEnd.Dtos.Merchant
         /// <summary>
         /// 将CreateCouponRequestDto转换为CouponManager模型
         /// </summary>
+        /// <param name="dto">创建优惠券请求DTO</param>
+        /// <param name="sellerId">商家ID</param>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>优惠券管理器模型</returns>
         public static CouponManager ToModel(this CreateCouponRequestDto dto, int sellerId, int storeId)
         {
             var couponType = dto.type == "fixed" ? CouponType.Fixed : CouponType.Discount;
 
             return new CouponManager
             {
-                // CouponManagerID 将由数据库自动生成
+                /// <summary>
+                /// CouponManagerID 将由数据库自动生成
+                /// </summary>
                 CouponName = dto.name,
                 CouponType = couponType,
                 MinimumSpend = dto.minAmount ?? 0,
@@ -49,13 +57,18 @@ namespace BackEnd.Dtos.Merchant
                 ValidFrom = DateTime.Parse(dto.startTime),
                 ValidTo = DateTime.Parse(dto.endTime),
                 Description = dto.description,
-                StoreID = storeId,  // 使用传入的storeId参数
+                /// <summary>
+                /// 使用传入的storeId参数
+                /// </summary>
+                StoreID = storeId,
             };
         }
 
         /// <summary>
         /// 更新CouponManager模型
         /// </summary>
+        /// <param name="model">优惠券管理器模型</param>
+        /// <param name="dto">创建优惠券请求DTO</param>
         public static void UpdateModel(this CouponManager model, CreateCouponRequestDto dto)
         {
             var couponType = dto.type == "fixed" ? CouponType.Fixed : CouponType.Discount;
@@ -69,13 +82,17 @@ namespace BackEnd.Dtos.Merchant
             model.ValidFrom = DateTime.Parse(dto.startTime);
             model.ValidTo = DateTime.Parse(dto.endTime);
             model.Description = dto.description;
-            // 注意：更新时不改变店铺ID，保持原有的店铺关联
+            /// <summary>
+            /// 更新时不改变店铺ID，保持原有的店铺关联
+            /// </summary>
             // model.StoreID = dto.storeId;
         }
 
         /// <summary>
         /// 将优惠券列表转换为DTO列表
         /// </summary>
+        /// <param name="coupons">优惠券管理器模型列表</param>
+        /// <returns>优惠券DTO列表</returns>
         public static List<CouponDto> ToDtoList(this IEnumerable<CouponManager> coupons)
         {
             return coupons.Select(c => c.ToDto()).ToList();

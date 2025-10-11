@@ -1,4 +1,4 @@
-using BackEnd.Dtos.Merchant;
+using BackEnd.DTOs.Merchant;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
@@ -6,15 +6,27 @@ using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 商家服务
+    /// </summary>
     public class MerchantService : IMerchantService
     {
         private readonly IMerchantRepository _merchantRepository;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="merchantRepository">商家仓储</param>
         public MerchantService(IMerchantRepository merchantRepository)
         {
             _merchantRepository = merchantRepository;
         }
 
+        /// <summary>
+        /// 获取店铺概览
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>店铺概览</returns>
         public async Task<ShopOverviewResponseDto> GetShopOverviewAsync(int sellerId)
         {
             Console.WriteLine($"=== Service层: 获取店铺概览，商家ID: {sellerId} ===");
@@ -80,6 +92,11 @@ namespace BackEnd.Services
             return result;
         }
 
+        /// <summary>
+        /// 获取店铺信息
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>店铺信息</returns>
         public async Task<ShopInfoResponseDto?> GetShopInfoAsync(int sellerId)
         {
             Console.WriteLine($"=== Service层: 获取店铺信息，商家ID: {sellerId} ===");
@@ -87,28 +104,33 @@ namespace BackEnd.Services
             var store = await _merchantRepository.GetStoreBySellerIdAsync(sellerId);
             var seller = await _merchantRepository.GetSellerByIdAsync(sellerId);
 
-            Console.WriteLine($"店铺信息: StoreID={store.StoreID}, Name={store.StoreName}, Address={store.StoreAddress}");
-            Console.WriteLine($"商家信息: ReputationPoints={seller.ReputationPoints}");
+            Console.WriteLine($"店铺信息: StoreID={store?.StoreID}, Name={store?.StoreName}, Address={store?.StoreAddress}");
+            Console.WriteLine($"商家信息: ReputationPoints={seller?.ReputationPoints}");
 
-            Console.WriteLine($"OpenTime原始值: {store.OpenTime}");
-            Console.WriteLine($"CloseTime原始值: {store.CloseTime}");
+            Console.WriteLine($"OpenTime原始值: {store?.OpenTime}");
+            Console.WriteLine($"CloseTime原始值: {store?.CloseTime}");
 
             var result = new ShopInfoResponseDto
             {
-                Id = store.StoreID.ToString(),
-                Name = store.StoreName,
-                CreateTime = store.StoreCreationTime.ToString("yyyy-MM-dd HH:mm:ss"),
-                Address = store.StoreAddress,
-                StartTime = store.OpenTime.ToString(@"hh\:mm"),
-                EndTime = store.CloseTime.ToString(@"hh\:mm"),
-                Feature = store.StoreFeatures,
-                CreditScore = seller.ReputationPoints
+                Id = store?.StoreID.ToString() ?? "0",
+                Name = store?.StoreName ?? string.Empty,
+                CreateTime = store?.StoreCreationTime.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty,
+                Address = store?.StoreAddress ?? string.Empty,
+                StartTime = store?.OpenTime.ToString(@"hh\:mm") ?? string.Empty,
+                EndTime = store?.CloseTime.ToString(@"hh\:mm") ?? string.Empty,
+                Feature = store?.StoreFeatures ?? string.Empty,
+                CreditScore = seller?.ReputationPoints ?? 0
             };
 
             Console.WriteLine($"返回结果: {System.Text.Json.JsonSerializer.Serialize(result)}");
             return result;
         }
 
+        /// <summary>
+        /// 获取商家信息
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>商家信息</returns>
         public async Task<MerchantInfoResponseDto?> GetMerchantInfoAsync(int sellerId)
         {
             Console.WriteLine($"=== Service层: 获取商家信息，商家ID: {sellerId} ===");
@@ -126,6 +148,12 @@ namespace BackEnd.Services
             return result;
         }
 
+        /// <summary>
+        /// 切换营业状态
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <param name="request">切换营业状态请求</param>
+        /// <returns>响应结果</returns>
         public async Task<CommonResponseDto> ToggleBusinessStatusAsync(int sellerId, ToggleBusinessStatusRequestDto request)
         {
             try
@@ -181,6 +209,12 @@ namespace BackEnd.Services
             }
         }
 
+        /// <summary>
+        /// 更新店铺字段
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <param name="request">更新店铺字段请求</param>
+        /// <returns>响应结果</returns>
         public async Task<CommonResponseDto> UpdateShopFieldAsync(int sellerId, UpdateShopFieldRequestDto request)
         {
             try

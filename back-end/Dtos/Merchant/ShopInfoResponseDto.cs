@@ -1,15 +1,48 @@
-namespace BackEnd.Dtos.Merchant
+namespace BackEnd.DTOs.Merchant
 {
-    // 用于返回店铺详细信息
+    /// <summary>
+    /// 店铺详细信息数据传输对象
+    /// </summary>
     public class ShopInfoResponseDto
     {
-        public string Id { get; set; } = string.Empty;           // 店铺ID
-        public string Name { get; set; } = string.Empty;         // 店铺名称
-        public string CreateTime { get; set; } = string.Empty;   // 创建时间
-        public string Address { get; set; } = string.Empty;      // 店铺地址
-        public string StartTime { get; set; } = string.Empty;      // 营业开始时间
-        public string EndTime { get; set; } = string.Empty;     // 营业结束时间
-        public string Feature { get; set; } = string.Empty;      // 店铺特色
-        public int? CreditScore { get; set; }                    // 信誉积分
+        /// <summary>
+        /// 店铺ID
+        /// </summary>
+        public string Id { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 店铺名称
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 创建时间（yyyy-MM-dd HH:mm:ss）
+        /// </summary>
+        public string CreateTime { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 店铺地址
+        /// </summary>
+        public string Address { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 营业开始时间（HH:mm）
+        /// </summary>
+        public string StartTime { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 营业结束时间（HH:mm）
+        /// </summary>
+        public string EndTime { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 店铺特色
+        /// </summary>
+        public string Feature { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 信誉积分
+        /// </summary>
+        public int? CreditScore { get; set; }
     }
 }

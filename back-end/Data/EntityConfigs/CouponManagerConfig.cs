@@ -4,44 +4,66 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace BackEnd.Data.EntityConfigs
 {
+    /// <summary>
+    /// 优惠券管理实体配置
+    /// </summary>
     public class CouponManagerConfig : IEntityTypeConfiguration<CouponManager>
     {
+        /// <summary>
+        /// 配置优惠券管理实体
+        /// </summary>
+        /// <param name="builder">实体类型构建器</param>
         public void Configure(EntityTypeBuilder<CouponManager> builder)
         {
             builder.ToTable("COUPON_MANAGERS");
 
+            // 主键配置
             builder.HasKey(cm => cm.CouponManagerID);
-
             builder.Property(cm => cm.CouponManagerID)
-                   .HasColumnName("COUPONMANAGERID")
-                   .ValueGeneratedOnAdd();
+                .HasColumnName("COUPONMANAGERID")
+                .ValueGeneratedOnAdd();
 
-            // 基本字段配置 - 根据数据库表结构配置
-            // 必填字段（NOT NULL）
-            builder.Property(cm => cm.MinimumSpend).HasColumnName("MINIMUMSPEND").IsRequired().HasColumnType("decimal(10,2)");
-            builder.Property(cm => cm.DiscountAmount).HasColumnName("DISCOUNTAMOUNT").IsRequired().HasColumnType("decimal(10,2)");
+            // 必填字段配置
+            builder.Property(cm => cm.MinimumSpend)
+                .HasColumnName("MINIMUMSPEND")
+                .IsRequired()
+                .HasColumnType("decimal(10,2)");
+            builder.Property(cm => cm.DiscountAmount)
+                .HasColumnName("DISCOUNTAMOUNT")
+                .IsRequired()
+                .HasColumnType("decimal(10,2)");
             builder.Property(cm => cm.ValidFrom).HasColumnName("VALIDFROM").IsRequired();
             builder.Property(cm => cm.ValidTo).HasColumnName("VALIDTO").IsRequired();
             builder.Property(cm => cm.StoreID).HasColumnName("STOREID").IsRequired();
 
-            // 可空字段（NULLABLE）
+            // 可空字段配置
             builder.Property(cm => cm.CouponName).HasColumnName("COUPONNAME").HasMaxLength(100);
-            builder.Property(cm => cm.CouponType).HasColumnName("COUPONTYPE").HasConversion<string>().HasMaxLength(100);
-            builder.Property(cm => cm.DiscountRate).HasColumnName("DISCOUNTRATE").HasColumnType("decimal(3,2)");
+            builder.Property(cm => cm.CouponType)
+                .HasColumnName("COUPONTYPE")
+                .HasConversion<string>()
+                .HasMaxLength(100);
+            builder.Property(cm => cm.DiscountRate)
+                .HasColumnName("DISCOUNTRATE")
+                .HasColumnType("decimal(3,2)");
             builder.Property(cm => cm.TotalQuantity).HasColumnName("TOTALQUANTITY");
             builder.Property(cm => cm.UsedQuantity).HasColumnName("USEDQUANTITY");
             builder.Property(cm => cm.Description).HasColumnName("DESCRIPTION").HasMaxLength(500);
 
-            // ---------------------------------------------------------------
-            // 配置外键关系
-            // ---------------------------------------------------------------
+            // 关系配置
+            ConfigureRelationships(builder);
+        }
 
-            // 关系一: CouponManager -> Store (多对一)
-            // 优惠券模板可以关联到特定商店
+        /// <summary>
+        /// 配置实体关系
+        /// </summary>
+        /// <param name="builder">实体类型构建器</param>
+        private static void ConfigureRelationships(EntityTypeBuilder<CouponManager> builder)
+        {
+            // 配置与Store的多对一关系
             builder.HasOne(cm => cm.Store)
-                   .WithMany(s => s.CouponManagers)
-                   .HasForeignKey(cm => cm.StoreID)
-                   .OnDelete(DeleteBehavior.Cascade);
+                .WithMany(s => s.CouponManagers)
+                .HasForeignKey(cm => cm.StoreID)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

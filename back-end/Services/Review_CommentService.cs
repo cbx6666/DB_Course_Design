@@ -1,19 +1,31 @@
-using BackEnd.Dtos.Comment;
+using BackEnd.DTOs.Comment;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 评论审核服务
+    /// </summary>
     public class Review_CommentService : IReview_CommentService
     {
         private readonly IAdministratorRepository _administratorRepository;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="administratorRepository">管理员仓储</param>
         public Review_CommentService(IAdministratorRepository administratorRepository)
         {
             _administratorRepository = administratorRepository;
         }
 
+        /// <summary>
+        /// 获取管理员处理的评论列表
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>评论信息列表</returns>
         public async Task<IEnumerable<GetCommentInfo>> GetCommentsForAdminAsync(int adminId)
         {
             var commentsFromDb = await _administratorRepository.GetReviewCommentsByAdminIdAsync(adminId);
@@ -38,6 +50,11 @@ namespace BackEnd.Services
             return commentDtos;
         }
 
+        /// <summary>
+        /// 更新评论状态
+        /// </summary>
+        /// <param name="request">设置评论信息请求</param>
+        /// <returns>更新结果</returns>
         public async Task<SetCommentInfoResponse> UpdateCommentAsync(SetCommentInfo request)
         {
             try
@@ -138,6 +155,11 @@ namespace BackEnd.Services
             }
         }
 
+        /// <summary>
+        /// 获取评论类型字符串
+        /// </summary>
+        /// <param name="commentType">评论类型</param>
+        /// <returns>评论类型字符串</returns>
         private string GetCommentTypeString(CommentType commentType)
         {
             return commentType switch
@@ -149,6 +171,11 @@ namespace BackEnd.Services
             };
         }
 
+        /// <summary>
+        /// 获取评论状态字符串
+        /// </summary>
+        /// <param name="commentState">评论状态</param>
+        /// <returns>评论状态字符串</returns>
         private string GetCommentStatusString(CommentState commentState)
         {
             return commentState switch

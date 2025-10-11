@@ -1,5 +1,5 @@
 using BackEnd.Data;
-using BackEnd.Dtos.AuthRequest;
+using BackEnd.DTOs.AuthRequest;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
@@ -7,12 +7,21 @@ using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 注册服务
+    /// </summary>
     public class RegisterService : IRegisterService
     {
         private readonly IUserRepository _userRepo;
         private readonly IStoreRepository _storeRepo;
         private readonly AppDbContext _context;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="userRepo">用户仓储</param>
+        /// <param name="storeRepo">店铺仓储</param>
+        /// <param name="context">数据库上下文</param>
         public RegisterService(IUserRepository userRepo, IStoreRepository storeRepo, AppDbContext context)
         {
             _userRepo = userRepo;
@@ -20,7 +29,11 @@ namespace BackEnd.Services
             _context = context;
         }
 
-        // 根据请求创建用户
+        /// <summary>
+        /// 用户注册
+        /// </summary>
+        /// <param name="req">注册请求</param>
+        /// <returns>注册结果</returns>
         public async Task<RegisterResult> RegisterAsync(RegisterRequest req)
         {
             // 密码验证
@@ -37,7 +50,6 @@ namespace BackEnd.Services
                 privacyLevel = (ProfilePrivacyLevel)req.IsPublic;
             else
                 return Fail("无效的隐私设置", 400);
-
 
             // 构建用户实体
             var user = new User
@@ -149,7 +161,11 @@ namespace BackEnd.Services
             }
         }
 
-        // 字符串角色映射方法
+        /// <summary>
+        /// 字符串角色映射方法
+        /// </summary>
+        /// <param name="roleStr">角色字符串</param>
+        /// <returns>用户身份</returns>
         private UserIdentity MapStringToRole(string roleStr)
         {
             switch (roleStr.ToLower())
@@ -167,14 +183,23 @@ namespace BackEnd.Services
             }
         }
 
-        // 密码加密
+        /// <summary>
+        /// 密码加密
+        /// </summary>
+        /// <param name="password">密码</param>
+        /// <returns>加密后的密码</returns>
         private string HashPassword(string password)
         {
             // BCrypt会自动生成盐值，工作因子12是安全的
             return BCrypt.Net.BCrypt.HashPassword(password, 12);
         }
 
-        // 注册店铺
+        /// <summary>
+        /// 注册店铺
+        /// </summary>
+        /// <param name="storeInfo">店铺信息</param>
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>任务</returns>
         private async Task CreateStoreAsync(StoreInfoDto storeInfo, int sellerId)
         {
             // 解析时间
@@ -203,7 +228,12 @@ namespace BackEnd.Services
             await _storeRepo.AddAsync(store);
         }
 
-        // 表示注册失败
+        /// <summary>
+        /// 表示注册失败
+        /// </summary>
+        /// <param name="message">错误消息</param>
+        /// <param name="code">错误代码</param>
+        /// <returns>注册结果</returns>
         private RegisterResult Fail(string message, int code = 400)
         {
             return new RegisterResult

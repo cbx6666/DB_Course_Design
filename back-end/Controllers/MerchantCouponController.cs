@@ -1,4 +1,4 @@
-using BackEnd.Dtos.Merchant;
+using BackEnd.DTOs.Merchant;
 using BackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
@@ -18,6 +18,11 @@ namespace BackEnd.Controllers
         private readonly ICouponService _couponService;
         private readonly ILogger<MerchantCouponController> _logger;
 
+        /// <summary>
+        /// 初始化商家优惠券管理控制器
+        /// </summary>
+        /// <param name="couponService">优惠券服务</param>
+        /// <param name="logger">日志记录器</param>
         public MerchantCouponController(ICouponService couponService, ILogger<MerchantCouponController> logger)
         {
             _couponService = couponService;
@@ -25,31 +30,31 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
-        /// 临时方法：获取当前商家ID（默认值）
-        /// TODO: 等登录系统完成后，从用户会话中获取商家ID
+        /// 获取当前商家ID
         /// </summary>
+        /// <returns>商家ID</returns>
         private int GetCurrentSellerId()
         {
             var sellerIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
             if (!int.TryParse(sellerIdString, out int sellerId))
             {
-                return -1;
+                throw new UnauthorizedAccessException("无效的Token，无法获取商家ID");
             }
-
             return sellerId;
         }
 
         /// <summary>
         /// 获取详细的错误信息
         /// </summary>
-        private string GetDetailedErrorMessage(Exception ex)
+        /// <param name="ex">异常对象</param>
+        /// <returns>详细错误信息</returns>
+        private static string GetDetailedErrorMessage(Exception ex)
         {
-            var errorDetails = new List<string>();
-
-            // 添加主要错误信息
-            errorDetails.Add($"错误类型: {ex.GetType().Name}");
-            errorDetails.Add($"错误消息: {ex.Message}");
+            var errorDetails = new List<string>
+            {
+                $"错误类型: {ex.GetType().Name}",
+                $"错误消息: {ex.Message}"
+            };
 
             // 处理Entity Framework相关错误
             if (ex is Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
@@ -66,24 +71,15 @@ namespace BackEnd.Controllers
                     errorDetails.Add($"- 错误消息: {oracleEx.Message}");
 
                     // 根据错误代码提供具体说明
-                    switch (oracleEx.Number)
+                    var errorDescription = oracleEx.Number switch
                     {
-                        case 50032:
-                            errorDetails.Add("- 说明: 列包含NULL数据，可能是必填字段未提供值");
-                            break;
-                        case 1400:
-                            errorDetails.Add("- 说明: 必填字段不能为NULL");
-                            break;
-                        case 2291:
-                            errorDetails.Add("- 说明: 外键约束违反，引用的记录不存在");
-                            break;
-                        case 1:
-                            errorDetails.Add("- 说明: 唯一约束违反，数据重复");
-                            break;
-                        default:
-                            errorDetails.Add($"- 说明: Oracle错误代码 {oracleEx.Number}");
-                            break;
-                    }
+                        50032 => "列包含NULL数据，可能是必填字段未提供值",
+                        1400 => "必填字段不能为NULL",
+                        2291 => "外键约束违反，引用的记录不存在",
+                        1 => "唯一约束违反，数据重复",
+                        _ => $"Oracle错误代码 {oracleEx.Number}"
+                    };
+                    errorDetails.Add($"- 说明: {errorDescription}");
                 }
             }
 
@@ -111,8 +107,8 @@ namespace BackEnd.Controllers
 
         /// <summary>
         /// 数据库健康检查
-        /// GET /api/merchant/health
         /// </summary>
+        /// <returns>健康检查结果</returns>
         [HttpGet("health")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
@@ -121,22 +117,11 @@ namespace BackEnd.Controllers
             try
             {
                 var isHealthy = await _couponService.CheckDatabaseHealthAsync();
-                if (isHealthy)
+                return Ok(new ApiResponse<object>
                 {
-                    return Ok(new ApiResponse<object>
-                    {
-                        code = 200,
-                        message = "数据库连接正常"
-                    });
-                }
-                else
-                {
-                    return StatusCode(503, new ApiResponse<object>
-                    {
-                        code = 503,
-                        message = "数据库连接异常，可能磁盘空间不足"
-                    });
-                }
+                    code = 200,
+                    message = isHealthy ? "数据库连接正常" : "数据库连接异常，可能磁盘空间不足"
+                });
             }
             catch (Exception ex)
             {
@@ -151,8 +136,10 @@ namespace BackEnd.Controllers
 
         /// <summary>
         /// 获取优惠券列表（分页）
-        /// GET /api/merchant/coupons
         /// </summary>
+        /// <param name="page">页码</param>
+        /// <param name="pageSize">页大小</param>
+        /// <returns>优惠券列表</returns>
         [HttpGet("coupons")]
         [ProducesResponseType(typeof(ApiResponse<CouponListResponseDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -197,8 +184,8 @@ namespace BackEnd.Controllers
 
         /// <summary>
         /// 获取优惠券统计信息
-        /// GET /api/merchant/coupons/stats
         /// </summary>
+        /// <returns>统计信息</returns>
         [HttpGet("coupons/stats")]
         [ProducesResponseType(typeof(ApiResponse<CouponStatsDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -231,8 +218,9 @@ namespace BackEnd.Controllers
 
         /// <summary>
         /// 创建优惠券
-        /// POST /api/merchant/coupons
         /// </summary>
+        /// <param name="request">创建优惠券请求</param>
+        /// <returns>创建结果</returns>
         [HttpPost("coupons")]
         [ProducesResponseType(typeof(ApiResponse<CreateCouponResponseDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -275,8 +263,6 @@ namespace BackEnd.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "创建优惠券失败");
-
-                // 提供详细的错误信息
                 var errorMessage = GetDetailedErrorMessage(ex);
 
                 return StatusCode(500, new ApiResponse<CreateCouponResponseDto>
@@ -290,15 +276,15 @@ namespace BackEnd.Controllers
 
         /// <summary>
         /// 测试更新优惠券端点
-        /// PUT /api/merchant/coupons/test
         /// </summary>
+        /// <param name="request">测试请求</param>
+        /// <returns>测试结果</returns>
         [HttpPut("coupons/test")]
         public ActionResult<ApiResponse<object>> TestUpdateCoupon([FromBody] CreateCouponRequestDto request)
         {
             _logger.LogInformation("测试更新优惠券请求");
             _logger.LogInformation("请求数据: {RequestData}", System.Text.Json.JsonSerializer.Serialize(request));
 
-            // 检查ModelState
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
@@ -322,8 +308,10 @@ namespace BackEnd.Controllers
 
         /// <summary>
         /// 更新优惠券
-        /// PUT /api/merchant/coupons/{id}
         /// </summary>
+        /// <param name="id">优惠券ID</param>
+        /// <param name="request">更新请求</param>
+        /// <returns>更新结果</returns>
         [HttpPut("coupons/{id}")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -391,8 +379,6 @@ namespace BackEnd.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "更新优惠券失败 - ID: {Id}", id);
-
-                // 提供详细的错误信息
                 var errorMessage = GetDetailedErrorMessage(ex);
 
                 return StatusCode(500, new ApiResponse<object>
@@ -405,8 +391,9 @@ namespace BackEnd.Controllers
 
         /// <summary>
         /// 删除优惠券
-        /// DELETE /api/merchant/coupons/{id}
         /// </summary>
+        /// <param name="id">优惠券ID</param>
+        /// <returns>删除结果</returns>
         [HttpDelete("coupons/{id}")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -448,8 +435,9 @@ namespace BackEnd.Controllers
 
         /// <summary>
         /// 批量删除优惠券
-        /// DELETE /api/merchant/coupons/batch
         /// </summary>
+        /// <param name="request">批量删除请求</param>
+        /// <returns>删除结果</returns>
         [HttpDelete("coupons/batch")]
         [ProducesResponseType(typeof(ApiResponse<BatchDeleteResponseDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -504,10 +492,22 @@ namespace BackEnd.Controllers
     /// <summary>
     /// 统一API响应格式
     /// </summary>
+    /// <typeparam name="T">数据类型</typeparam>
     public class ApiResponse<T>
     {
+        /// <summary>
+        /// 响应代码
+        /// </summary>
         public int code { get; set; }
+
+        /// <summary>
+        /// 响应消息
+        /// </summary>
         public string message { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 响应数据
+        /// </summary>
         public T? data { get; set; }
     }
 }

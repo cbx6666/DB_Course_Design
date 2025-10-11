@@ -1,18 +1,31 @@
-using BackEnd.Dtos.Penalty;
+using BackEnd.DTOs.Penalty;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 处罚服务
+    /// </summary>
     public class PenaltyService : IPenaltyService
     {
         private readonly IStoreViolationPenaltyRepository _penaltyRepository;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="penaltyRepository">处罚仓储</param>
         public PenaltyService(IStoreViolationPenaltyRepository penaltyRepository)
         {
             _penaltyRepository = penaltyRepository;
         }
 
+        /// <summary>
+        /// 获取处罚记录
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <param name="keyword">关键词</param>
+        /// <returns>处罚记录列表</returns>
         public async Task<List<PenaltyRecordDto>> GetPenaltiesAsync(int sellerId, string? keyword)
         {
             var penalties = await _penaltyRepository.GetBySellerIdAsync(sellerId);
@@ -35,6 +48,11 @@ namespace BackEnd.Services
             }).ToList();
         }
 
+        /// <summary>
+        /// 根据ID获取处罚记录
+        /// </summary>
+        /// <param name="id">处罚ID</param>
+        /// <returns>处罚记录</returns>
         public async Task<PenaltyRecordDto?> GetPenaltyByIdAsync(string id)
         {
             // 从ID中提取数字部分
@@ -59,6 +77,12 @@ namespace BackEnd.Services
             };
         }
 
+        /// <summary>
+        /// 申诉处罚
+        /// </summary>
+        /// <param name="id">处罚ID</param>
+        /// <param name="appealDto">申诉请求</param>
+        /// <returns>申诉响应</returns>
         public async Task<AppealResponseDto?> AppealPenaltyAsync(string id, AppealDto appealDto)
         {
             // 从ID中提取数字部分

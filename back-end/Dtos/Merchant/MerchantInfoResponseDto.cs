@@ -1,9 +1,18 @@
-namespace BackEnd.Dtos.Merchant
+namespace BackEnd.DTOs.Merchant
 {
-    // 用于返回商家信息
+    /// <summary>
+    /// 商家信息数据传输对象
+    /// </summary>
     public class MerchantInfoResponseDto
     {
-        public string Username { get; set; } = string.Empty;  // 商家用户名
+        /// <summary>
+        /// 商家用户名
+        /// </summary>
+        public string Username { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 商家用户ID
+        /// </summary>
         public int SellerId { get; set; }
     }
 }

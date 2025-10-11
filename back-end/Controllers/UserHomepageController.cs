@@ -1,151 +1,126 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using BackEnd.Services.Interfaces;
-using BackEnd.Dtos.User;
+using BackEnd.DTOs.User;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace BackEnd.Controllers
 {
+    /// <summary>
+    /// 用户首页管理控制器
+    /// </summary>
     [ApiController]
     [Route("api/user/home")]
+    [Authorize]
     public class UserHomepageController : ControllerBase
     {
         private readonly IUserHomepageService _userHomepageService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<UserHomepageController> _logger;
 
-        public UserHomepageController(IUserHomepageService userHomepageService)
+        public UserHomepageController(IUserHomepageService userHomepageService, IHttpContextAccessor httpContextAccessor, ILogger<UserHomepageController> logger)
         {
             _userHomepageService = userHomepageService;
+            _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         /// <summary>
         /// 获取推荐商家
-        /// GET: /api/user/home/recommend
         /// </summary>
+        /// <returns>推荐商家列表</returns>
         [HttpGet("recommend")]
         public async Task<IActionResult> GetRecommendedStores()
         {
             var result = await _userHomepageService.GetRecommendedStoresAsync();
-            if (result == null)
-            {
-                return NotFound(new
-                {
-                    code = 404,
-                    message = "There's No Recommend Store For User.",
-                });
-            }
-            return Ok(result);
+            return result == null ? NotFound(new { code = 404, message = "There's No Recommend Store For User." }) : Ok(result);
         }
 
         /// <summary>
         /// 搜索商家和菜品
-        /// GET: /api/user/home/search
         /// </summary>
+        /// <param name="searchDto">搜索条件</param>
+        /// <returns>搜索结果</returns>
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] HomeSearchDto searchDto)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new
-                {
-                    code = 400,
-                    message = "Invalid request",
-                });
+                return BadRequest(new { code = 400, message = "Invalid request" });
             }
 
             var (stores, dishes) = await _userHomepageService.SearchAsync(searchDto);
 
             if (stores == null && dishes == null)
             {
-                return NotFound(new
-                {
-                    code = 404,
-                    message = "There's No Search results.",
-                });
+                return NotFound(new { code = 404, message = "There's No Search results." });
             }
 
-            // 合并商家和菜品到一个数组
             var searchStores = new List<object>();
-            if (stores != null && stores.Any()) searchStores.AddRange(stores);
-            if (dishes != null && dishes.Any()) searchStores.AddRange(dishes);
+            if (stores?.Any() == true) searchStores.AddRange(stores);
+            if (dishes?.Any() == true) searchStores.AddRange(dishes);
 
-            // 返回对象里包含 searchStores 属性
-            return Ok(new
-            {
-                searchStores
-            });
+            return Ok(new { searchStores });
         }
-        // 输入：用户id
-        // 输出：用户的历史订单
-        // GET: /api/user/home/orders`
+
+        /// <summary>
+        /// 获取用户历史订单
+        /// </summary>
+        /// <returns>历史订单列表</returns>
         [HttpGet("orders")]
-        public async Task<IActionResult> GetOrderHistory([FromQuery] UserIdDto userIdDto)
+        public async Task<IActionResult> GetOrderHistory()
         {
-            if (!ModelState.IsValid)
+            var userId = GetUserIdFromToken();
+            if (userId == null)
             {
-                return BadRequest(ModelState);
+                return Unauthorized("无效的Token");
             }
 
-            var orderHistory = await _userHomepageService.GetOrderHistoryAsync(userIdDto.UserId);
-
-            if (orderHistory == null)
-            {
-                return NotFound(new
-                {
-                    code = 404,
-                    message = "There's No OrderHistory For User.",
-                });
-            }
-
-            return Ok(orderHistory);
+            var orderHistory = await _userHomepageService.GetOrderHistoryAsync(userId.Value);
+            return orderHistory == null ? NotFound(new { code = 404, message = "There's No OrderHistory For User." }) : Ok(orderHistory);
         }
-        // 新增的用户信息接口
+
         /// <summary>
         /// 获取用户信息
-        /// GET: /api/user/home/userInfo
         /// </summary>
-        [HttpPost("userInfo")]
-        public async Task<IActionResult> GetUserInfo([FromBody] UserIdDto userIdDto)
+        /// <returns>用户信息</returns>
+        [HttpGet("userInfo")]
+        public async Task<IActionResult> GetUserInfo()
         {
-            if (!ModelState.IsValid)
+            var userId = GetUserIdFromToken();
+            if (userId == null)
             {
-                return BadRequest(new { code = 400, message = "Invalid request format" });
+                return Unauthorized("无效的Token");
             }
 
-            var userInfo = await _userHomepageService.GetUserInfoAsync(userIdDto.UserId);
-
-            if (userInfo == null)
-            {
-                return NotFound(new { code = 404, message = "User not found" });
-            }
-
-            return Ok(userInfo);
+            var userInfo = await _userHomepageService.GetUserInfoAsync(userId.Value);
+            return userInfo == null ? NotFound(new { code = 404, message = "User not found" }) : Ok(userInfo);
         }
 
+        /// <summary>
+        /// 获取用户优惠券信息
+        /// </summary>
+        /// <returns>优惠券列表</returns>
         [HttpGet("couponInfo")]
-        public async Task<IActionResult> GetUserCoupons([FromQuery] UserIdDto userIdDto)
+        public async Task<IActionResult> GetUserCoupons()
         {
-            if (!ModelState.IsValid)
+            var userId = GetUserIdFromToken();
+            if (userId == null)
             {
-                return BadRequest(new
-                {
-                    code = 400,
-                    message = "Invalid request",
-                });
+                return Unauthorized("无效的Token");
             }
 
+            var userIdDto = new UserIdDto { UserId = userId.Value };
             var coupons = await _userHomepageService.GetUserCouponsAsync(userIdDto);
 
-            if (coupons == null || !coupons.Any())
-            {
-                return NotFound(new
-                {
-                    code = 404,
-                    message = "There's No Coupon For User.",
-                });
-            }
-            return Ok(coupons);
+            return coupons?.Any() != true ? NotFound(new { code = 404, message = "There's No Coupon For User." }) : Ok(coupons);
         }
+
+        /// <summary>
+        /// 获取所有商家
+        /// </summary>
+        /// <returns>商家列表</returns>
         [HttpGet("stores")]
         public async Task<ActionResult<StoresResponseDto>> GetAllStores()
         {
@@ -156,10 +131,19 @@ namespace BackEnd.Controllers
             }
             catch (Exception ex)
             {
-                // 记录异常日志
+                _logger.LogError(ex, "获取商店信息时发生错误");
                 return StatusCode(500, "获取商店信息时发生错误");
             }
         }
 
+        /// <summary>
+        /// 从Token中获取用户ID
+        /// </summary>
+        /// <returns>用户ID，如果无效则返回null</returns>
+        private int? GetUserIdFromToken()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(userIdString, out int userId) ? userId : null;
+        }
     }
 }

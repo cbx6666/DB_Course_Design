@@ -4,38 +4,47 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace BackEnd.Data.EntityConfigs
 {
+    /// <summary>
+    /// 监督实体配置
+    /// </summary>
     public class Supervise_Config : IEntityTypeConfiguration<Supervise_>
     {
+        /// <summary>
+        /// 配置监督实体
+        /// </summary>
+        /// <param name="builder">实体类型构建器</param>
         public void Configure(EntityTypeBuilder<Supervise_> builder)
         {
             builder.ToTable("SUPERVISE_");
 
-            // --- 主键配置：复合主键 ---
-            // Supervise_ 表使用 AdminID 和 PenaltyID 共同构成一个唯一的复合主键。
-            // 这确保了同一个管理员不能重复关联到同一个处罚记录。
+            // 复合主键配置
             builder.HasKey(s => new { s.AdminID, s.PenaltyID });
 
-            // --- 属性配置 ---
+            // 属性配置
             builder.Property(s => s.AdminID).HasColumnName("ADMINID");
             builder.Property(s => s.PenaltyID).HasColumnName("PENALTYID");
 
-            // ---------------------------------------------------------------
             // 关系配置
-            // ---------------------------------------------------------------
+            ConfigureRelationships(builder);
+        }
 
-            // 关系一: Supervise_ -> Administrator (多对一)
-            // 多个监督记录可以指向同一个管理员。
+        /// <summary>
+        /// 配置实体关系
+        /// </summary>
+        /// <param name="builder">实体类型构建器</param>
+        private static void ConfigureRelationships(EntityTypeBuilder<Supervise_> builder)
+        {
+            // 配置与Administrator的多对一关系
             builder.HasOne(s => s.Admin)
-                   .WithMany(a => a.Supervise_s) // 在 Administrator 模型中，反向导航属性名为 Supervise_s
-                   .HasForeignKey(s => s.AdminID)
-                   .OnDelete(DeleteBehavior.Cascade); // 关键：当管理员被删除时，其所有监督记录也应被级联删除。
+                .WithMany(a => a.Supervise_s)
+                .HasForeignKey(s => s.AdminID)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // 关系二: Supervise_ -> StoreViolationPenalty (多对一)
-            // 多个监督记录可以指向同一个处罚记录。
+            // 配置与StoreViolationPenalty的多对一关系
             builder.HasOne(s => s.Penalty)
-                   .WithMany(svp => svp.Supervise_s) // 在 StoreViolationPenalty 模型中，反向导航属性名为 Supervises
-                   .HasForeignKey(s => s.PenaltyID)
-                   .OnDelete(DeleteBehavior.Cascade); // 关键：当处罚记录被删除时，其所有监督记录也应被级联删除。
+                .WithMany(svp => svp.Supervise_s)
+                .HasForeignKey(s => s.PenaltyID)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

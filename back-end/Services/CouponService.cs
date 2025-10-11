@@ -1,4 +1,4 @@
-using BackEnd.Dtos.Merchant;
+using BackEnd.DTOs.Merchant;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
 using BackEnd.Models;
@@ -15,6 +15,12 @@ namespace BackEnd.Services
         private readonly IStoreRepository _storeRepository;
         private readonly ILogger<CouponService> _logger;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="couponRepository">优惠券仓储</param>
+        /// <param name="storeRepository">店铺仓储</param>
+        /// <param name="logger">日志记录器</param>
         public CouponService(ICouponManagerRepository couponRepository, IStoreRepository storeRepository, ILogger<CouponService> logger)
         {
             _couponRepository = couponRepository;
@@ -25,6 +31,10 @@ namespace BackEnd.Services
         /// <summary>
         /// 获取优惠券列表（分页）
         /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <param name="page">页码</param>
+        /// <param name="pageSize">每页数量</param>
+        /// <returns>优惠券列表</returns>
         public async Task<CouponListResponseDto> GetCouponsAsync(int sellerId, int page, int pageSize)
         {
             try
@@ -57,6 +67,8 @@ namespace BackEnd.Services
         /// <summary>
         /// 获取优惠券统计信息
         /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>统计信息</returns>
         public async Task<CouponStatsDto> GetStatsAsync(int sellerId)
         {
             try
@@ -93,6 +105,9 @@ namespace BackEnd.Services
         /// <summary>
         /// 创建优惠券
         /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <param name="request">创建请求</param>
+        /// <returns>创建结果</returns>
         public async Task<CreateCouponResponseDto> CreateCouponAsync(int sellerId, CreateCouponRequestDto request)
         {
             try
@@ -106,10 +121,8 @@ namespace BackEnd.Services
                 var storeId = await GetDefaultStoreIdForSeller(sellerId);
                 _logger.LogInformation("商家 {SellerId} 的店铺ID: {StoreId}", sellerId, storeId);
 
-                // 创建优惠券模型（使用自动获取的storeId）
+                // 创建优惠券模型
                 var coupon = request.ToModel(sellerId, storeId);
-
-                // 主键将由Oracle Identity列自动生成，不需要手动设置
 
                 // 保存到数据库
                 await _couponRepository.AddAsync(coupon);
@@ -141,6 +154,9 @@ namespace BackEnd.Services
         /// <summary>
         /// 更新优惠券
         /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <param name="request">更新请求</param>
+        /// <returns>更新任务</returns>
         public async Task UpdateCouponAsync(int sellerId, UpdateCouponRequestDto request)
         {
             try
@@ -180,6 +196,9 @@ namespace BackEnd.Services
         /// <summary>
         /// 删除优惠券
         /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <param name="couponId">优惠券ID</param>
+        /// <returns>删除任务</returns>
         public async Task DeleteCouponAsync(int sellerId, int couponId)
         {
             try
@@ -215,6 +234,9 @@ namespace BackEnd.Services
         /// <summary>
         /// 批量删除优惠券
         /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <param name="request">批量删除请求</param>
+        /// <returns>批量删除结果</returns>
         public async Task<BatchDeleteResponseDto> BatchDeleteCouponsAsync(int sellerId, BatchDeleteCouponsRequestDto request)
         {
             try
@@ -253,6 +275,7 @@ namespace BackEnd.Services
         /// <summary>
         /// 检查数据库连接状态
         /// </summary>
+        /// <returns>数据库健康状态</returns>
         public async Task<bool> CheckDatabaseHealthAsync()
         {
             try
@@ -278,9 +301,10 @@ namespace BackEnd.Services
         /// <summary>
         /// 获取商家默认店铺ID
         /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>店铺ID</returns>
         private async Task<int> GetDefaultStoreIdForSeller(int sellerId)
         {
-            // 通过商家ID查找店铺ID
             int? storeIdNullable = await _storeRepository.GetStoreIdBySellerIdAsync(sellerId);
             if (!storeIdNullable.HasValue)
             {
@@ -294,6 +318,7 @@ namespace BackEnd.Services
         /// <summary>
         /// 验证优惠券请求数据
         /// </summary>
+        /// <param name="request">创建优惠券请求</param>
         private void ValidateCouponRequest(CreateCouponRequestDto request)
         {
             if (string.IsNullOrWhiteSpace(request.name))
@@ -323,6 +348,5 @@ namespace BackEnd.Services
             if (endTime <= startTime)
                 throw new ArgumentException("结束时间必须晚于开始时间");
         }
-
     }
 }

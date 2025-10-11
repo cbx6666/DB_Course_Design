@@ -1,10 +1,13 @@
-using BackEnd.Dtos.User;
+using BackEnd.DTOs.User;
 using BackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
 namespace BackEnd.Controllers
 {
+    /// <summary>
+    /// 用户调试功能控制器
+    /// </summary>
     [ApiController]
     [Route("api")]
     [Produces("application/json")]
@@ -12,16 +15,20 @@ namespace BackEnd.Controllers
     {
         private readonly IUserDebugService _userDebugService;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="userDebugService">用户调试服务</param>
         public UserDebugController(IUserDebugService userDebugService)
         {
             _userDebugService = userDebugService;
         }
 
         /// <summary>
-        /// 用户简介接口
-        /// 根据用户ID获取个人信息（昵称、电话、头像、默认地址）
+        /// 获取用户基本信息
         /// </summary>
         /// <param name="userId">用户ID</param>
+        /// <returns>用户基本信息</returns>
         [HttpGet("user/home/userinfo")]
         [ProducesResponseType(typeof(UserInfoResponseDto), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -32,10 +39,10 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
-        /// 提交订单接口
-        /// 提交购物车生成订单，并记录支付时间、用户信息及店铺信息
+        /// 提交订单
         /// </summary>
         /// <param name="dto">订单提交信息</param>
+        /// <returns>提交结果</returns>
         [HttpPost("store/checkout")]
         [Consumes("application/json")]
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
@@ -47,10 +54,10 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
-        /// 获取用户ID接口
-        /// 根据手机号或邮箱获取对应的用户ID
+        /// 根据手机号或邮箱获取用户ID
         /// </summary>
         /// <param name="dto">包含手机号或邮箱的请求对象</param>
+        /// <returns>用户ID信息</returns>
         [HttpPost("getid")]
         [Consumes("application/json")]
         [ProducesResponseType(typeof(GetUserIdResponseDto), (int)HttpStatusCode.OK)]
@@ -63,9 +70,10 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
-        /// 用户使用优惠券后将其删除
-        /// POST /api/user/checkout/coupon
+        /// 使用优惠券
         /// </summary>
+        /// <param name="dto">优惠券使用信息</param>
+        /// <returns>使用结果</returns>
         [HttpPost("user/checkout/coupon")]
         [Consumes("application/json")]
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
@@ -73,7 +81,9 @@ namespace BackEnd.Controllers
         public async Task<IActionResult> UseCoupon([FromBody] UsedCouponDto dto)
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             await _userDebugService.UseCouponAsync(dto.CouponId);
             return Ok(new { message = "优惠券已使用" });

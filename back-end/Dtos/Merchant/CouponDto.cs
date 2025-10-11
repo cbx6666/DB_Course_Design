@@ -1,23 +1,56 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BackEnd.Dtos.Merchant
+namespace BackEnd.DTOs.Merchant
 {
     /// <summary>
     /// 优惠券DTO - 用于前端显示
     /// </summary>
     public class CouponDto
     {
-        public int id { get; set; }                    // 优惠券ID
-        public string name { get; set; } = string.Empty;               // 优惠券名称
-        public string type { get; set; } = string.Empty;               // 优惠券类型: 'fixed' | 'discount'
-        public decimal value { get; set; }             // 优惠值（金额或折扣比例）
-        public decimal? minAmount { get; set; }        // 最低消费（仅满减券）
-        public string startTime { get; set; } = string.Empty;          // 开始时间（ISO格式）
-        public string endTime { get; set; } = string.Empty;            // 结束时间（ISO格式）
-        public int totalQuantity { get; set; }         // 发放数量
-        public int usedQuantity { get; set; }          // 已使用数量
-        public string description { get; set; } = string.Empty;        // 描述
-        public string status { get; set; } = string.Empty;             // 状态: 'active' | 'expired' | 'upcoming'
+        /// <summary>
+        /// 优惠券ID
+        /// </summary>
+        public int id { get; set; }
+        /// <summary>
+        /// 优惠券名称
+        /// </summary>
+        public string name { get; set; } = string.Empty;
+        /// <summary>
+        /// 优惠券类型: 'fixed' | 'discount'
+        /// </summary>
+        public string type { get; set; } = string.Empty;
+        /// <summary>
+        /// 优惠值（金额或折扣比例）
+        /// </summary>
+        public decimal value { get; set; }
+        /// <summary>
+        /// 最低消费（仅满减券）
+        /// </summary>
+        public decimal? minAmount { get; set; }
+        /// <summary>
+        /// 开始时间（ISO格式）
+        /// </summary>
+        public string startTime { get; set; } = string.Empty;
+        /// <summary>
+        /// 结束时间（ISO格式）
+        /// </summary>
+        public string endTime { get; set; } = string.Empty;
+        /// <summary>
+        /// 发放数量
+        /// </summary>
+        public int totalQuantity { get; set; }
+        /// <summary>
+        /// 已使用数量
+        /// </summary>
+        public int usedQuantity { get; set; }
+        /// <summary>
+        /// 描述
+        /// </summary>
+        public string description { get; set; } = string.Empty;
+        /// <summary>
+        /// 状态: 'active' | 'expired' | 'upcoming'
+        /// </summary>
+        public string status { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -25,12 +58,30 @@ namespace BackEnd.Dtos.Merchant
     /// </summary>
     public class CouponStatsDto
     {
-        public int total { get; set; }                 // 总数量
-        public int active { get; set; }                // 有效数量
-        public int expired { get; set; }               // 已过期数量
-        public int upcoming { get; set; }              // 未开始数量
-        public int totalUsed { get; set; }             // 总使用次数
-        public decimal totalDiscountAmount { get; set; } // 总优惠金额
+        /// <summary>
+        /// 总数量
+        /// </summary>
+        public int total { get; set; }
+        /// <summary>
+        /// 有效数量
+        /// </summary>
+        public int active { get; set; }
+        /// <summary>
+        /// 已过期数量
+        /// </summary>
+        public int expired { get; set; }
+        /// <summary>
+        /// 未开始数量
+        /// </summary>
+        public int upcoming { get; set; }
+        /// <summary>
+        /// 总使用次数
+        /// </summary>
+        public int totalUsed { get; set; }
+        /// <summary>
+        /// 总优惠金额
+        /// </summary>
+        public decimal totalDiscountAmount { get; set; }
     }
 
     /// <summary>
@@ -38,8 +89,14 @@ namespace BackEnd.Dtos.Merchant
     /// </summary>
     public class CouponListResponseDto
     {
+        /// <summary>
+        /// 优惠券列表
+        /// </summary>
         public List<CouponDto> list { get; set; } = new List<CouponDto>();
-        public int total { get; set; }                 // 总条数
+        /// <summary>
+        /// 总条数
+        /// </summary>
+        public int total { get; set; }
     }
 
     /// <summary>
@@ -47,40 +104,70 @@ namespace BackEnd.Dtos.Merchant
     /// </summary>
     public class CreateCouponRequestDto
     {
-        // 优惠券ID由后端自动生成，前端不需要提供
+        /// <summary>
+        /// 优惠券ID（由后端自动生成）
+        /// </summary>
         public int? id { get; set; }
 
         [Required(ErrorMessage = "优惠券名称不能为空")]
         [MaxLength(100, ErrorMessage = "优惠券名称长度不能超过100个字符")]
+        /// <summary>
+        /// 优惠券名称
+        /// </summary>
         public string name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "优惠券类型不能为空")]
-        public string type { get; set; } = string.Empty; // 'fixed' | 'discount'
+        /// <summary>
+        /// 优惠券类型: 'fixed' | 'discount'
+        /// </summary>
+        public string type { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "优惠值不能为空")]
         [Range(0.01, 999999.99, ErrorMessage = "优惠值必须在0.01-999999.99之间")]
+        /// <summary>
+        /// 优惠值
+        /// </summary>
         public decimal value { get; set; }
 
         [Range(0.01, 999999.99, ErrorMessage = "最低消费金额必须在0.01-999999.99之间")]
+        /// <summary>
+        /// 最低消费金额
+        /// </summary>
         public decimal? minAmount { get; set; }
 
-        // 优惠金额由后端根据类型自动计算，前端不需要提供
+        /// <summary>
+        /// 优惠金额（由后端根据类型自动计算）
+        /// </summary>
         public decimal? discountAmount { get; set; }
 
-        // 店铺ID由后端自动获取，前端不需要提供
+        /// <summary>
+        /// 店铺ID（由后端自动获取）
+        /// </summary>
         public int? storeId { get; set; }
 
         [Required(ErrorMessage = "发放数量不能为空")]
         [Range(1, 100000, ErrorMessage = "发放数量必须在1-100000之间")]
+        /// <summary>
+        /// 发放数量
+        /// </summary>
         public int totalQuantity { get; set; }
 
         [Required(ErrorMessage = "开始时间不能为空")]
+        /// <summary>
+        /// 开始时间
+        /// </summary>
         public string startTime { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "结束时间不能为空")]
+        /// <summary>
+        /// 结束时间
+        /// </summary>
         public string endTime { get; set; } = string.Empty;
 
         [MaxLength(500, ErrorMessage = "描述长度不能超过500个字符")]
+        /// <summary>
+        /// 描述
+        /// </summary>
         public string description { get; set; } = string.Empty;
     }
 
@@ -99,6 +186,9 @@ namespace BackEnd.Dtos.Merchant
     public class BatchDeleteCouponsRequestDto
     {
         [Required(ErrorMessage = "优惠券ID列表不能为空")]
+        /// <summary>
+        /// 优惠券ID列表
+        /// </summary>
         public List<int> ids { get; set; } = new List<int>();
     }
 
@@ -107,6 +197,9 @@ namespace BackEnd.Dtos.Merchant
     /// </summary>
     public class BatchDeleteResponseDto
     {
+        /// <summary>
+        /// 删除数量
+        /// </summary>
         public int deletedCount { get; set; }
     }
 
@@ -115,6 +208,9 @@ namespace BackEnd.Dtos.Merchant
     /// </summary>
     public class CreateCouponResponseDto
     {
-        public int id { get; set; }                    // 新创建的优惠券ID
+        /// <summary>
+        /// 新创建的优惠券ID
+        /// </summary>
+        public int id { get; set; }
     }
 }

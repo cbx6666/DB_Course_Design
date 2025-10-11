@@ -1,5 +1,5 @@
 using BackEnd.Data;
-using BackEnd.Dtos.AfterSaleApplication;
+using BackEnd.DTOs.AfterSaleApplication;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
@@ -7,6 +7,9 @@ using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 创建售后申请服务实现
+    /// </summary>
     public class CreateApplicationService : ICreateApplicationService
     {
         private readonly IAfterSaleApplicationRepository _applicationRepository;
@@ -14,6 +17,13 @@ namespace BackEnd.Services
         private readonly IAdministratorRepository _administratorRepository;
         private readonly AppDbContext _context;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="applicationRepository">售后申请仓储</param>
+        /// <param name="orderRepository">订单仓储</param>
+        /// <param name="administratorRepository">管理员仓储</param>
+        /// <param name="context">数据库上下文</param>
         public CreateApplicationService(
             IAfterSaleApplicationRepository applicationRepository,
             IFoodOrderRepository orderRepository,
@@ -26,25 +36,31 @@ namespace BackEnd.Services
             _context = context;
         }
 
+        /// <summary>
+        /// 创建售后申请
+        /// </summary>
+        /// <param name="request">创建申请请求</param>
+        /// <param name="userId">用户ID</param>
+        /// <returns>创建结果</returns>
         public async Task<CreateApplicationResult> CreateApplicationAsync(CreateApplicationDto request, int userId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // 1. 验证订单是否存在
+                // 验证订单是否存在
                 var order = await _orderRepository.GetByIdAsync(request.OrderId);
                 if (order == null)
                 {
                     return Fail("订单不存在");
                 }
 
-                // 2. 验证订单是否属于当前用户（如果需要）
+                // 验证订单是否属于当前用户
                 if (order.CustomerID != userId)
                 {
                     return Fail("无权对此订单申请售后");
                 }
 
-                // 3. 创建售后申请
+                // 创建售后申请
                 var application = new AfterSaleApplication
                 {
                     OrderID = request.OrderId,
@@ -56,7 +72,7 @@ namespace BackEnd.Services
                 await _applicationRepository.AddAsync(application);
                 await _applicationRepository.SaveAsync();
 
-                // 4. 分配给有"售后处理"权限的管理员
+                // 分配给有"售后处理"权限的管理员
                 var availableAdmins = await _administratorRepository.GetAdministratorsByManagedEntityAsync("售后处理");
 
                 if (!availableAdmins.Any())
@@ -97,6 +113,11 @@ namespace BackEnd.Services
             }
         }
 
+        /// <summary>
+        /// 创建失败结果
+        /// </summary>
+        /// <param name="message">失败消息</param>
+        /// <returns>失败结果</returns>
         private CreateApplicationResult Fail(string message)
         {
             return new CreateApplicationResult

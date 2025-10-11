@@ -6,17 +6,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BackEnd.Repositories
 {
+    /// <summary>
+    /// 评论仓储
+    /// </summary>
     public class CommentRepository : ICommentRepository
     {
         private readonly AppDbContext _context;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="context">数据库上下文</param>
         public CommentRepository(AppDbContext context)
         {
             _context = context;
         }
 
-
-
+        /// <summary>
+        /// 获取所有评论
+        /// </summary>
+        /// <returns>评论列表</returns>
         public async Task<IEnumerable<Comment>> GetAllAsync()
         {
             // 预加载所有关联的实体数据
@@ -32,6 +41,11 @@ namespace BackEnd.Repositories
                                  .ToListAsync();
         }
 
+        /// <summary>
+        /// 根据ID获取评论
+        /// </summary>
+        /// <param name="id">评论ID</param>
+        /// <returns>评论</returns>
         public async Task<Comment?> GetByIdAsync(int id)
         {
             // 对于单个查询，同样建议预加载关联数据
@@ -45,6 +59,11 @@ namespace BackEnd.Repositories
                                  .FirstOrDefaultAsync(c => c.CommentID == id);
         }
 
+        /// <summary>
+        /// 根据商家ID获取评论
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>评论列表</returns>
         public async Task<IEnumerable<Comment>> GetBySellerAsync(int sellerId)
         {
             return await _context.Comments
@@ -58,24 +77,43 @@ namespace BackEnd.Repositories
                                 .ToListAsync();
         }
 
+        /// <summary>
+        /// 添加评论
+        /// </summary>
+        /// <param name="comment">评论</param>
+        /// <returns>任务</returns>
         public async Task AddAsync(Comment comment)
         {
             await _context.Comments.AddAsync(comment);
             await SaveAsync();
         }
 
+        /// <summary>
+        /// 更新评论
+        /// </summary>
+        /// <param name="comment">评论</param>
+        /// <returns>任务</returns>
         public async Task UpdateAsync(Comment comment)
         {
             _context.Comments.Update(comment);
             await SaveAsync();
         }
 
+        /// <summary>
+        /// 删除评论
+        /// </summary>
+        /// <param name="comment">评论</param>
+        /// <returns>任务</returns>
         public async Task DeleteAsync(Comment comment)
         {
             _context.Comments.Remove(comment);
             await SaveAsync();
         }
 
+        /// <summary>
+        /// 保存更改
+        /// </summary>
+        /// <returns>任务</returns>
         public async Task SaveAsync()
         {
             await _context.SaveChangesAsync();

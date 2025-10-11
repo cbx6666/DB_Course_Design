@@ -2,63 +2,123 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-namespace BackEnd.Dtos.User
+namespace BackEnd.DTOs.User
 {
+    /// <summary>
+    /// 创建订单数据传输对象
+    /// </summary>
     public class CreateOrderDto
     {
+        /// <summary>
+        /// 购物车ID
+        /// </summary>
         [Required]
-        public int CartId { get; set; }         // 购物车 ID
+        public int CartId { get; set; }
 
+        /// <summary>
+        /// 顾客ID
+        /// </summary>
         [Required]
-        public int CustomerId { get; set; }     // 顾客 ID
+        public int CustomerId { get; set; }
 
+        /// <summary>
+        /// 店铺ID
+        /// </summary>
         [Required]
-        public int StoreId { get; set; }        // 店铺 ID
+        public int StoreId { get; set; }
 
+        /// <summary>
+        /// 支付时间
+        /// </summary>
         [Required]
-        public DateTime PaymentTime { get; set; }  // 支付时间
+        public DateTime PaymentTime { get; set; }
 
+        /// <summary>
+        /// 配送费
+        /// </summary>
         [Required]
-        [Column(TypeName = "decimal(5,2)")] // 精确定义数据库类型，最大值为 999.99
+        [Column(TypeName = "decimal(5,2)")]
         [JsonPropertyName("deliveryFee")]
-        public decimal DeliveryFee { get; set; } = 0.00m; // 默认为 0
+        public decimal DeliveryFee { get; set; } = 0.00m;
 
-        public string? Remarks { get; set; }    // 订单备注（可空）
+        /// <summary>
+        /// 订单备注
+        /// </summary>
+        public string? Remarks { get; set; }
     }
 
+    /// <summary>
+    /// 更新账户信息数据传输对象
+    /// </summary>
     public class UpdateAccountDto
     {
+        /// <summary>
+        /// 用户ID
+        /// </summary>
         [Required]
         public int Id { get; set; }
 
+        /// <summary>
+        /// 姓名
+        /// </summary>
         [Required]
         public string Name { get; set; } = string.Empty;
 
+        /// <summary>
+        /// 手机号
+        /// </summary>
         [Required]
         public long PhoneNumber { get; set; } = 0;
 
+        /// <summary>
+        /// 头像
+        /// </summary>
         public string? Image { get; set; }
     }
 
+    /// <summary>
+    /// 保存地址数据传输对象
+    /// </summary>
     public class SaveAddressDto
     {
+        /// <summary>
+        /// 用户ID
+        /// </summary>
         [Required]
         public int Id { get; set; }
 
+        /// <summary>
+        /// 姓名
+        /// </summary>
         [Required]
         public string Name { get; set; } = string.Empty;
 
+        /// <summary>
+        /// 手机号
+        /// </summary>
         [Required]
         public long PhoneNumber { get; set; }
 
+        /// <summary>
+        /// 地址
+        /// </summary>
         [Required]
         public string Address { get; set; } = string.Empty;
     }
 
+    /// <summary>
+    /// 响应数据传输对象
+    /// </summary>
     public class ResponseDto
     {
+        /// <summary>
+        /// 是否成功
+        /// </summary>
         public bool Success { get; set; }
 
+        /// <summary>
+        /// 消息
+        /// </summary>
         public string Message { get; set; } = string.Empty;
     }
 }

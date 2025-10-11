@@ -1,11 +1,16 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BackEnd.Dtos.Merchant
+namespace BackEnd.DTOs.Merchant
 {
-    // 用于接收切换营业状态的请求数据
+    /// <summary>
+    /// 切换营业状态请求
+    /// </summary>
     public class ToggleBusinessStatusRequestDto
     {
         [Required]
-        public bool IsOpen { get; set; }  // 营业状态
+        /// <summary>
+        /// 营业状态
+        /// </summary>
+        public bool IsOpen { get; set; }
     }
 } 

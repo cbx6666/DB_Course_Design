@@ -2,26 +2,39 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BackEnd.Data; // 引入 AppDbContext
-using Microsoft.EntityFrameworkCore; // 引入 EF Core 的扩展方法
-using Microsoft.Extensions.DependencyInjection; // 引入 IServiceScopeFactory
-using Microsoft.Extensions.Hosting; // 引入 IHostedService
-using Microsoft.Extensions.Logging; // 引入日志记录
+using BackEnd.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 月度提成重置后台服务
+    /// </summary>
     public class MonthlyCommissionResetService : IHostedService, IDisposable
     {
         private readonly ILogger<MonthlyCommissionResetService> _logger;
         private readonly IServiceScopeFactory _scopeFactory;
         private Timer? _timer;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="logger">日志记录器</param>
+        /// <param name="scopeFactory">服务作用域工厂</param>
         public MonthlyCommissionResetService(ILogger<MonthlyCommissionResetService> logger, IServiceScopeFactory scopeFactory)
         {
             _logger = logger;
             _scopeFactory = scopeFactory;
         }
 
+        /// <summary>
+        /// 启动服务
+        /// </summary>
+        /// <param name="cancellationToken">取消令牌</param>
+        /// <returns>任务</returns>
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("月度提成重置后台服务已启动。");
@@ -30,6 +43,9 @@ namespace BackEnd.Services
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// 调度下次运行
+        /// </summary>
         private void ScheduleNextRun()
         {
             var now = DateTime.UtcNow;
@@ -50,6 +66,10 @@ namespace BackEnd.Services
             _timer = new Timer(DoWork, null, initialDelay, Timeout.InfiniteTimeSpan);
         }
 
+        /// <summary>
+        /// 执行重置工作
+        /// </summary>
+        /// <param name="state">状态对象</param>
         private async void DoWork(object? state)
         {
             _logger.LogInformation("正在执行月度提成重置任务...");
@@ -80,6 +100,11 @@ namespace BackEnd.Services
             }
         }
 
+        /// <summary>
+        /// 停止服务
+        /// </summary>
+        /// <param name="cancellationToken">取消令牌</param>
+        /// <returns>任务</returns>
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("月度提成重置后台服务正在停止。");
@@ -87,6 +112,9 @@ namespace BackEnd.Services
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// 释放资源
+        /// </summary>
         public void Dispose()
         {
             _timer?.Dispose();

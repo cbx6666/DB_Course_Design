@@ -1,19 +1,31 @@
-using BackEnd.Dtos.ViolationPenalty;
+using BackEnd.DTOs.ViolationPenalty;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 监督服务
+    /// </summary>
     public class Supervise_Service : ISupervise_Service
     {
         private readonly IAdministratorRepository _administratorRepository;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="administratorRepository">管理员仓储</param>
         public Supervise_Service(IAdministratorRepository administratorRepository)
         {
             _administratorRepository = administratorRepository;
         }
 
+        /// <summary>
+        /// 获取管理员处理的违规处罚列表
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>违规处罚信息列表</returns>
         public async Task<IEnumerable<GetViolationPenaltyInfo>> GetViolationPenaltiesForAdminAsync(int adminId)
         {
             var penaltiesFromDb = await _administratorRepository.GetViolationPenaltiesByAdminIdAsync(adminId);
@@ -38,6 +50,11 @@ namespace BackEnd.Services
             return penaltyDtos;
         }
 
+        /// <summary>
+        /// 更新违规处罚信息
+        /// </summary>
+        /// <param name="request">设置违规处罚信息请求</param>
+        /// <returns>更新结果</returns>
         public async Task<SetViolationPenaltyInfoResponse> UpdateViolationPenaltyAsync(SetViolationPenaltyInfo request)
         {
             try

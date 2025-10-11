@@ -1,4 +1,4 @@
-using BackEnd.Dtos.ViolationPenalty;
+using BackEnd.DTOs.ViolationPenalty;
 using BackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,9 +6,12 @@ using System.Security.Claims;
 
 namespace BackEnd.Controllers
 {
+    /// <summary>
+    /// 违规处罚管理控制器
+    /// </summary>
     [ApiController]
     [Route("api/admin/violation-penalties")]
-    [Authorize] // 在控制器级别添加此特性，该控制器下所有方法都需要认证
+    [Authorize]
     public class Supervise_Controller : ControllerBase
     {
         private readonly ISupervise_Service _superviseService;
@@ -18,37 +21,36 @@ namespace BackEnd.Controllers
             _superviseService = superviseService;
         }
 
+        /// <summary>
+        /// 获取管理员的违规处罚列表
+        /// </summary>
+        /// <returns>违规处罚列表</returns>
         [HttpGet("mine")]
         public async Task<IActionResult> GetViolationPenaltiesForAdmin()
         {
-            // 从 Token 中安全地获取管理员 ID
-            var adminIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(adminIdString, out int adminId))
+            var adminId = GetAdminIdFromToken();
+            if (adminId == null)
             {
                 return Unauthorized("无效的Token");
             }
 
-            var penaltyDtos = await _superviseService.GetViolationPenaltiesForAdminAsync(adminId);
-
-            if (penaltyDtos == null)
-            {
-                // 如果找不到资源，按照 RESTful 规范返回 404 Not Found
-                return NotFound();
-            }
-
-            return Ok(penaltyDtos);
+            var penaltyDtos = await _superviseService.GetViolationPenaltiesForAdminAsync(adminId.Value);
+            return penaltyDtos == null ? NotFound() : Ok(penaltyDtos);
         }
 
+        /// <summary>
+        /// 更新违规处罚信息
+        /// </summary>
+        /// <param name="request">更新请求</param>
+        /// <returns>更新结果</returns>
         [HttpPut("update")]
         public async Task<IActionResult> UpdateViolationPenalty([FromBody] SetViolationPenaltyInfo request)
         {
-            // 添加模型状态检查
             if (!ModelState.IsValid)
             {
                 var errors = ModelState
-                    .Where(x => x.Value.Errors.Count > 0)
-                    .Select(x => new { Field = x.Key, Errors = x.Value.Errors.Select(e => e.ErrorMessage) })
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .Select(x => new { Field = x.Key, Errors = x.Value?.Errors.Select(e => e.ErrorMessage) })
                     .ToList();
 
                 return BadRequest(new
@@ -58,7 +60,7 @@ namespace BackEnd.Controllers
                     errors = errors
                 });
             }
-            // 验证请求数据
+
             if (request == null)
             {
                 return BadRequest(new
@@ -68,17 +70,18 @@ namespace BackEnd.Controllers
                 });
             }
 
-            // 调用服务层处理业务逻辑
             var result = await _superviseService.UpdateViolationPenaltyAsync(request);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
 
-            if (result.Success)
-            {
-                return Ok(result);
-            }
-            else
-            {
-                return BadRequest(result);
-            }
+        /// <summary>
+        /// 从Token中获取管理员ID
+        /// </summary>
+        /// <returns>管理员ID，如果无效则返回null</returns>
+        private int? GetAdminIdFromToken()
+        {
+            var adminIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(adminIdString, out int adminId) ? adminId : null;
         }
     }
 }

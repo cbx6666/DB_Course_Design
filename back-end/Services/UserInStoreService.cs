@@ -1,4 +1,4 @@
-using BackEnd.Dtos.User;
+using BackEnd.DTOs.User;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
@@ -6,7 +6,9 @@ using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Services
 {
-
+    /// <summary>
+    /// 用户店铺服务
+    /// </summary>
     public class UserInStoreService : IUserInStoreService
     {
         private readonly IStoreRepository _storeRepository;
@@ -17,6 +19,16 @@ namespace BackEnd.Services
         private readonly ICouponRepository _couponRepository;
         private readonly IAdministratorRepository _adminRepository;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="storeRepository">店铺仓储</param>
+        /// <param name="commentRepository">评论仓储</param>
+        /// <param name="reviewCommentRepository">评论审核仓储</param>
+        /// <param name="penaltyRepository">违规处罚仓储</param>
+        /// <param name="superviseRepository">监督仓储</param>
+        /// <param name="couponRepository">优惠券仓储</param>
+        /// <param name="adminRepository">管理员仓储</param>
         public UserInStoreService(
             IStoreRepository storeRepository,
             ICommentRepository commentRepository,
@@ -34,9 +46,12 @@ namespace BackEnd.Services
             _couponRepository = couponRepository;
             _adminRepository = adminRepository;
         }
+
         /// <summary>
         /// 获取店铺详情
         /// </summary>
+        /// <param name="request">店铺请求</param>
+        /// <returns>店铺响应</returns>
         public async Task<StoreResponseDto?> GetStoreInfoAsync(StoreRequestDto request)
         {
             var store = await _storeRepository.GetStoreInfoForUserAsync(request.StoreId);
@@ -47,14 +62,14 @@ namespace BackEnd.Services
             {
                 Id = store.StoreID,
                 Name = store.StoreName,
-                Image = store.StoreImage, // TODO: 店铺图片字段
+                Image = store.StoreImage ?? string.Empty, // TODO: 店铺图片字段
                 Address = store.StoreAddress,
                 OpenTime = store.OpenTime,
                 CloseTime = store.CloseTime,
                 BusinessHours = $"{store.OpenTime:hh\\:mm}-{store.CloseTime:hh\\:mm}",
                 Rating = store.AverageRating,
                 MonthlySales = store.MonthlySales,
-                Description = store.StoreFeatures,
+                Description = store.StoreFeatures ?? string.Empty,
                 CreateTime = store.StoreCreationTime
             };
         }
@@ -62,6 +77,8 @@ namespace BackEnd.Services
         /// <summary>
         /// 获取菜单（平铺所有菜品）
         /// </summary>
+        /// <param name="request">菜单请求</param>
+        /// <returns>菜单响应列表</returns>
         public async Task<List<MenuResponseDto>> GetMenuAsync(MenuRequestDto request)
         {
             var dishes = await _storeRepository.GetDishesByStoreIdAsync(request.StoreId);
@@ -71,11 +88,10 @@ namespace BackEnd.Services
             return dishes.Select(d => new MenuResponseDto
             {
                 Id = d.DishID,
-                CategoryId = d.Type,// 目前 Dish 没有分类字段，可以扩展
                 Name = d.DishName,
                 Description = d.Description,
                 Price = d.Price,
-                Image = d.DishImage,
+                Image = d.DishImage ?? string.Empty,
                 IsSoldOut = d.IsSoldOut
             }).ToList();
         }
@@ -83,6 +99,8 @@ namespace BackEnd.Services
         /// <summary>
         /// 获取商家评论列表
         /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>评论响应列表</returns>
         public async Task<List<CommentResponseDto>> GetCommentListAsync(int storeId)
         {
             var comments = (await _commentRepository.GetAllAsync())
@@ -106,6 +124,8 @@ namespace BackEnd.Services
         /// <summary>
         /// 获取商家评价状态 [好评数, 中评数, 差评数]
         /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>评价状态</returns>
         public async Task<CommentStateDto> GetCommentStateAsync(int storeId)
         {
             var comments = (await _commentRepository.GetAllAsync())
@@ -127,6 +147,8 @@ namespace BackEnd.Services
         /// <summary>
         /// 用户评价店铺（Pending状态，自动分配管理员）
         /// </summary>
+        /// <param name="dto">创建评论请求</param>
+        /// <returns>任务</returns>
         public async Task SubmitCommentAsync(CreateCommentDto dto)
         {
             var comment = new Comment
@@ -159,6 +181,8 @@ namespace BackEnd.Services
         /// <summary>
         /// 用户投诉店铺（Pending状态，自动分配管理员）
         /// </summary>
+        /// <param name="dto">用户店铺举报请求</param>
+        /// <returns>任务</returns>
         public async Task SubmitStoreReportAsync(UserStoreReportDto dto)
         {
             var penalty = new StoreViolationPenalty
@@ -187,6 +211,7 @@ namespace BackEnd.Services
         /// <summary>
         /// 选择一个评论管理员（这里写了随机，可以换成轮询或负载最小）
         /// </summary>
+        /// <returns>管理员</returns>
         private async Task<Administrator?> PickCommentAdminAsync()
         {
             var admins = await _adminRepository.GetAdministratorsByManagedEntityAsync("评论审核");
@@ -201,6 +226,7 @@ namespace BackEnd.Services
         /// <summary>
         /// 选择一个店铺管理员（这里写了随机，可以换成轮询或负载最小）
         /// </summary>
+        /// <returns>管理员</returns>
         private async Task<Administrator?> PickStoreAdminAsync()
         {
             var admins = await _adminRepository.GetAdministratorsByManagedEntityAsync("店铺举报");

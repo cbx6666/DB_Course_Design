@@ -1,129 +1,334 @@
 namespace BackEnd.Models.Enums
 {
-    // 用户身份
+    /// <summary>
+    /// 用户身份枚举
+    /// </summary>
     public enum UserIdentity
     {
+        /// <summary>
+        /// 消费者
+        /// </summary>
         Customer = 0,
+
+        /// <summary>
+        /// 配送员
+        /// </summary>
         Courier = 1,
+
+        /// <summary>
+        /// 管理员
+        /// </summary>
         Administrator = 2,
+
+        /// <summary>
+        /// 商家
+        /// </summary>
         Merchant = 3
     }
 
-    // 消费者会员
+    /// <summary>
+    /// 消费者会员状态枚举
+    /// </summary>
     public enum MembershipStatus
     {
+        /// <summary>
+        /// 非会员
+        /// </summary>
         NotMember = 0,
+
+        /// <summary>
+        /// 会员
+        /// </summary>
         Member = 1
     }
 
-    // 用户是否公开信息
+    /// <summary>
+    /// 用户信息隐私级别枚举
+    /// </summary>
     public enum ProfilePrivacyLevel
     {
-        Private = 0,      // 不公开
-        Public = 1,       // 公开  
-        FriendsOnly = 2   // 仅好友
+        /// <summary>
+        /// 不公开
+        /// </summary>
+        Private = 0,
+
+        /// <summary>
+        /// 公开
+        /// </summary>
+        Public = 1,
+
+        /// <summary>
+        /// 仅好友
+        /// </summary>
+        FriendsOnly = 2
     }
 
-    // 菜品是否售罄
+    /// <summary>
+    /// 菜品售罄状态枚举
+    /// </summary>
     public enum DishIsSoldOut
     {
-        IsSoldOut = 0,  // 售罄
-        IsNotSoldOut = 2  // 未售罄
+        /// <summary>
+        /// 售罄
+        /// </summary>
+        IsSoldOut = 0,
+
+        /// <summary>
+        /// 未售罄
+        /// </summary>
+        IsNotSoldOut = 2
     }
 
-    // 优惠券状态
+    /// <summary>
+    /// 优惠券状态枚举
+    /// </summary>
     public enum CouponState
     {
+        /// <summary>
+        /// 未使用
+        /// </summary>
         Unused = 0,
+
+        /// <summary>
+        /// 已使用
+        /// </summary>
         Used = 1,
+
+        /// <summary>
+        /// 已过期
+        /// </summary>
         Expired = 2
     }
 
-    // 店铺状态
+    /// <summary>
+    /// 店铺状态枚举
+    /// </summary>
     public enum StoreState
     {
-        IsOperation = 0,  // 营业
-        Closing = 1,  // 休息
-        Banned = 2  // 封禁
+        /// <summary>
+        /// 营业中
+        /// </summary>
+        IsOperation = 0,
+
+        /// <summary>
+        /// 休息中
+        /// </summary>
+        Closing = 1,
+
+        /// <summary>
+        /// 已封禁
+        /// </summary>
+        Banned = 2
     }
 
-    // 商家状态
+    /// <summary>
+    /// 商家状态枚举
+    /// </summary>
     public enum SellerState
     {
+        /// <summary>
+        /// 正常
+        /// </summary>
         Normal = 0,
+
+        /// <summary>
+        /// 已封禁
+        /// </summary>
         Banned = 1
     }
 
+    /// <summary>
+    /// 订单状态枚举
+    /// </summary>
     public enum FoodOrderState
     {
+        /// <summary>
+        /// 待处理
+        /// </summary>
         Pending = 0,
+
+        /// <summary>
+        /// 准备中
+        /// </summary>
         Preparing = 1,
+
+        /// <summary>
+        /// 已完成
+        /// </summary>
         Completed = 2
     }
 
+    /// <summary>
+    /// 评论类型枚举
+    /// </summary>
     public enum CommentType
     {
+        /// <summary>
+        /// 普通评论
+        /// </summary>
         Comment = 0,
+
+        /// <summary>
+        /// 店铺评论
+        /// </summary>
         Store = 1,
+
+        /// <summary>
+        /// 订单评论
+        /// </summary>
         FoodOrder = 2
     }
 
+    /// <summary>
+    /// 配送员在线状态枚举
+    /// </summary>
     public enum CourierIsOnline
     {
+        /// <summary>
+        /// 在线
+        /// </summary>
         Online = 0,
+
+        /// <summary>
+        /// 离线
+        /// </summary>
         Offline = 1
     }
 
-    // 售后申请状态
+    /// <summary>
+    /// 售后申请状态枚举
+    /// </summary>
     public enum AfterSaleState
     {
+        /// <summary>
+        /// 待处理
+        /// </summary>
         Pending = 0,
+
+        /// <summary>
+        /// 已完成
+        /// </summary>
         Completed = 1
     }
 
-    // 配送投诉状态
+    /// <summary>
+    /// 配送投诉状态枚举
+    /// </summary>
     public enum ComplaintState
     {
+        /// <summary>
+        /// 待处理
+        /// </summary>
         Pending = 0,
+
+        /// <summary>
+        /// 已完成
+        /// </summary>
         Completed = 1
     }
 
-    // 违规店铺处罚状态
+    /// <summary>
+    /// 违规处罚状态枚举
+    /// </summary>
     public enum ViolationPenaltyState
     {
+        /// <summary>
+        /// 待处理
+        /// </summary>
         Pending = 0,
+
+        /// <summary>
+        /// 处理中
+        /// </summary>
         Processing = 1,
+
+        /// <summary>
+        /// 已完成
+        /// </summary>
         Completed = 2
     }
 
-    // 评论状态
+    /// <summary>
+    /// 评论状态枚举
+    /// </summary>
     public enum CommentState
     {
+        /// <summary>
+        /// 待审核
+        /// </summary>
         Pending = 0,
+
+        /// <summary>
+        /// 已通过
+        /// </summary>
         Completed = 1,
+
+        /// <summary>
+        /// 违规
+        /// </summary>
         Illegal = 2
     }
 
-    // 优惠券类型
+    /// <summary>
+    /// 优惠券类型枚举
+    /// </summary>
     public enum CouponType
     {
-        Fixed = 0,      // 满减券
-        Discount = 1    // 折扣券
+        /// <summary>
+        /// 满减券
+        /// </summary>
+        Fixed = 0,
+
+        /// <summary>
+        /// 折扣券
+        /// </summary>
+        Discount = 1
     }
 
+    /// <summary>
+    /// 购物车状态枚举
+    /// </summary>
     public enum ShoppingCartState
     {
+        /// <summary>
+        /// 活跃
+        /// </summary>
         Active = 0,
+
+        /// <summary>
+        /// 已完成
+        /// </summary>
         Done = 1
     }
-    public enum DishTypes
+
+    /// <summary>
+    /// 配送状态枚举
+    /// </summary>
+    public enum DeliveryStatus
     {
-        SignatureRecommendation = 0,
-        Meat = 1,
-        Vegetable = 2,
-        MeatBall = 3,
-        Soy = 4,
-        StapleFood = 5,
-        Beverage = 6
+        /// <summary>
+        /// 待取件
+        /// </summary>
+        To_Be_Taken,
+
+        /// <summary>
+        /// 待取单
+        /// </summary>
+        Pending,
+
+        /// <summary>
+        /// 配送中
+        /// </summary>
+        Delivering,
+
+        /// <summary>
+        /// 已完成
+        /// </summary>
+        Completed,
+
+        /// <summary>
+        /// 已取消
+        /// </summary>
+        Cancelled
     }
 }

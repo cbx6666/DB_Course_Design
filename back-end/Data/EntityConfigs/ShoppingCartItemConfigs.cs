@@ -4,40 +4,54 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace BackEnd.Data.EntityConfigs
 {
+    /// <summary>
+    /// 购物车项实体配置
+    /// </summary>
     public class ShoppingCartItemConfig : IEntityTypeConfiguration<ShoppingCartItem>
     {
+        /// <summary>
+        /// 配置购物车项实体
+        /// </summary>
+        /// <param name="builder">实体类型构建器</param>
         public void Configure(EntityTypeBuilder<ShoppingCartItem> builder)
         {
             builder.ToTable("SHOPPING_CART_ITEMS");
 
-            // --- 主键和基础属性配置 ---
+            // 主键配置
             builder.HasKey(sci => sci.ItemID);
             builder.Property(sci => sci.ItemID).HasColumnName("ITEMID").ValueGeneratedOnAdd();
 
+            // 基础属性配置
             builder.Property(sci => sci.Quantity).HasColumnName("QUANTITY").IsRequired();
-            builder.Property(sci => sci.TotalPrice).HasColumnName("TOTALPRICE").HasColumnType("decimal(10,2)");
+            builder.Property(sci => sci.TotalPrice)
+                .HasColumnName("TOTALPRICE")
+                .HasColumnType("decimal(10,2)");
 
-            // --- 外键属性声明 ---
+            // 外键配置
             builder.Property(sci => sci.DishID).HasColumnName("DISHID").IsRequired();
             builder.Property(sci => sci.CartID).HasColumnName("CARTID").IsRequired();
 
-            // ---------------------------------------------------------------
             // 关系配置
-            // ---------------------------------------------------------------
+            ConfigureRelationships(builder);
+        }
 
-            // 关系一: ShoppingCartItem -> Dish (多对一)
-            // 多个购物车项可以指向同一个菜品
-            builder.HasOne(sci => sci.Dish) // 一个购物车项只有一个菜品
-                   .WithMany(d => d.ShoppingCartItems)
-                   .HasForeignKey(sci => sci.DishID)
-                   .OnDelete(DeleteBehavior.Restrict); // 防止菜品被删除，如果它还在某人的购物车里。
+        /// <summary>
+        /// 配置实体关系
+        /// </summary>
+        /// <param name="builder">实体类型构建器</param>
+        private static void ConfigureRelationships(EntityTypeBuilder<ShoppingCartItem> builder)
+        {
+            // 配置与Dish的多对一关系
+            builder.HasOne(sci => sci.Dish)
+                .WithMany(d => d.ShoppingCartItems)
+                .HasForeignKey(sci => sci.DishID)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // 关系二: ShoppingCartItem -> ShoppingCart (多对一)
-            // 多个购物车项属于同一个购物车
-            builder.HasOne(sci => sci.Cart) // 一个购物车项只属于一个购物车
-                   .WithMany(sc => sc.ShoppingCartItems) // 一个购物车拥有多个购物车项 (ShoppingCartItems 集合)
-                   .HasForeignKey(sci => sci.CartID) // 外键是 CartID
-                   .OnDelete(DeleteBehavior.Cascade); // 关键：当购物车被删除时，其所有项也应被级联删除。
+            // 配置与ShoppingCart的多对一关系
+            builder.HasOne(sci => sci.Cart)
+                .WithMany(sc => sc.ShoppingCartItems)
+                .HasForeignKey(sci => sci.CartID)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

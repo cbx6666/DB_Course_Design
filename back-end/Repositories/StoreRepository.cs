@@ -1,5 +1,5 @@
 using BackEnd.Data;
-using BackEnd.Dtos.User;
+using BackEnd.DTOs.User;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
@@ -7,14 +7,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BackEnd.Repositories
 {
+    /// <summary>
+    /// 店铺数据访问层
+    /// </summary>
     public class StoreRepository : IStoreRepository
     {
         private readonly AppDbContext _context;
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="context">数据库上下文</param>
         public StoreRepository(AppDbContext context)
         {
             _context = context;
         }
 
+        /// <summary>
+        /// 获取所有店铺
+        /// </summary>
+        /// <returns>店铺列表</returns>
         public async Task<IEnumerable<Store>> GetAllAsync()
         {
             return await _context.Stores
@@ -30,6 +42,11 @@ namespace BackEnd.Repositories
                                  .ToListAsync();
         }
 
+        /// <summary>
+        /// 根据ID获取店铺
+        /// </summary>
+        /// <param name="id">店铺ID</param>
+        /// <returns>店铺信息</returns>
         public async Task<Store?> GetByIdAsync(int id)
         {
             return await _context.Stores
@@ -47,6 +64,11 @@ namespace BackEnd.Repositories
                                  .FirstOrDefaultAsync(s => s.StoreID == id);
         }
 
+        /// <summary>
+        /// 根据商家ID获取店铺
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>店铺信息</returns>
         public async Task<Store?> GetBySellerIdAsync(int sellerId)
         {
             return await _context.Stores
@@ -63,6 +85,11 @@ namespace BackEnd.Repositories
                                  .FirstOrDefaultAsync(s => s.SellerID == sellerId);
         }
 
+        /// <summary>
+        /// 根据商家ID获取店铺ID
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>店铺ID</returns>
         public async Task<int?> GetStoreIdBySellerIdAsync(int sellerId)
         {
             return await _context.Stores
@@ -72,6 +99,11 @@ namespace BackEnd.Repositories
                                 .FirstOrDefaultAsync();
         }
 
+        /// <summary>
+        /// 获取用户店铺信息
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>店铺信息</returns>
         public async Task<Store?> GetStoreInfoForUserAsync(int storeId)
         {
             // 这个查询非常简单和快速，因为它没有加载任何关联数据
@@ -80,6 +112,11 @@ namespace BackEnd.Repositories
                                  .FirstOrDefaultAsync(s => s.StoreID == storeId);
         }
 
+        /// <summary>
+        /// 根据店铺ID获取菜品
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>菜品列表</returns>
         public async Task<IEnumerable<Dish>> GetDishesByStoreIdAsync(int storeId)
         {
             // 高效的投影查询，直接从数据库获取菜品列表
@@ -92,29 +129,49 @@ namespace BackEnd.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// 添加店铺
+        /// </summary>
+        /// <param name="store">店铺信息</param>
         public async Task AddAsync(Store store)
         {
             await _context.Stores.AddAsync(store);
             await SaveAsync();
         }
 
+        /// <summary>
+        /// 更新店铺
+        /// </summary>
+        /// <param name="store">店铺信息</param>
         public async Task UpdateAsync(Store store)
         {
             _context.Stores.Update(store);
             await SaveAsync();
         }
 
+        /// <summary>
+        /// 删除店铺
+        /// </summary>
+        /// <param name="store">店铺信息</param>
         public async Task DeleteAsync(Store store)
         {
             _context.Stores.Remove(store);
             await SaveAsync();
         }
 
+        /// <summary>
+        /// 保存更改
+        /// </summary>
         public async Task SaveAsync()
         {
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// 获取首页推荐店铺
+        /// </summary>
+        /// <param name="takeCount">获取数量</param>
+        /// <returns>推荐店铺列表</returns>
         public async Task<IEnumerable<ShowStoreDto>> GetTopRatedStoresForHomepageAsync(int takeCount)
         {
             return await _context.Stores
@@ -124,7 +181,7 @@ namespace BackEnd.Repositories
                 .Select(s => new ShowStoreDto // 直接投影到 DTO
                 {
                     Id = s.StoreID,
-                    Image = s.StoreImage,
+                    Image = s.StoreImage ?? string.Empty,
                     Name = s.StoreName,
                     AverageRating = s.AverageRating,
                     MonthlySales = s.MonthlySales
@@ -132,6 +189,11 @@ namespace BackEnd.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// 根据店铺名称搜索
+        /// </summary>
+        /// <param name="keyword">关键词</param>
+        /// <returns>搜索结果</returns>
         public async Task<IEnumerable<HomeSearchGetDto>> SearchStoresByNameAsync(string keyword)
         {
             return await _context.Stores
@@ -140,7 +202,7 @@ namespace BackEnd.Repositories
                 .Select(s => new HomeSearchGetDto // 直接投影
                 {
                     Id = s.StoreID,
-                    Image = s.StoreImage,
+                    Image = s.StoreImage ?? string.Empty,
                     Name = s.StoreName,
                     AverageRating = s.AverageRating,
                     MonthlySales = s.MonthlySales
@@ -148,6 +210,11 @@ namespace BackEnd.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// 根据菜品名称搜索店铺
+        /// </summary>
+        /// <param name="keyword">关键词</param>
+        /// <returns>搜索结果</returns>
         public async Task<IEnumerable<HomeSearchGetDto>> SearchStoresByDishNameAsync(string keyword)
         {
             // 这个查询会找到所有菜品名包含关键字的店铺，且不重复
@@ -159,7 +226,7 @@ namespace BackEnd.Repositories
                 .Select(store => new HomeSearchGetDto
                 {
                     Id = store.StoreID,
-                    Image = store.StoreImage,
+                    Image = store.StoreImage ?? string.Empty,
                     Name = store.StoreName,
                     AverageRating = store.AverageRating,
                     MonthlySales = store.MonthlySales
@@ -167,6 +234,10 @@ namespace BackEnd.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// 获取运营中的店铺
+        /// </summary>
+        /// <returns>运营中的店铺列表</returns>
         public async Task<IEnumerable<ShowStoreDto>> GetOperationalStoresAsync()
         {
             return await _context.Stores

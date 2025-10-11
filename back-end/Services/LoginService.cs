@@ -1,5 +1,5 @@
-using BackEnd.Dtos.AuthRequest;
-using BackEnd.Dtos.User;
+using BackEnd.DTOs.AuthRequest;
+using BackEnd.DTOs.User;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
@@ -11,17 +11,30 @@ using System.Text;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 登录服务
+    /// </summary>
     public class LoginService : ILoginService
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="userRepository">用户仓储</param>
+        /// <param name="configuration">配置</param>
         public LoginService(IUserRepository userRepository, IConfiguration configuration)
         {
             _userRepository = userRepository;
             _configuration = configuration;
         }
 
+        /// <summary>
+        /// 用户登录
+        /// </summary>
+        /// <param name="request">登录请求</param>
+        /// <returns>登录结果</returns>
         public async Task<LoginResult> LoginAsync(LoginRequest request)
         {
             // 1. 根据手机号查找用户
@@ -32,7 +45,6 @@ namespace BackEnd.Services
             // 2. 验证密码
             if (!await IsPasswordValid(request.Password, user))
                 return Fail("手机号或密码错误", 401);
-
 
             // 3. 验证角色
             if (!IsRoleMatch(user.Role, request.Role))
@@ -56,6 +68,12 @@ namespace BackEnd.Services
             };
         }
 
+        /// <summary>
+        /// 检查角色是否匹配
+        /// </summary>
+        /// <param name="userRole">用户角色</param>
+        /// <param name="requestRole">请求角色</param>
+        /// <returns>是否匹配</returns>
         private bool IsRoleMatch(UserIdentity userRole, string requestRole)
         {
             var roleMapping = new Dictionary<string, UserIdentity>
@@ -70,7 +88,11 @@ namespace BackEnd.Services
                    && userRole == expectedRole;
         }
 
-        // 生成 JWT Token
+        /// <summary>
+        /// 生成JWT Token
+        /// </summary>
+        /// <param name="user">用户</param>
+        /// <returns>JWT Token</returns>
         private string GenerateJwtToken(Models.User user)
         {
             var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT密钥未配置");
@@ -98,7 +120,12 @@ namespace BackEnd.Services
             return tokenHandler.WriteToken(token);
         }
 
-        // 表示登录失败（和注册服务保持一致的命名）
+        /// <summary>
+        /// 表示登录失败
+        /// </summary>
+        /// <param name="message">错误消息</param>
+        /// <param name="code">错误代码</param>
+        /// <returns>登录结果</returns>
         private LoginResult Fail(string message, int code = 400)
         {
             return new LoginResult
@@ -111,7 +138,12 @@ namespace BackEnd.Services
             };
         }
 
-        // 兼容明文密码的验证密码方法
+        /// <summary>
+        /// 验证密码
+        /// </summary>
+        /// <param name="inputPassword">输入密码</param>
+        /// <param name="user">用户</param>
+        /// <returns>是否有效</returns>
         private async Task<bool> IsPasswordValid(string inputPassword, Models.User user)
         {
             string storedPassword = user.Password;
@@ -140,6 +172,12 @@ namespace BackEnd.Services
             }
         }
 
+        /// <summary>
+        /// 更新用户密码
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="hashedPassword">加密密码</param>
+        /// <returns>任务</returns>
         private async Task UpdateUserPasswordAsync(int userId, string hashedPassword)
         {
             var user = await _userRepository.GetByIdAsync(userId);
@@ -150,6 +188,11 @@ namespace BackEnd.Services
             }
         }
 
+        /// <summary>
+        /// 用户登出
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>任务</returns>
         public async Task LogoutAsync(int userId)
         {
             // 目前，基于JWT的无状态登出，后端无需特殊处理。

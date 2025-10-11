@@ -1,4 +1,4 @@
-using BackEnd.Dtos.MerchantInfo;
+using BackEnd.DTOs.MerchantInfo;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
@@ -6,17 +6,30 @@ using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 商家信息服务
+    /// </summary>
     public class MerchantInformationService : IMerchantInformationService
     {
         private readonly ISellerRepository _sellerRepository;
         private readonly IUserRepository _userRepository;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="sellerRepository">商家仓储</param>
+        /// <param name="userRepository">用户仓储</param>
         public MerchantInformationService(ISellerRepository sellerRepository, IUserRepository userRepository)
         {
             _sellerRepository = sellerRepository;
             _userRepository = userRepository;
         }
 
+        /// <summary>
+        /// 获取商家信息
+        /// </summary>
+        /// <param name="merchantUserId">商家用户ID</param>
+        /// <returns>商家信息</returns>
         public async Task<(bool Success, string? Message, MerchantProfileDto? Data)> GetMerchantInfoAsync(int merchantUserId)
         {
             // 获取商家信息及关联用户
@@ -44,6 +57,12 @@ namespace BackEnd.Services
             return (true, null, result);
         }
 
+        /// <summary>
+        /// 更新商家信息
+        /// </summary>
+        /// <param name="merchantUserId">商家用户ID</param>
+        /// <param name="dto">更新商家信息请求</param>
+        /// <returns>更新结果</returns>
         public async Task<(bool Success, string? Message, MerchantUpdateResultDto? Data)> UpdateMerchantInfoAsync(int merchantUserId, UpdateMerchantProfileDto dto)
         {
             // 获取用户信息

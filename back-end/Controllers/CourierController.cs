@@ -1,4 +1,4 @@
-using BackEnd.Dtos.Courier;
+using BackEnd.DTOs.Courier;
 using BackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace BackEnd.Controllers
 {
+    /// <summary>
+    /// 配送员管理控制器
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class CourierController : ControllerBase
@@ -19,6 +22,10 @@ namespace BackEnd.Controllers
             _courierService = courierService;
         }
 
+        /// <summary>
+        /// 获取配送员个人资料
+        /// </summary>
+        /// <returns>配送员个人资料</returns>
         [HttpGet("profile")]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<ActionResult<CourierProfileDto>> GetProfile()
@@ -27,63 +34,7 @@ namespace BackEnd.Controllers
             {
                 var courierId = GetCurrentCourierId();
                 var profileDto = await _courierService.GetProfileAsync(courierId);
-                if (profileDto == null) return NotFound("骑手资料未找到");
-                return Ok(profileDto);
-            }
-            catch (UnauthorizedAccessException) { return Unauthorized(); }
-            catch (Exception ex) { return StatusCode(500, $"服务器内部错误: {ex.Message}"); }
-        }
-
-        [HttpGet("status")]
-        public async Task<IActionResult> GetWorkStatus()
-        {
-            try
-            {
-                var courierId = GetCurrentCourierId();
-                var statusDto = await _courierService.GetWorkStatusAsync(courierId);
-                if (statusDto == null) return NotFound("骑手资料未找到，无法获取状态");
-                // 【已修正】直接返回只包含 isOnline 的对象
-                return Ok(new { isOnline = statusDto.IsOnline });
-            }
-            catch (UnauthorizedAccessException) { return Unauthorized(); }
-            catch (Exception ex) { return StatusCode(500, $"服务器内部错误: {ex.Message}"); }
-        }
-
-        [HttpGet("orders")]
-        public async Task<IActionResult> GetOrders([FromQuery] string status)
-        {
-            if (string.IsNullOrWhiteSpace(status))
-            {
-                return BadRequest("必须提供 status 查询参数");
-            }
-            try
-            {
-                var courierId = GetCurrentCourierId();
-                var orders = await _courierService.GetOrdersAsync(courierId, status);
-                // 【已修正】直接返回订单数组
-                return Ok(orders);
-            }
-            catch (UnauthorizedAccessException) { return Unauthorized(); }
-            catch (Exception ex) { return StatusCode(500, $"服务器内部错误: {ex.Message}"); }
-        }
-
-
-        // CourierController.cs
-
-        /// <summary>
-        /// 获取当前登录骑手的实时位置文本（模拟版）
-        /// </summary>
-        [HttpGet("location")]
-        public async Task<IActionResult> GetLocation()
-        {
-            try
-            {
-                var courierId = GetCurrentCourierId();
-                var area = await _courierService.GetCurrentLocationAsync(courierId);
-
-                // 恢复为返回包含 area 字段的匿名对象
-                // 注意：这里我们保留了不带 {code, message} 的新风格
-                return Ok(new { area = area });
+                return profileDto == null ? NotFound("骑手资料未找到") : Ok(profileDto);
             }
             catch (UnauthorizedAccessException)
             {
@@ -94,6 +45,87 @@ namespace BackEnd.Controllers
                 return StatusCode(500, $"服务器内部错误: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// 获取配送员工作状态
+        /// </summary>
+        /// <returns>工作状态信息</returns>
+        [HttpGet("status")]
+        public async Task<IActionResult> GetWorkStatus()
+        {
+            try
+            {
+                var courierId = GetCurrentCourierId();
+                var statusDto = await _courierService.GetWorkStatusAsync(courierId);
+                return statusDto == null ? NotFound("骑手资料未找到，无法获取状态") : Ok(new { isOnline = statusDto.IsOnline });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"服务器内部错误: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 获取配送员订单列表
+        /// </summary>
+        /// <param name="status">订单状态</param>
+        /// <returns>订单列表</returns>
+        [HttpGet("orders")]
+        public async Task<IActionResult> GetOrders([FromQuery] string status)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+            {
+                return BadRequest("必须提供 status 查询参数");
+            }
+
+            try
+            {
+                var courierId = GetCurrentCourierId();
+                var orders = await _courierService.GetOrdersAsync(courierId, status);
+                return Ok(orders);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"服务器内部错误: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 获取配送员当前位置
+        /// </summary>
+        /// <returns>位置信息</returns>
+        [HttpGet("location")]
+        public async Task<IActionResult> GetLocation()
+        {
+            try
+            {
+                var courierId = GetCurrentCourierId();
+                var area = await _courierService.GetCurrentLocationAsync(courierId);
+                return Ok(new { area });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"服务器内部错误: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 切换配送员工作状态
+        /// </summary>
+        /// <param name="request">状态切换请求</param>
+        /// <returns>操作结果</returns>
         [HttpPost("status/toggle")]
         public async Task<IActionResult> ToggleStatus([FromBody] ToggleStatusRequestDto request)
         {
@@ -101,14 +133,23 @@ namespace BackEnd.Controllers
             {
                 var courierId = GetCurrentCourierId();
                 var success = await _courierService.ToggleWorkStatusAsync(courierId, request.IsOnline);
-                if (!success) return NotFound("骑手不存在，无法更新状态");
-                // 【已修正】直接返回只包含 success 的对象
-                return Ok(new { success = true });
+                return !success ? NotFound("骑手不存在，无法更新状态") : Ok(new { success = true });
             }
-            catch (UnauthorizedAccessException) { return Unauthorized(); }
-            catch (Exception ex) { return StatusCode(500, $"服务器内部错误: {ex.Message}"); }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"服务器内部错误: {ex.Message}");
+            }
         }
 
+        /// <summary>
+        /// 获取新订单详情
+        /// </summary>
+        /// <param name="notificationId">通知ID</param>
+        /// <returns>订单详情</returns>
         [HttpGet("orders/new/{notificationId}")]
         public async Task<IActionResult> GetNewOrderDetails(string notificationId)
         {
@@ -116,15 +157,23 @@ namespace BackEnd.Controllers
             {
                 return BadRequest("无效的订单ID格式，必须是数字。");
             }
+
             try
             {
                 var orderDetails = await _courierService.GetNewOrderDetailsAsync(taskId);
-                if (orderDetails == null) return NotFound($"找不到ID为 {taskId} 的订单详情。");
-                return Ok(orderDetails);
+                return orderDetails == null ? NotFound($"找不到ID为 {taskId} 的订单详情。") : Ok(orderDetails);
             }
-            catch (Exception ex) { return StatusCode(500, $"服务器内部错误: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"服务器内部错误: {ex.Message}");
+            }
         }
 
+        /// <summary>
+        /// 接受订单
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>操作结果</returns>
         [HttpPost("orders/{orderId}/accept")]
         public async Task<IActionResult> AcceptOrder(string orderId)
         {
@@ -132,17 +181,28 @@ namespace BackEnd.Controllers
             {
                 return BadRequest("无效的订单ID格式。");
             }
+
             try
             {
                 var courierId = GetCurrentCourierId();
                 var success = await _courierService.AcceptOrderAsync(courierId, taskId);
-                if (!success) return BadRequest(new { success = false, message = "无法接受该订单，它可能已被处理或不存在。" });
-                return Ok(new { success = true });
+                return !success ? BadRequest(new { success = false, message = "无法接受该订单，它可能已被处理或不存在。" }) : Ok(new { success = true });
             }
-            catch (UnauthorizedAccessException) { return Unauthorized(); }
-            catch (Exception ex) { return StatusCode(500, $"服务器内部错误: {ex.Message}"); }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"服务器内部错误: {ex.Message}");
+            }
         }
 
+        /// <summary>
+        /// 拒绝订单
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>操作结果</returns>
         [HttpPost("orders/{orderId}/reject")]
         public async Task<IActionResult> RejectOrder(string orderId)
         {
@@ -150,15 +210,22 @@ namespace BackEnd.Controllers
             {
                 return BadRequest("无效的订单ID格式。");
             }
+
             try
             {
                 var success = await _courierService.RejectOrderAsync(taskId);
-                if (!success) return BadRequest(new { success = false, message = "无法拒绝该订单，它可能已被处理或不存在。" });
-                return Ok(new { success = true });
+                return !success ? BadRequest(new { success = false, message = "无法拒绝该订单，它可能已被处理或不存在。" }) : Ok(new { success = true });
             }
-            catch (Exception ex) { return StatusCode(500, $"服务器内部错误: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"服务器内部错误: {ex.Message}");
+            }
         }
 
+        /// <summary>
+        /// 获取月度收入
+        /// </summary>
+        /// <returns>月度收入</returns>
         [HttpGet("income/monthly")]
         public async Task<IActionResult> GetMonthlyIncome()
         {
@@ -168,39 +235,28 @@ namespace BackEnd.Controllers
                 var monthlyIncome = await _courierService.GetMonthlyIncomeAsync(courierId);
                 return Content(monthlyIncome.ToString("F2"), "text/plain");
             }
-            catch (UnauthorizedAccessException) { return Unauthorized(); }
-            catch (Exception ex) { return StatusCode(500, $"服务器内部错误: {ex.Message}"); }
-        }
-
-        #region 辅助方法 (Helper Methods)
-        private int GetCurrentCourierId()
-        {
-            var userIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            catch (UnauthorizedAccessException)
             {
-                return userId;
+                return Unauthorized();
             }
-            throw new UnauthorizedAccessException("无法从认证信息中解析有效的用户ID。");
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"服务器内部错误: {ex.Message}");
+            }
         }
-        #endregion
-
 
         /// <summary>
-        /// 将指定的配送任务标记为已完成
+        /// 完成配送任务
         /// </summary>
-        /// <param name="taskId">要完成的任务ID</param>
-        [HttpPost("tasks/{taskId}/complete")] // 对应路由: POST /api/courier/tasks/102/complete
+        /// <param name="taskId">任务ID</param>
+        /// <returns>操作结果</returns>
+        [HttpPost("tasks/{taskId}/complete")]
         public async Task<IActionResult> CompleteTask(int taskId)
         {
             try
             {
-                // 从 Token 中获取当前操作的骑手ID
                 var courierId = GetCurrentCourierId();
-
-                // 调用 Service 层的业务逻辑
                 await _courierService.MarkTaskAsCompletedAsync(taskId, courierId);
-
-                // 操作成功，返回一个标准的成功响应
                 return Ok(new { success = true, message = "订单已成功标记为完成" });
             }
             catch (UnauthorizedAccessException)
@@ -209,14 +265,15 @@ namespace BackEnd.Controllers
             }
             catch (Exception ex)
             {
-                // 如果 Service 层抛出异常，在这里捕获并返回 500 错误
                 return StatusCode(500, $"操作失败: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// 骑手确认已取货
+        /// 确认取货
         /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>操作结果</returns>
         [HttpPost("orders/{orderId}/pickup")]
         public async Task<IActionResult> PickupOrder(string orderId)
         {
@@ -229,12 +286,7 @@ namespace BackEnd.Controllers
             {
                 var courierId = GetCurrentCourierId();
                 var success = await _courierService.PickupOrderAsync(taskId, courierId);
-
-                if (!success)
-                {
-                    return BadRequest(new { success = false, message = "操作失败，请检查订单状态或权限。" });
-                }
-                return Ok(new { success = true });
+                return !success ? BadRequest(new { success = false, message = "操作失败，请检查订单状态或权限。" }) : Ok(new { success = true });
             }
             catch (Exception ex)
             {
@@ -243,8 +295,10 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
-        /// 骑手确认已送达
+        /// 确认送达
         /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>操作结果</returns>
         [HttpPost("orders/{orderId}/deliver")]
         public async Task<IActionResult> DeliverOrder(string orderId)
         {
@@ -257,12 +311,7 @@ namespace BackEnd.Controllers
             {
                 var courierId = GetCurrentCourierId();
                 var success = await _courierService.DeliverOrderAsync(taskId, courierId);
-
-                if (!success)
-                {
-                    return BadRequest(new { success = false, message = "操作失败，请检查订单状态或权限。" });
-                }
-                return Ok(new { success = true });
+                return !success ? BadRequest(new { success = false, message = "操作失败，请检查订单状态或权限。" }) : Ok(new { success = true });
             }
             catch (Exception ex)
             {
@@ -270,7 +319,13 @@ namespace BackEnd.Controllers
             }
         }
 
-
+        /// <summary>
+        /// 获取可接订单列表
+        /// </summary>
+        /// <param name="latitude">纬度</param>
+        /// <param name="longitude">经度</param>
+        /// <param name="maxDistance">最大距离</param>
+        /// <returns>可接订单列表</returns>
         [HttpGet("orders/available")]
         public async Task<ActionResult<IEnumerable<AvailableOrderDto>>> GetAvailableOrders(
             [FromQuery] decimal latitude,
@@ -283,13 +338,25 @@ namespace BackEnd.Controllers
                 var availableOrders = await _courierService.GetAvailableOrdersAsync(courierId, latitude, longitude, maxDistance);
                 return Ok(availableOrders);
             }
-            catch (UnauthorizedAccessException) { return Unauthorized(); }
-            catch (ArgumentException ex) { return BadRequest(ex.Message); }
-            catch (Exception ex) { return StatusCode(500, $"服务器内部错误: {ex.Message}"); }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"服务器内部错误: {ex.Message}");
+            }
         }
 
-
-        [HttpGet("complaints")] // 对应前端 API: GET /api/courier/complaints
+        /// <summary>
+        /// 获取投诉列表
+        /// </summary>
+        /// <returns>投诉列表</returns>
+        [HttpGet("complaints")]
         public async Task<ActionResult<IEnumerable<ComplaintDto>>> GetComplaints()
         {
             try
@@ -308,21 +375,19 @@ namespace BackEnd.Controllers
             }
         }
 
-
-        [HttpPost("location/update")] // 定义路由为 POST /api/courier/location/update
+        /// <summary>
+        /// 更新位置信息
+        /// </summary>
+        /// <param name="locationDto">位置信息</param>
+        /// <returns>操作结果</returns>
+        [HttpPost("location/update")]
         public async Task<IActionResult> UpdateLocation([FromBody] UpdateLocationDto locationDto)
         {
             try
             {
                 var courierId = GetCurrentCourierId();
                 var success = await _courierService.UpdateCourierLocationAsync(courierId, locationDto.Latitude, locationDto.Longitude);
-
-                if (!success)
-                {
-                    return NotFound(new { message = "骑手未找到，无法更新位置。" });
-                }
-
-                return Ok(new { message = "位置更新成功。" });
+                return !success ? NotFound(new { message = "骑手未找到，无法更新位置。" }) : Ok(new { message = "位置更新成功。" });
             }
             catch (UnauthorizedAccessException)
             {
@@ -334,12 +399,14 @@ namespace BackEnd.Controllers
             }
         }
 
-
-
-        [HttpPut("profile")] // 对应 PUT /api/courier/profile
+        /// <summary>
+        /// 更新个人资料
+        /// </summary>
+        /// <param name="profileDto">个人资料信息</param>
+        /// <returns>操作结果</returns>
+        [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto profileDto)
         {
-            // 检查模型验证是否通过 (例如 DTO 中的 [Required] 属性)
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -349,22 +416,14 @@ namespace BackEnd.Controllers
             {
                 var courierId = GetCurrentCourierId();
                 var success = await _courierService.UpdateProfileAsync(courierId, profileDto);
-
-                if (!success)
-                {
-                    return NotFound(new { success = false, message = "用户未找到，更新失败。" });
-                }
-
-                return Ok(new { success = true, message = "用户信息更新成功" });
+                return !success ? NotFound(new { success = false, message = "用户未找到，更新失败。" }) : Ok(new { success = true, message = "用户信息更新成功" });
             }
             catch (UnauthorizedAccessException)
             {
                 return Unauthorized();
             }
-            // 添加对数据库更新异常的捕获，这能提供更明确的错误信息
             catch (DbUpdateException ex)
             {
-                // 记录内部异常，以便调试
                 Console.WriteLine(ex.InnerException?.Message);
                 return StatusCode(500, new { success = false, message = "数据库更新失败，请检查提交的数据是否符合约束。" });
             }
@@ -374,20 +433,18 @@ namespace BackEnd.Controllers
             }
         }
 
-
+        /// <summary>
+        /// 获取用于编辑的个人资料
+        /// </summary>
+        /// <returns>个人资料信息</returns>
         [HttpGet("profile/for-edit")]
         public async Task<ActionResult<UpdateProfileDto>> GetProfileForEdit()
         {
             try
             {
                 var courierId = GetCurrentCourierId();
-                // 正确调用 Service 层的方法
                 var profileData = await _courierService.GetProfileForEditAsync(courierId);
-                if (profileData == null)
-                {
-                    return NotFound("无法获取用于编辑的用户资料。");
-                }
-                return Ok(profileData);
+                return profileData == null ? NotFound("无法获取用于编辑的用户资料。") : Ok(profileData);
             }
             catch (Exception ex)
             {
@@ -395,7 +452,18 @@ namespace BackEnd.Controllers
             }
         }
 
-
-
+        /// <summary>
+        /// 获取当前配送员ID
+        /// </summary>
+        /// <returns>配送员ID</returns>
+        private int GetCurrentCourierId()
+        {
+            var userIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return userId;
+            }
+            throw new UnauthorizedAccessException("无法从认证信息中解析有效的用户ID。");
+        }
     }
 }

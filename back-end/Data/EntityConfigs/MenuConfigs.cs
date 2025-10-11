@@ -4,31 +4,45 @@ using BackEnd.Models;
 
 namespace BackEnd.Data.EntityConfigs
 {
+    /// <summary>
+    /// 菜单实体配置
+    /// </summary>
     public class MenuConfig : IEntityTypeConfiguration<Menu>
     {
+        /// <summary>
+        /// 配置菜单实体
+        /// </summary>
+        /// <param name="builder">实体类型构建器</param>
         public void Configure(EntityTypeBuilder<Menu> builder)
         {
             builder.ToTable("MENUS");
 
+            // 主键配置
             builder.HasKey(m => m.MenuID);
-
             builder.Property(m => m.MenuID).HasColumnName("MENUID").ValueGeneratedOnAdd();
 
+            // 基础属性配置
             builder.Property(m => m.Version).HasColumnName("VERSION").IsRequired().HasMaxLength(50);
-
             builder.Property(m => m.ActivePeriod).HasColumnName("ACTIVEPERIOD").IsRequired();
 
+            // 外键配置
             builder.Property(m => m.StoreID).HasColumnName("STOREID").IsRequired();
 
-            // ---------------------------------------------------------------
             // 关系配置
-            // ---------------------------------------------------------------
+            ConfigureRelationships(builder);
+        }
 
-            // 关系一: Menu -> Store (多对一)
+        /// <summary>
+        /// 配置实体关系
+        /// </summary>
+        /// <param name="builder">实体类型构建器</param>
+        private static void ConfigureRelationships(EntityTypeBuilder<Menu> builder)
+        {
+            // 配置与Store的多对一关系
             builder.HasOne(m => m.Store)
-                   .WithMany(s => s.Menus)
-                   .HasForeignKey(m => m.StoreID)
-                   .OnDelete(DeleteBehavior.Cascade); // 当商店被删除时，其所有菜单也应被级联删除
+                .WithMany(s => s.Menus)
+                .HasForeignKey(m => m.StoreID)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -1,25 +1,37 @@
-using BackEnd.Dtos.Administrator;
+using BackEnd.DTOs.Administrator;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 管理员服务实现
+    /// </summary>
     public class AdministratorService : IAdministratorService
     {
         private readonly IAdministratorRepository _administratorRepository;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="administratorRepository">管理员仓储</param>
         public AdministratorService(IAdministratorRepository administratorRepository)
         {
             _administratorRepository = administratorRepository;
         }
 
+        /// <summary>
+        /// 获取管理员信息
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>管理员信息</returns>
         public async Task<GetAdminInfo?> GetAdministratorInfoAsync(int adminId)
         {
             try
             {
                 var administrator = await _administratorRepository.GetByIdAsync(adminId);
-                if (administrator == null || administrator.User == null)
+                if (administrator?.User == null)
                 {
                     return null;
                 }
@@ -49,6 +61,12 @@ namespace BackEnd.Services
             }
         }
 
+        /// <summary>
+        /// 更新管理员信息
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <param name="request">更新请求</param>
+        /// <returns>更新结果</returns>
         public async Task<SetAdminInfoResponse> UpdateAdministratorInfoAsync(int adminId, SetAdminInfo request)
         {
             try

@@ -4,46 +4,70 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BackEnd.Models
 {
+    /// <summary>
+    /// 售后申请模型
+    /// </summary>
     public class AfterSaleApplication
     {
-        // 售后申请类
-        // 主码：ApplicationID
-        // 外码：CustomerID，OrderID，SellerID
-
+        /// <summary>
+        /// 售后申请ID（主键）
+        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ApplicationID { get; set; }
 
+        /// <summary>
+        /// 申请描述
+        /// </summary>
         [Required]
         [StringLength(255)]
         public string Description { get; set; } = null!;
 
+        /// <summary>
+        /// 申请时间
+        /// </summary>
         [Required]
         public DateTime ApplicationTime { get; set; }
 
-        // 新增售后申请状态
+        /// <summary>
+        /// 售后申请状态
+        /// </summary>
         [Required]
         public AfterSaleState AfterSaleState { get; set; } = AfterSaleState.Pending;
 
-        // 处理措施
+        /// <summary>
+        /// 处理结果
+        /// </summary>
         [StringLength(255)]
         public string? ProcessingResult { get; set; } = "-";
 
-        // 处理原因
+        /// <summary>
+        /// 处理原因
+        /// </summary>
         [StringLength(255)]
         public string? ProcessingReason { get; set; }
 
-        // 处理备注
+        /// <summary>
+        /// 处理备注
+        /// </summary>
         [StringLength(255)]
         public string? ProcessingRemark { get; set; }
 
+        /// <summary>
+        /// 订单ID（外键）
+        /// </summary>
         [Required]
         public int OrderID { get; set; }
+
+        /// <summary>
+        /// 关联的订单
+        /// </summary>
         [ForeignKey("OrderID")]
         public FoodOrder Order { get; set; } = null!;
 
-        // 多对多关系
-        // 可以由多个管理员负责
+        /// <summary>
+        /// 售后申请评估记录集合
+        /// </summary>
         public ICollection<Evaluate_AfterSale> EvaluateAfterSales { get; set; } = new List<Evaluate_AfterSale>();
     }
 }

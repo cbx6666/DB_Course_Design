@@ -1,8 +1,12 @@
-using BackEnd.Dtos.User;
+using BackEnd.DTOs.User;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
+
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 用户首页服务
+    /// </summary>
     public class UserHomepageService : IUserHomepageService
     {
         private readonly IStoreRepository _storeRepository;
@@ -11,13 +15,20 @@ namespace BackEnd.Services
         private readonly IFoodOrderRepository _foodOrderRepository;
         private readonly IShoppingCartRepository _shoppingCartRepository;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="storeRepository">店铺仓储</param>
+        /// <param name="userRepository">用户仓储</param>
+        /// <param name="couponRepository">优惠券仓储</param>
+        /// <param name="foodOrderRepository">订单仓储</param>
+        /// <param name="shoppingCartRepository">购物车仓储</param>
         public UserHomepageService(
             IStoreRepository storeRepository,
             IUserRepository userRepository,
             ICouponRepository couponRepository,
             IFoodOrderRepository foodOrderRepository,
-            IShoppingCartRepository shoppingCartRepository
-            )
+            IShoppingCartRepository shoppingCartRepository)
         {
             _storeRepository = storeRepository;
             _userRepository = userRepository;
@@ -26,13 +37,13 @@ namespace BackEnd.Services
             _shoppingCartRepository = shoppingCartRepository;
         }
 
+        /// <summary>
+        /// 获取推荐店铺
+        /// </summary>
+        /// <returns>推荐店铺</returns>
         public async Task<HomeRecmDto> GetRecommendedStoresAsync()
         {
-            // 【优化前】
-            // var stores = await _storeRepository.GetAllAsync();
-            // ... 在内存中排序和筛选 ...
-
-            // 【优化后】直接从数据库获取已排序和限制数量的结果
+            // 直接从数据库获取已排序和限制数量的结果
             var topStores = await _storeRepository.GetTopRatedStoresForHomepageAsync(10);
 
             // 在内存中进行随机化是OK的，因为数据量已经很小 (只有10条)
@@ -47,25 +58,30 @@ namespace BackEnd.Services
             };
         }
 
+        /// <summary>
+        /// 搜索店铺和菜品
+        /// </summary>
+        /// <param name="searchDto">搜索请求</param>
+        /// <returns>搜索结果</returns>
         public async Task<(IEnumerable<HomeSearchGetDto> Stores, IEnumerable<HomeSearchGetDto> Dishes)>
             SearchAsync(HomeSearchDto searchDto)
         {
-            // 【优化前】加载了所有店铺和所有菜品到内存
-            // var stores = await _storeRepository.GetAllAsync();
-            // var dishes = await _dishRepository.GetAllAsync(); ...
-
-            // 【优化后】让数据库执行搜索
+            // 让数据库执行搜索
             var storeResults = await _storeRepository.SearchStoresByNameAsync(searchDto.Keyword);
             var dishResults = await _storeRepository.SearchStoresByDishNameAsync(searchDto.Keyword);
 
             return (storeResults, dishResults);
         }
 
+        /// <summary>
+        /// 获取订单历史
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>订单历史</returns>
         public async Task<List<HistoryOrderDto>> GetOrderHistoryAsync(int userId)
         {
             // 获取用户的所有订单
             var orders = await _foodOrderRepository.GetOrdersByCustomerIdOrderedByDateAsync(userId);
-
 
             var result = new List<HistoryOrderDto>();
 
@@ -92,13 +108,12 @@ namespace BackEnd.Services
                             .Distinct()
                             .ToList();
 
-                        // 计算总金额 - 修正后的逻辑
+                        // 计算总金额
                         totalAmount = cart.ShoppingCartItems
                             .Where(sci => sci.Dish != null)
                             .Sum(sci => sci.Quantity * sci.Dish.Price);
                     }
                 }
-
 
                 result.Add(new HistoryOrderDto
                 {
@@ -118,8 +133,12 @@ namespace BackEnd.Services
             return result;
         }
 
-
-        public async Task<UserInfoResponse> GetUserInfoAsync(int userId)
+        /// <summary>
+        /// 获取用户信息
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>用户信息</returns>
+        public async Task<UserInfoResponse?> GetUserInfoAsync(int userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
 
@@ -128,14 +147,17 @@ namespace BackEnd.Services
 
             return new UserInfoResponse
             {
-                Name = user.Username,
+                Name = user.Username ?? string.Empty,
                 PhoneNumber = user.PhoneNumber,
-                Image = user.Avatar
+                Image = user.Avatar ?? string.Empty
             };
         }
 
-
-        // 查询用户优惠券（带 CouponManager 信息）
+        /// <summary>
+        /// 查询用户优惠券（带 CouponManager 信息）
+        /// </summary>
+        /// <param name="userIdDto">用户ID请求</param>
+        /// <returns>用户优惠券列表</returns>
         public async Task<IEnumerable<CouponDto>> GetUserCouponsAsync(UserIdDto userIdDto)
         {
             var coupons = await _couponRepository.GetAllAsync();
@@ -156,18 +178,18 @@ namespace BackEnd.Services
 
             return results;
         }
+
+        /// <summary>
+        /// 获取所有店铺
+        /// </summary>
+        /// <returns>所有店铺</returns>
         public async Task<StoresResponseDto> GetAllStoresAsync()
         {
-            // 【优化前】
-            // var stores = await _storeRepository.GetAllAsync();
-            // ... 在内存中过滤 ...
-
-            // 【优化后】直接从数据库获取所有运营中的店铺
+            // 直接从数据库获取所有运营中的店铺
             var operationalStores = await _storeRepository.GetOperationalStoresAsync();
 
             return new StoresResponseDto { AllStores = operationalStores.ToList() };
         }
     }
-
 }
 

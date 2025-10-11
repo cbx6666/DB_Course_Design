@@ -1,37 +1,45 @@
-using BackEnd.Dtos.AfterSaleApplication;
+using BackEnd.DTOs.AfterSaleApplication;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Services
 {
+    /// <summary>
+    /// 售后申请评估服务实现
+    /// </summary>
     public class Evaluate_AfterSaleService : IEvaluate_AfterSaleService
     {
         private readonly IAdministratorRepository _administratorRepository;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="administratorRepository">管理员仓储</param>
         public Evaluate_AfterSaleService(IAdministratorRepository administratorRepository)
         {
             _administratorRepository = administratorRepository;
         }
 
-        // 根据管理员ID，获取与其相关的所有售后申请。
+        /// <summary>
+        /// 获取管理员的售后申请列表
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>售后申请列表</returns>
         public async Task<IEnumerable<GetAfterSaleApplicationInfo>> GetApplicationsForAdminAsync(int adminId)
         {
-            // 1. 调用仓储层，从数据库获取原始的、未经处理的数据模型
             var applicationsFromDb = await _administratorRepository.GetAfterSaleApplicationsByAdminIdAsync(adminId);
 
-            // 如果找不到任何申请，返回一个空的列表，而不是 null
             if (applicationsFromDb == null || !applicationsFromDb.Any())
             {
                 return Enumerable.Empty<GetAfterSaleApplicationInfo>();
             }
 
-            // 2. 将数据模型映射/转换为 DTO 
             var applicationDtos = applicationsFromDb.Select(app => new GetAfterSaleApplicationInfo
             {
                 ApplicationId = app.ApplicationID.ToString(),
                 OrderId = app.OrderID.ToString(),
-                ApplicationTime = app.ApplicationTime.ToString("yyyy-MM-dd HH:mm"), // 格式化日期时间字符串
+                ApplicationTime = app.ApplicationTime.ToString("yyyy-MM-dd HH:mm"),
                 Description = app.Description,
                 Status = app.AfterSaleState == AfterSaleState.Pending ? "待处理" : "已完成",
                 Punishment = app.ProcessingResult ?? "-",
@@ -42,12 +50,16 @@ namespace BackEnd.Services
             return applicationDtos;
         }
 
-        // 根据售后申请ID，设置售后申请
+        /// <summary>
+        /// 更新售后申请
+        /// </summary>
+        /// <param name="request">更新请求</param>
+        /// <returns>更新结果</returns>
         public async Task<SetAfterSaleApplicationResponse> UpdateAfterSaleApplicationAsync(SetAfterSaleApplicationInfo request)
         {
             try
             {
-                // 1. 验证输入参数
+                // 验证输入参数
                 if (!int.TryParse(request.ApplicationId, out int applicationId))
                 {
                     return new SetAfterSaleApplicationResponse
@@ -76,7 +88,7 @@ namespace BackEnd.Services
                     };
                 }
 
-                // 2. 获取现有的售后申请
+                // 获取现有的售后申请
                 var existingApplication = await _administratorRepository.GetAfterSaleApplicationByIdAsync(applicationId);
                 if (existingApplication == null)
                 {
@@ -87,13 +99,13 @@ namespace BackEnd.Services
                     };
                 }
 
-                // 3. 更新售后申请信息
+                // 更新售后申请信息
                 existingApplication.AfterSaleState = AfterSaleState.Completed;
                 existingApplication.ProcessingResult = request.Punishment;
                 existingApplication.ProcessingRemark = request.ProcessingNote;
                 existingApplication.ProcessingReason = request.PunishmentReason;
 
-                // 4. 保存更改
+                // 保存更改
                 bool updateSuccess = await _administratorRepository.UpdateAfterSaleApplicationAsync(existingApplication);
                 if (!updateSuccess)
                 {
@@ -104,7 +116,7 @@ namespace BackEnd.Services
                     };
                 }
 
-                // 6. 返回更新后的完整信息
+                // 返回更新后的完整信息
                 var updatedApplicationDto = new GetAfterSaleApplicationInfo
                 {
                     ApplicationId = existingApplication.ApplicationID.ToString(),
