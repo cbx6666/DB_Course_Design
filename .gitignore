@@ -11,3 +11,6 @@ package-lock.json
 back-end/obj/
 back-end/bin/
 backend/.vs/
+
+# 文档
+*.bkp
