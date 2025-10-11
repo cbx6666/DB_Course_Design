@@ -18,7 +18,6 @@ export interface ShoppingCart {
 // 菜品信息
 export interface MenuItem {
     id: number;
-    categoryId: number;
     name: string;
     description: string;
     price: number;
@@ -26,7 +25,7 @@ export interface MenuItem {
     isSoldOut: number;
 }
 
-export interface Order{
+export interface Order {
     paymentTime: Date;
     customerID: number;
     cartID: number;
@@ -42,11 +41,10 @@ export async function getMenuItem(StoreID: string) {
     });
 }
 
-export async function getShoppingCart(StoreID: string, UserID: number) {
+export async function getShoppingCart(StoreID: string) {
     return getData<ShoppingCart>("/api/store/shoppingcart", {
         params: {
-            storeId: StoreID,
-            userId: UserID
+            storeId: StoreID
         }
     });
 }

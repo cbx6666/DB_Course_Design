@@ -81,7 +81,7 @@ const userInfo = ref({
 });
 
 onMounted(async () => {
-  userInfo.value = await getUserInfo(userID);
+  userInfo.value = await getUserInfo();
 });
 
 const showUserPanel = ref(false);

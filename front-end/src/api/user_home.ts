@@ -1,7 +1,7 @@
 import { getData } from '@/api/multiuse_function'
 import { postData } from '@/api/multiuse_function'
 
-export interface showStore{
+export interface showStore {
     id: number
     image: string
     averageRating: number
@@ -13,7 +13,7 @@ export interface RecomStore {
     recomStore: showStore[]
 }
 
-export interface AllStore{
+export interface AllStore {
     allStores: showStore[]
 }
 
@@ -40,7 +40,7 @@ export interface UserInfo {
     defaultAddress: string
 }
 
-export interface AfterSale{
+export interface AfterSale {
     userID: number;
     orderID: number;
     content: string;
@@ -64,20 +64,12 @@ export async function getSearchStore(UserID: number, Address: string, Keyword: s
     });
 }
 
-export async function getOrderInfo(UserId: number) {
-    return getData<OrderInfo[]>(`/api/user/home/orders`, {
-        params: {
-            userId: UserId
-        }
-    });
+export async function getOrderInfo() {
+    return getData<OrderInfo[]>(`/api/user/home/orders`);
 }
 
-export async function getUserInfo(UserId: number) {
-    return getData<UserInfo>(`/api/user/home/userinfo`, {
-        params: {
-            userId: UserId
-        }
-    });
+export async function getUserInfo() {
+    return getData<UserInfo>(`/api/user/home/userinfo`);
 }
 
 export async function postAfterSaleApplication(orderId: number, description: string) {

@@ -90,7 +90,7 @@ const formData = reactive<AccountInfo>({
 })
 
 onMounted(async () => {
-    accountInfo.value = await getAccountInfo(userID);
+    accountInfo.value = await getAccountInfo();
 });
 
 watch(

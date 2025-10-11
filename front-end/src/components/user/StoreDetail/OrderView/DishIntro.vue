@@ -1,7 +1,7 @@
 <template>
     <div class="mt-5 mr-10 ml-5 w-full bg-white border-2 rounded-lg shadow-sm p-2">
-        <div v-if="getCurrentMenuItems().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div v-for="item in getCurrentMenuItems()" :key="item.id">
+        <div v-if="menuItems.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div v-for="item in menuItems" :key="item.id">
                 <div v-if="item" class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md">
                     <div class="w-full h-56 overflow-hidden">
                         <img :src="item.image || defaultImage" class="w-full h-84 object-cover object-top" />
@@ -44,18 +44,13 @@ import { defineProps, defineEmits } from 'vue'
 import type { MenuItem, ShoppingCart } from '@/api/user_checkout';
 
 const props = defineProps<{
-    categories: Array<{ id: number, name: string }>;
-    activeCategory: number;
     cart: ShoppingCart;
     menuItems: MenuItem[];
 }>();
 
 const defaultImage = "https://media.istockphoto.com/id/520410807/zh/%E7%85%A7%E7%89%87/cheeseburger.jpg?s=612x612&w=0&k=20&c=U5V_0yjY1KGcqKLmNZjuDtNZJpYl3QPc-3_fAOQGKgI=";
 
-
 const isItemSoldOut = (isSoldOut?: number) => isSoldOut == 0; // 等于0返回True
-
-const getCurrentMenuItems = () => props.menuItems.filter(item => item.categoryId === props.activeCategory);
 
 const getItemQuantity = (dishId: number) => {
     const item = props.cart.items.find(i => i.dishId === dishId);

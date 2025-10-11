@@ -1,15 +1,8 @@
 <template>
   <div>
     <div class="flex">
-      <!-- 菜单分类 -->
-      <MenuList 
-        :categories="categories" 
-        v-model:activeCategory="activeCategory" />
-
       <!-- 菜品展示 -->
       <DishIntro 
-        :categories="categories" 
-        :activeCategory="activeCategory" 
         :cart="cart" 
         :menuItems="menuItems" 
         @increase="increaseQuantity"
@@ -38,7 +31,6 @@ import type { MenuItem, ShoppingCart, ShoppingCartItem } from '@/api/user_checko
 import { getStoreInfo } from '@/api/user_store_info'
 import { getMenuItem, getShoppingCart, addOrUpdateCartItem, removeCartItem } from '@/api/user_checkout'
 
-import MenuList from '@/components/user/StoreDetail/OrderView/MenuList.vue'
 import DishIntro from '@/components/user/StoreDetail/OrderView/DishIntro.vue'
 import ItemCart from '@/components/user/StoreDetail/OrderView/ItemCart.vue'
 
@@ -56,19 +48,6 @@ const cart = ref<ShoppingCart>({
   totalPrice: 0,
   items: []
 });  // 防止未定义
-
-// 固定分类（可根据需要改成动态生成）
-const categories = [
-  { id: 0, name: "招牌推荐" },
-  { id: 1, name: "荤菜类" },
-  { id: 2, name: "素菜类" },
-  { id: 3, name: "丸子类" },
-  { id: 4, name: "豆制品" },
-  { id: 5, name: "主食类" },
-  { id: 6, name: "饮品" },
-]
-
-const activeCategory = ref(0)
 
 // 增加数量
 async function increaseQuantity(dish: MenuItem) {
@@ -95,7 +74,7 @@ async function decreaseQuantity(dish: MenuItem) {
 
 // 读取购物车
 async function loadCart() {
-  const data = await getShoppingCart(storeID.value, userID)
+  const data = await getShoppingCart(storeID.value)
   cart.value = data ?? { cartId: 0, totalPrice: 0, items: [] }
 }
 

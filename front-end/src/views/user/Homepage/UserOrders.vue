@@ -192,7 +192,7 @@ const getOrderStatusText = (statusNum: number) => {
 
 const fetchOrders = async () => {
     try {
-        const res: OrderInfo[] = await getOrderInfo(userID);
+        const res: OrderInfo[] = await getOrderInfo();
         orders.value = res;
         showLoading.value = false;
     } catch (err) {
