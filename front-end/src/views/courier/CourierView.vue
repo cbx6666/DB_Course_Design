@@ -570,16 +570,11 @@ import { useRouter } from 'vue-router';
 import loginApi from '@/api/login_api';      // 导入我们定义好的通用认证API
 import { removeToken } from '@/utils/jwt'; 
 // ===================================================================
-//  数据源切换开关
+//  API导入
 // ===================================================================
-const useMockData = false;
-
-// 动态导入API模块
-// 注意: 我们需要确保真实api.ts也导出了同名函数, 即使它们暂时为空
 import * as RealAPI from '@/api/rider_api';
-import * as MockAPI from '@/api/api.mock';
 
-const api = useMockData ? MockAPI : RealAPI;
+const api = RealAPI;
 
 const router = useRouter();
 
@@ -697,7 +692,7 @@ const todayIncome = computed(() => {
     if (!income.value) {
         return 0;
     }
-    // 简单模拟：假设今日收入是月收入的 1/25 (可以随便调整)
+    // 简单估算：假设今日收入是月收入的 1/25 (可以随便调整)
     const estimatedDaily = income.value / 25;
     // 为了让数字看起来更真实，我们再加一点随机性
     // 比如在估算值的 80% 到 120% 之间随机
@@ -748,14 +743,7 @@ const handleOrderCancelled = async (orderId: string) => {
         }
     );
     
-    // 【重要】在模拟模式下，为了让刷新有效，我们必须手动修改模拟数据源的状态。
-    // 这段代码模仿了“后端数据状态已经被改变”这个事实。
-    /*if (useMockData) {
-        const orderInMock = MockAPI.mockOrders.find(o => o.id === orderId);
-        if (orderInMock) {
-            orderInMock.status = 'cancelled';
-        }
-    }*/
+    // 【重要】在真实API模式下，刷新后数据会从后端重新获取。
 };
 
 /** 处理“取单”操作 */
@@ -846,7 +834,7 @@ const loadDashboardData = async () => {
             api.fetchOrders('delivering'),  // API 调用 2
             api.fetchOrders('completed'),   // API 调用 3
             api.fetchLocationInfo(),
-            (api as typeof MockAPI).fetchComplaints() // <-- 新增 API 调用
+            api.fetchComplaints() // <-- 新增 API 调用
         ])) as [
                 { data: any },         // 1. 对应 profileRes
                 { data: any },         // 2. 对应 statusRes
@@ -918,7 +906,7 @@ const toggleWorkStatus = async () => {
 onMounted(() => {
     loadDashboardData();
 
-    // 如果不是用模拟数据，就启动WebSocket监听器
+    // 启动WebSocket监听器
 
 });
 
@@ -1047,6 +1035,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 input[type="number"] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 ::-webkit-scrollbar {

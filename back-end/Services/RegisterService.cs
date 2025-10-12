@@ -44,13 +44,6 @@ namespace BackEnd.Services
             if (await _userRepo.ExistsByPhoneAsync(req.Phone))
                 return new RegisterResult { Success = false, Code = 409, Message = "手机号已被注册" };
 
-            // 隐私设置验证
-            ProfilePrivacyLevel privacyLevel;
-            if (Enum.IsDefined(typeof(ProfilePrivacyLevel), req.IsPublic))
-                privacyLevel = (ProfilePrivacyLevel)req.IsPublic;
-            else
-                return Fail("无效的隐私设置", 400);
-
             // 构建用户实体
             var user = new User
             {
@@ -61,8 +54,9 @@ namespace BackEnd.Services
                 Email = req.Email,
                 Gender = req.Gender,
                 Birthday = !string.IsNullOrEmpty(req.Birthday) ? DateTime.Parse(req.Birthday) : null,
-                Avatar = req.AvatarUrl,
-                IsProfilePublic = privacyLevel,
+                Avatar = string.IsNullOrWhiteSpace(req.AvatarUrl) 
+                         ? "/images/default-avatar.jpg" 
+                         : req.AvatarUrl,
                 AccountCreationTime = DateTime.UtcNow,
                 Role = MapStringToRole(req.Role)
             };
@@ -121,10 +115,7 @@ namespace BackEnd.Services
                     break;
 
                 case "customer":
-                    user.Customer = new Customer
-                    {
-                        DefaultAddress = ""
-                    };
+                    user.Customer = new Customer();
                     break;
 
                 default:

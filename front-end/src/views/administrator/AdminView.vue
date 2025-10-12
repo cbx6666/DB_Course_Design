@@ -645,13 +645,6 @@
                                                 class="w-20 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm">
                                         </div>
                                     </div>
-                                    <div>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" v-model="currentUser.isPublic"
-                                                class="text-orange-500 focus:ring-orange-500">
-                                            <span class="ml-2 text-sm text-gray-700">公开个人信息</span>
-                                        </label>
-                                    </div>
                                 </div>
 
                                 <!-- 操作按钮 -->
@@ -1054,7 +1047,6 @@ interface AdminInfo {
     birthDate: string; // e.g., "1990-05-15"
     managementScope: string;
     averageRating: number;
-    isPublic: boolean;
 }
 
 
@@ -1106,81 +1098,19 @@ interface ReviewItem {
 // 步骤 3: API定义和切换逻辑
 // =================================================================
 
-// 3.1 ----------------- 模拟API实现 -----------------
-const mockApi = {
-    getAfterSalesList: async (): Promise<AfterSaleItem[]> => ([
-        { applicationId: 'AS202401001', orderId: 'ORD202401001', applicationTime: '2024-01-15 14:30', description: '商品质量问题，要求退款', status: '待处理', punishment: '-' },
-        { applicationId: 'AS202401002', orderId: 'ORD202401002', applicationTime: '2024-01-15 13:45', description: '配送延误，商品已变质', status: '待处理', punishment: '-' },
-        { applicationId: 'AS202401003', orderId: 'ORD202401003', applicationTime: '2024-01-15 12:20', description: '商品与描述不符', status: '已完成', punishment: '全额退款' },
-    ]),
-    getComplaintsList: async (): Promise<ComplaintItem[]> => ([
-        { complaintId: 'CP202401001', target: '骑手张三', content: '配送员态度恶劣，服务质量差', applicationTime: '2024-01-15 14:30', status: '待处理', punishment: '-', fine: '' },
-        { complaintId: 'CP202401002', target: '商家李记餐厅', content: '商家出餐速度慢，影响配送时效', applicationTime: '2024-01-15 13:45', status: '待处理', punishment: '-', fine: ''},
-        { complaintId: 'CP202401003', target: '骑手王五', content: '配送员未按时送达，且态度不好', applicationTime: '2024-01-15 12:20', status: '已完成', punishment: '暂停接单 3 天', fine: '' }
-    ]),
-    getViolationsList: async (): Promise<ViolationItem[]> => ([
-        { punishmentId: 'PUN202401001', storeName: '张记小炒', reason: '食品安全问题，使用过期食材制作食品', merchantPunishment: '-', storePunishment: '-', punishmentTime: '2024-01-15 14:30', status: '待处理' },
-        { punishmentId: 'PUN202401002', storeName: '美味餐厅', reason: '虚假宣传，图片与实物不符', merchantPunishment: '罚款500元', storePunishment: '下架违规商品', punishmentTime: '2024-01-15 13:45', status: '已完成' },
-        { punishmentId: 'PUN202401003', storeName: '快送外卖', reason: '配送员私自拆开包装', merchantPunishment: '-', storePunishment: '-', punishmentTime: '2024-01-15 12:20', status: '待处理' }
-    ]),
-    getReviewsList: async (): Promise<ReviewItem[]> => ([
-        { reviewId: 'RV202401001', username: '用户张三', type:'普通评论', content: '味道不错，配送也很快，推荐！', rating: 5, submitTime: '2024-01-15 14:30', status: '待处理' },
-        { reviewId: 'RV202401002', username: '用户李四', type:'普通评论', content: '包装很好，食物新鲜，服务态度也不错', rating: 4, submitTime: '2024-01-15 13:45', status: '已完成' },
-        { reviewId: 'RV202401003', username: '用户王五', type:'普通评论', content: '这家店的食物质量有问题，不建议购买', rating: 1, submitTime: '2024-01-15 12:20', status: '已完成' }
-    ]),
-    getAdminInfo: async (): Promise<AdminInfo> => ({
-        id: 'ADM001',
-        username: 'admin_zhang',
-        realName: '张伟',
-        role: '系统管理员',
-        registrationDate: '2023-01-15',
-        avatarUrl: 'https://readdy.ai/api/search-image?query=professional%20business%20administrator%20avatar%20portrait%20with%20clean%20white%20background%20modern%20corporate%20headshot%20style%20high%20quality%20detailed%20facial%20features%20confident%20expression&width=120&height=120&seq=admin-profile-001&orientation=squarish',
-        phone: '13800138000',
-        email: 'admin@fooddelivery.com',
-        gender: '男',
-        birthDate: '1990-05-15',
-        managementScope: '售后处理、投诉管理、评论审核',
-        averageRating: 4.8,
-        isPublic: true,
-    }),
-    updateAdminInfo: async (data: AdminInfo) => { console.log('【Mock API】更新管理员信息:', data); return { success: true, data }; },
-    updateAfterSale: async (item: AfterSaleItem) => { console.log('【Mock API】更新售后:', item); return { success: true, data: item }; },
-    updateComplaint: async (item: ComplaintItem) => { console.log('【Mock API】更新投诉:', item); return { success: true, data: item }; },
-    updateViolation: async (item: ViolationItem) => { console.log('【Mock API】更新违规:', item); return { success: true, data: item }; },
-    updateReview: async (item: ReviewItem) => { console.log('【Mock API】更新评论:', item); return { success: true, data: item }; },
-};
+// 3.1 ----------------- API实现 -----------------
 
-// 3.2 ----------------- 真实API实现 -----------------
-const apiClient = axios.create({ baseURL: 'http://113.44.82.210:5250/api', timeout: 5000 }); // 根据你的后端地址修改 baseURL
-
-apiClient.interceptors.request.use(
-    (config) => {
-        // 1. 从 localStorage 中获取 Token
-        const token = localStorage.getItem('authToken');
-
-        // 2. 如果 Token 存在，则将其添加到请求头中
-        if (token) {
-            // 这里的 'Bearer ' 是一个标准的格式，后端会需要它来正确解析Token
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-
-        // 3. 返回配置好的请求对象，让请求继续发送
-        return config;
-    },
-    (error) => {
-        // 对请求错误做些什么
-        return Promise.reject(error);
-    }
-);
+// 3.2 ----------------- API实现 -----------------
+import apiClient from '@/api/client';
 
 
 
 
 
 
-// 3.2 ----------------- 真实API实现 (修改后) -----------------
+// 3.2 ----------------- API实现 (修改后) -----------------
 
-const realApi = {
+const api = {
     // --- 获取列表 (GET请求) - 这部分保持不变，因为它们返回的是数组 ---
     getAfterSalesList: () => apiClient.get<AfterSaleItem[]>('/admin/after-sales/mine').then(res => res.data),
     getComplaintsList: () => apiClient.get<ComplaintItem[]>('/admin/delivery-complaints/mine').then(res => res.data),
@@ -1244,8 +1174,6 @@ const realApi = {
 };
 
 // 3.3 ----------------- API切换器 -----------------
-const useMock = false; // 切换为 true 使用模拟API，false 使用真实API
-const api = useMock ? mockApi : realApi;
 
 
 // =================================================================
@@ -1317,7 +1245,7 @@ const punishmentOptions = { afterSales: [{ label: '全额退款', value: 'full_r
 
 // 4.2 ----------------- 数据获取 -----------------
 onMounted(async () => {
-    console.log(`API 模式: ${useMock ? '模拟 (Mock)' : '真实 (Real)'}`);
+    console.log('API 模式: 真实 (Real)');
     try {
         // 【修改】使用 Promise.all 并行加载所有数据，包括管理员信息
         const [
@@ -1779,6 +1707,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 input[type="number"] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 /* 滚动条样式 */

@@ -54,8 +54,8 @@ namespace BackEnd.Repositories
                                  .Include(s => s.FoodOrders)
                                  .Include(s => s.CouponManagers)
                                  .Include(s => s.Menus!)
-                                     .ThenInclude(m => m.MenuDishes)
-                                        .ThenInclude(md => md.Dish)
+                                     .ThenInclude(m => m.MenuDishCategories)
+                                        .ThenInclude(mdc => mdc.DishCategory)
                                  .Include(s => s.FavoriteItems)
                                  .Include(s => s.StoreViolationPenalties)
                                  .Include(s => s.Comments)
@@ -76,8 +76,8 @@ namespace BackEnd.Repositories
                                  .Include(s => s.FoodOrders)
                                  .Include(s => s.CouponManagers)
                                  .Include(s => s.Menus!)
-                                     .ThenInclude(m => m.MenuDishes)
-                                        .ThenInclude(md => md.Dish)
+                                     .ThenInclude(m => m.MenuDishCategories)
+                                        .ThenInclude(mdc => mdc.DishCategory)
                                  .Include(s => s.FavoriteItems)
                                  .Include(s => s.StoreViolationPenalties)
                                  .Include(s => s.Comments)
@@ -122,8 +122,8 @@ namespace BackEnd.Repositories
             // 高效的投影查询，直接从数据库获取菜品列表
             return await _context.Menus
                 .Where(m => m.StoreID == storeId)
-                .SelectMany(m => m.MenuDishes)
-                .Select(md => md.Dish)
+                .SelectMany(m => m.MenuDishCategories)
+                .SelectMany(mdc => mdc.DishCategory.Dishes)
                 .Distinct()
                 .AsNoTracking()
                 .ToListAsync();
@@ -221,7 +221,7 @@ namespace BackEnd.Repositories
             return await _context.Dishes
                 .AsNoTracking()
                 .Where(d => d.DishName.Contains(keyword))
-                .SelectMany(d => d.MenuDishes.Select(md => md.Menu.Store))
+                .SelectMany(d => d.DishCategory.MenuDishCategories.Select(mdc => mdc.Menu.Store))
                 .Distinct() // 关键：去重
                 .Select(store => new HomeSearchGetDto
                 {

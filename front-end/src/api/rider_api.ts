@@ -1,7 +1,7 @@
 // src/api/rider.api.ts
 import apiClient from './client'; // 导入我们共享的客户端
 
-// --- 从 .mock.ts 或其他地方导入骑手相关的数据类型 ---
+// --- 从 types.ts 导入骑手相关的数据类型 ---
 import type {
     UserProfile,
     WorkStatus,
@@ -11,7 +11,7 @@ import type {
     OrderStatus,
     LocationInfo,
     Complaint
-} from './api.mock'; // 假设类型定义在这里
+} from './types';
 
 // --- 修正后的 API 函数 ---
 
@@ -37,7 +37,7 @@ export const fetchIncomeData = () => {
 };
 
 /** 根据状态获取订单列表 */
-export const fetchOrders = (status:  OrderStatus) => {
+export const fetchOrders = (status: OrderStatus) => {
     // 【已修正】路径正确，并且使用 params 来传递查询参数
     // 这将生成正确的 URL: /api/courier/orders?status=pending
     return apiClient.get<Order[]>('/courier/orders', { params: { status } });

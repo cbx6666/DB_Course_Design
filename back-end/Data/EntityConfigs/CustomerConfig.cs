@@ -23,7 +23,6 @@ namespace BackEnd.Data.EntityConfigs
             builder.Property(c => c.UserID).HasColumnName("USERID").ValueGeneratedNever();
 
             // 基础属性配置
-            builder.Property(c => c.DefaultAddress).HasColumnName("DEFAULTADDRESS").HasMaxLength(100);
             builder.Property(c => c.ReputationPoints).HasColumnName("REPUTATIONPOINTS").HasDefaultValue(0);
 
             // 会员状态配置

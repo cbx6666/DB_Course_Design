@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace BackEnd.Models
 {
     /// <summary>
-    /// 菜单菜品关联模型
+    /// 菜单菜品种类关联模型
     /// </summary>
-    public class Menu_Dish
+    public class Menu_DishCategory
     {
         /// <summary>
         /// 菜单ID（复合主键）
@@ -21,15 +21,15 @@ namespace BackEnd.Models
         public Menu Menu { get; set; } = null!;
 
         /// <summary>
-        /// 菜品ID（复合主键）
+        /// 菜品种类ID（复合主键）
         /// </summary>
         [Key, Column(Order = 1)]
-        public int DishID { get; set; }
+        public int CategoryID { get; set; }
 
         /// <summary>
-        /// 关联的菜品
+        /// 关联的菜品种类
         /// </summary>
-        [ForeignKey("DishID")]
-        public Dish Dish { get; set; } = null!;
+        [ForeignKey("CategoryID")]
+        public DishCategory DishCategory { get; set; } = null!;
     }
 }

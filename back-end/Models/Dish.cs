@@ -49,19 +49,26 @@ namespace BackEnd.Models
         public string? DishImage { get; set; }
 
         /// <summary>
+        /// 菜品种类ID（外键）
+        /// </summary>
+        [Required]
+        public int CategoryID { get; set; }
+
+        /// <summary>
+        /// 关联的菜品种类
+        /// </summary>
+        [ForeignKey("CategoryID")]
+        public DishCategory DishCategory { get; set; } = null!;
+
+        /// <summary>
         /// 购物车项集合
         /// </summary>
         public ICollection<ShoppingCartItem>? ShoppingCartItems { get; set; }
 
         /// <summary>
-        /// 菜单菜品关联集合
-        /// </summary>
-        public ICollection<Menu_Dish> MenuDishes { get; set; } = new List<Menu_Dish>();
-
-        /// <summary>
-        /// 包含此菜品的菜单集合（计算属性）
+        /// 包含此菜品的菜单集合（计算属性，通过菜品种类获取）
         /// </summary>
         [NotMapped]
-        public IEnumerable<Menu> Menus => MenuDishes.Select(md => md.Menu);
+        public IEnumerable<Menu> Menus => DishCategory.MenuDishCategories.Select(mdc => mdc.Menu);
     }
 }

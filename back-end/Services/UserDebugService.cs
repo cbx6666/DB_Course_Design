@@ -56,7 +56,15 @@ namespace BackEnd.Services
                 Name = user.Username,
                 PhoneNumber = user.PhoneNumber,
                 Image = user.Avatar!,
-                DefaultAddress = user.Customer?.DefaultAddress! // Customer 导航属性里的地址
+                DeliveryInfos = user.Customer?.DeliveryInfos.Select(di => new DeliveryInfoDto
+                {
+                    DeliveryInfoID = di.DeliveryInfoID,
+                    Address = di.Address,
+                    PhoneNumber = di.PhoneNumber,
+                    Name = di.Name,
+                    Gender = di.Gender,
+                    IsDefault = di.IsDefault == 1
+                }).ToList() ?? new List<DeliveryInfoDto>()
             };
 
             return dto;

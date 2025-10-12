@@ -371,11 +371,6 @@ namespace BackEnd.Migrations
                         .HasColumnType("NUMBER(10)")
                         .HasColumnName("USERID");
 
-                    b.Property<string>("DefaultAddress")
-                        .HasMaxLength(100)
-                        .HasColumnType("NVARCHAR2(100)")
-                        .HasColumnName("DEFAULTADDRESS");
-
                     b.Property<string>("IsMember")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -464,6 +459,55 @@ namespace BackEnd.Migrations
                     b.ToTable("DELIVERY_COMPLAINTS", (string)null);
                 });
 
+            modelBuilder.Entity("BackEnd.Models.DeliveryInfo", b =>
+                {
+                    b.Property<int>("DeliveryInfoID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("DELIVERYINFOID");
+
+                    OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DeliveryInfoID"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("NVARCHAR2(200)")
+                        .HasColumnName("ADDRESS");
+
+                    b.Property<int>("CustomerID")
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("CUSTOMERID");
+
+                    b.Property<string>("Gender")
+                        .HasMaxLength(10)
+                        .HasColumnType("NVARCHAR2(10)")
+                        .HasColumnName("GENDER");
+
+                    b.Property<int>("IsDefault")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(10)")
+                        .HasDefaultValue(0)
+                        .HasColumnName("ISDEFAULT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("NVARCHAR2(50)")
+                        .HasColumnName("NAME");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("NVARCHAR2(20)")
+                        .HasColumnName("PHONENUMBER");
+
+                    b.HasKey("DeliveryInfoID");
+
+                    b.HasIndex("CustomerID");
+
+                    b.ToTable("DELIVERY_INFOS", (string)null);
+                });
+
             modelBuilder.Entity("BackEnd.Models.DeliveryTask", b =>
                 {
                     b.Property<int>("TaskID")
@@ -546,6 +590,10 @@ namespace BackEnd.Migrations
 
                     OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DishID"));
 
+                    b.Property<int>("CategoryID")
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("CATEGORYID");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -577,7 +625,29 @@ namespace BackEnd.Migrations
 
                     b.HasKey("DishID");
 
+                    b.HasIndex("CategoryID");
+
                     b.ToTable("DISHES", (string)null);
+                });
+
+            modelBuilder.Entity("BackEnd.Models.DishCategory", b =>
+                {
+                    b.Property<int>("CategoryID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("CATEGORYID");
+
+                    OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryID"));
+
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("NVARCHAR2(50)")
+                        .HasColumnName("CATEGORYNAME");
+
+                    b.HasKey("CategoryID");
+
+                    b.ToTable("DISH_CATEGORIES", (string)null);
                 });
 
             modelBuilder.Entity("BackEnd.Models.Evaluate_AfterSale", b =>
@@ -767,23 +837,23 @@ namespace BackEnd.Migrations
                     b.ToTable("MENUS", (string)null);
                 });
 
-            modelBuilder.Entity("BackEnd.Models.Menu_Dish", b =>
+            modelBuilder.Entity("BackEnd.Models.Menu_DishCategory", b =>
                 {
                     b.Property<int>("MenuID")
                         .HasColumnType("NUMBER(10)")
                         .HasColumnName("MENUID")
                         .HasColumnOrder(0);
 
-                    b.Property<int>("DishID")
+                    b.Property<int>("CategoryID")
                         .HasColumnType("NUMBER(10)")
-                        .HasColumnName("DISHID")
+                        .HasColumnName("CATEGORYID")
                         .HasColumnOrder(1);
 
-                    b.HasKey("MenuID", "DishID");
+                    b.HasKey("MenuID", "CategoryID");
 
-                    b.HasIndex("DishID");
+                    b.HasIndex("CategoryID");
 
-                    b.ToTable("MENU_DISH", (string)null);
+                    b.ToTable("MENU_DISH_CATEGORY", (string)null);
                 });
 
             modelBuilder.Entity("BackEnd.Models.Review_Comment", b =>
@@ -1107,12 +1177,6 @@ namespace BackEnd.Migrations
                         .HasColumnType("NVARCHAR2(2)")
                         .HasColumnName("GENDER");
 
-                    b.Property<string>("IsProfilePublic")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("NVARCHAR2(20)")
-                        .HasColumnName("ISPROFILEPUBLIC");
-
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -1280,6 +1344,17 @@ namespace BackEnd.Migrations
                     b.Navigation("DeliveryTask");
                 });
 
+            modelBuilder.Entity("BackEnd.Models.DeliveryInfo", b =>
+                {
+                    b.HasOne("BackEnd.Models.Customer", "Customer")
+                        .WithMany("DeliveryInfos")
+                        .HasForeignKey("CustomerID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("BackEnd.Models.DeliveryTask", b =>
                 {
                     b.HasOne("BackEnd.Models.Courier", "Courier")
@@ -1312,6 +1387,17 @@ namespace BackEnd.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("BackEnd.Models.Dish", b =>
+                {
+                    b.HasOne("BackEnd.Models.DishCategory", "DishCategory")
+                        .WithMany("Dishes")
+                        .HasForeignKey("CategoryID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DishCategory");
                 });
 
             modelBuilder.Entity("BackEnd.Models.Evaluate_AfterSale", b =>
@@ -1419,21 +1505,21 @@ namespace BackEnd.Migrations
                     b.Navigation("Store");
                 });
 
-            modelBuilder.Entity("BackEnd.Models.Menu_Dish", b =>
+            modelBuilder.Entity("BackEnd.Models.Menu_DishCategory", b =>
                 {
-                    b.HasOne("BackEnd.Models.Dish", "Dish")
-                        .WithMany("MenuDishes")
-                        .HasForeignKey("DishID")
+                    b.HasOne("BackEnd.Models.DishCategory", "DishCategory")
+                        .WithMany("MenuDishCategories")
+                        .HasForeignKey("CategoryID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BackEnd.Models.Menu", "Menu")
-                        .WithMany("MenuDishes")
+                        .WithMany("MenuDishCategories")
                         .HasForeignKey("MenuID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Dish");
+                    b.Navigation("DishCategory");
 
                     b.Navigation("Menu");
                 });
@@ -1585,6 +1671,8 @@ namespace BackEnd.Migrations
 
                     b.Navigation("Coupons");
 
+                    b.Navigation("DeliveryInfos");
+
                     b.Navigation("DeliveryTasks");
 
                     b.Navigation("FavoritesFolders");
@@ -1606,9 +1694,14 @@ namespace BackEnd.Migrations
 
             modelBuilder.Entity("BackEnd.Models.Dish", b =>
                 {
-                    b.Navigation("MenuDishes");
-
                     b.Navigation("ShoppingCartItems");
+                });
+
+            modelBuilder.Entity("BackEnd.Models.DishCategory", b =>
+                {
+                    b.Navigation("Dishes");
+
+                    b.Navigation("MenuDishCategories");
                 });
 
             modelBuilder.Entity("BackEnd.Models.FavoritesFolder", b =>
@@ -1629,7 +1722,7 @@ namespace BackEnd.Migrations
 
             modelBuilder.Entity("BackEnd.Models.Menu", b =>
                 {
-                    b.Navigation("MenuDishes");
+                    b.Navigation("MenuDishCategories");
                 });
 
             modelBuilder.Entity("BackEnd.Models.Seller", b =>

@@ -1,30 +1,16 @@
-// src/services/merchant_api.ts
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: 'http://113.44.82.210:5250/api',
-  timeout: 5000,
-});
+// src/services/merchant_apiClient.ts
+import apiClient from './client';
+import { devLog } from '@/utils/logger';
 
 // 获取店铺概览数据
 export const getShopOverview = async () => {
   try {
-    console.log('正在请求店铺概览数据...');
-    const response = await api.get('/shop/overview');
-    console.log('店铺概览数据响应:', response.data);
+    devLog.api('正在请求店铺概览数据...');
+    const response = await apiClient.get('/shop/overview');
+    devLog.api('店铺概览数据响应:', response.data);
     return response.data;
   } catch (error: any) {
-    console.error('获取店铺概览数据失败:');
-    console.error('错误类型:', error.constructor.name);
-    console.error('错误消息:', error.message);
-    if (error.response) {
-      console.error('响应状态:', error.response.status);
-      console.error('响应数据:', error.response.data);
-      console.error('响应头:', error.response.headers);
-    } else if (error.request) {
-      console.error('请求配置:', error.request);
-    }
-    console.error('完整错误对象:', error);
+    devLog.error('获取店铺概览数据失败:', error);
     throw error;
   }
 };
@@ -33,7 +19,7 @@ export const getShopOverview = async () => {
 export const getShopInfo = async () => {
   try {
     console.log('正在请求店铺基本信息...');
-    const response = await api.get('/shop/info');
+    const response = await apiClient.get('/shop/info');
     console.log('店铺基本信息响应:', response.data);
     return response.data;
   } catch (error: any) {
@@ -56,7 +42,7 @@ export const getShopInfo = async () => {
 export const getMerchantInfo = async (): Promise<MerchantInfo> => {
   try {
     console.log('正在请求商家信息...');
-    const response = await api.get('/merchant/info');
+    const response = await apiClient.get('/merchant/info');
     console.log('商家信息响应:', response.data);
     return response.data.data as MerchantInfo;
   } catch (error: any) {
@@ -68,7 +54,7 @@ export const getMerchantInfo = async (): Promise<MerchantInfo> => {
 // 切换营业状态
 export const toggleBusinessStatus = async (status: boolean) => {
   try {
-    const response = await api.patch('/shop/status', { isOpen: status });
+    const response = await apiClient.patch('/shop/status', { isOpen: status });
     return response.data;
   } catch (error) {
     console.error('切换营业状态失败:', error);
@@ -79,7 +65,7 @@ export const toggleBusinessStatus = async (status: boolean) => {
 // 更新店铺信息
 export const updateShopField = async (field: string, value: string) => {
   try {
-    const response = await api.patch('/shop/update-field', {
+    const response = await apiClient.patch('/shop/update-field', {
       field,  // 字段名
       value   // 字段值
     });
@@ -105,6 +91,14 @@ export interface FoodOrder {
 
   deliveryTaskId?: number | null;  // 新增
   deliveryStatus?: number | null;  // 新增
+
+  // 前端显示需要的额外字段
+  orderTime?: string;     // 订单时间
+  totalAmount?: number;   // 总金额
+  customerName?: string;  // 客户姓名
+  customerPhone?: string; // 客户电话
+  deliveryAddress?: string; // 配送地址
+  items?: ShoppingCartItem[]; // 订单项目
 }
 
 // 菜品相关类型（对齐数据库 Dish）
@@ -114,6 +108,7 @@ export interface Dish {
   price: number;          // Dish.Price (decimal)
   description: string;    // Dish.Description
   isSoldOut: number;      // Dish.IsSoldOut (0=售罄, 2=在售)
+  categoryId: number;     // Dish.CategoryID (新增)
 }
 
 export interface NewDishData {
@@ -121,6 +116,7 @@ export interface NewDishData {
   price: string | number;
   description: string;
   isSoldOut?: number; // 默认 2 (在售)
+  categoryId: number; // 新增：菜品种类ID
 }
 
 // 聊天消息类型
@@ -183,7 +179,7 @@ export interface MerchantInfo {
 // 获取订单列表（FoodOrder）
 export const getOrders = async (params?: { sellerId?: number; storeId?: number }) => {
   try {
-    const response = await api.get('/orders', { params });
+    const response = await apiClient.get('/orders', { params });
     // 统一映射为驼峰命名
     const list = (response.data || []).map((o: any) => ({
       orderId: o.OrderID ?? o.orderId,
@@ -207,7 +203,7 @@ export const getOrders = async (params?: { sellerId?: number; storeId?: number }
 // 获取单个订单（FoodOrder）
 export const getOrderById = async (orderId: number) => {
   try {
-    const response = await api.get(`/orders/${orderId}`);
+    const response = await apiClient.get(`/orders/${orderId}`);
     const o = response.data;
     const mapped: FoodOrder = {
       orderId: o.OrderID ?? o.orderId,
@@ -230,7 +226,7 @@ export const getOrderById = async (orderId: number) => {
 
 // 注：数据库中 FoodOrder 未包含“状态”等字段，移除状态更新/发布配送相关接口
 
-// 注：移除自动接单/模拟订单等与数据库不一致的接口
+// 注：移除自动接单等与数据库不一致的接口
 
 // ==================== 菜品管理接口 ====================
 
@@ -238,21 +234,22 @@ export const getOrderById = async (orderId: number) => {
 export const getDishes = async (sellerId: number) => {
   try {
     console.log('获取菜品列表，商家ID:', sellerId);
-    const response = await api.get('/dishes', {
+    const response = await apiClient.get('/dishes', {
       params: {
         sellerId: sellerId.toString()
       }
     });
     console.log('菜品API响应:', response.data);
-    
+
     const list = (response.data || []).map((d: any) => ({
       dishId: d.DishID ?? d.dishId,
       dishName: d.DishName ?? d.dishName,
       price: d.Price ?? d.price,
       description: d.Description ?? d.description,
       isSoldOut: d.IsSoldOut ?? d.isSoldOut,
+      categoryId: d.CategoryID ?? d.categoryId ?? 1, // 默认分类ID
     })) as Dish[];
-    
+
     console.log('处理后的菜品列表:', list);
     return list;
   } catch (error) {
@@ -272,7 +269,7 @@ export const createDish = async (dishData: NewDishData, sellerId: number) => {
       SellerID: sellerId
     };
     console.log('创建菜品请求参数:', payload);
-    const response = await api.post('/dishes', payload);
+    const response = await apiClient.post('/dishes', payload);
     const d = response.data;
     const mapped: Dish = {
       dishId: d.DishID ?? d.dishId,
@@ -280,6 +277,7 @@ export const createDish = async (dishData: NewDishData, sellerId: number) => {
       price: d.Price ?? d.price,
       description: d.Description ?? d.description,
       isSoldOut: d.IsSoldOut ?? d.isSoldOut,
+      categoryId: d.CategoryID ?? d.categoryId ?? 1, // 默认分类ID
     };
     return mapped;
   } catch (error) {
@@ -303,9 +301,9 @@ export const updateDish = async (dishId: number, dishData: {
     if (dishData.price !== undefined) payload.Price = dishData.price;
     if (dishData.description !== undefined) payload.Description = dishData.description;
     if (dishData.isSoldOut !== undefined) payload.IsSoldOut = dishData.isSoldOut;
-    
+
     console.log('更新菜品请求参数:', payload);
-    const response = await api.patch(`/dishes/${dishId}`, payload);
+    const response = await apiClient.patch(`/dishes/${dishId}`, payload);
     const d = response.data;
     const mapped: Dish = {
       dishId: d.DishID ?? d.dishId,
@@ -313,6 +311,7 @@ export const updateDish = async (dishId: number, dishData: {
       price: d.Price ?? d.price,
       description: d.Description ?? d.description,
       isSoldOut: d.IsSoldOut ?? d.isSoldOut,
+      categoryId: d.CategoryID ?? d.categoryId ?? 1, // 默认分类ID
     };
     return mapped;
   } catch (error) {
@@ -329,7 +328,7 @@ export const toggleDishSoldOut = async (dishId: number, isSoldOut: number, selle
       SellerID: sellerId
     };
     console.log('切换菜品售罄状态请求参数:', payload);
-    const response = await api.patch(`/dishes/${dishId}/soldout`, payload);
+    const response = await apiClient.patch(`/dishes/${dishId}/soldout`, payload);
     return response.data;
   } catch (error) {
     console.error('切换菜品售罄状态失败:', error);
@@ -340,7 +339,7 @@ export const toggleDishSoldOut = async (dishId: number, isSoldOut: number, selle
 // 获取购物车条目（含菜品）
 export const getCartItems = async (cartId: number) => {
   try {
-    const response = await api.get(`/carts/${cartId}/items`);
+    const response = await apiClient.get(`/carts/${cartId}/items`);
     const list = (response.data || []).map((it: any) => ({
       itemId: it.ItemID ?? it.itemId,
       quantity: it.Quantity ?? it.quantity,
@@ -365,7 +364,7 @@ export const getCartItems = async (cartId: number) => {
 // 获取订单优惠券信息
 export const getOrderCoupons = async (orderId: number) => {
   try {
-    const response = await api.get(`/orders/${orderId}/coupons`);
+    const response = await apiClient.get(`/orders/${orderId}/coupons`);
     const list = (response.data || []).map((c: any) => ({
       couponId: c.CouponID ?? c.couponId,
       minimumSpend: c.MinimumSpend ?? c.minimumSpend,
@@ -442,7 +441,7 @@ export const publishDeliveryTaskForOrder = async (
   payload: { estimatedArrivalTime: string; estimatedDeliveryTime: string }
 ) => {
   try {
-    const response = await api.post(`/delivery-tasks/publish`, {
+    const response = await apiClient.post(`/delivery-tasks/publish`, {
       OrderID: orderId,
       EstimatedArrivalTime: payload.estimatedArrivalTime,
       EstimatedDeliveryTime: payload.estimatedDeliveryTime,
@@ -480,7 +479,7 @@ export const publishDeliveryTaskForOrder = async (
 // 获取订单对应的配送任务与骑手信息
 export const getOrderDeliveryInfo = async (orderId: number) => {
   try {
-    const response = await api.get(`/orders/${orderId}/delivery-info`);
+    const response = await apiClient.get(`/orders/${orderId}/delivery-info`);
     const data = response.data || {};
     const deliveryTask: DeliveryTask | undefined = data.DeliveryTask || data.deliveryTask
       ? {
@@ -538,7 +537,7 @@ export interface OrderDecision {
 // 商家接单
 export const acceptOrder = async (orderId: number) => {
   try {
-    const res = await api.post(`/orders/${orderId}/accept`);
+    const res = await apiClient.post(`/orders/${orderId}/accept`);
     const d = res.data || {};
     const mapped: OrderDecision = {
       orderId: d.OrderID ?? d.orderId ?? orderId,
@@ -554,7 +553,7 @@ export const acceptOrder = async (orderId: number) => {
 
 export const markAsReadyApi = async (orderId: number) => {
   try {
-    const res = await api.post(`/orders/${orderId}/ready`);
+    const res = await apiClient.post(`/orders/${orderId}/ready`);
     const d = res.data || {};
     const mapped: OrderDecision = {
       orderId: d.OrderID ?? d.orderId ?? orderId,
@@ -571,7 +570,7 @@ export const markAsReadyApi = async (orderId: number) => {
 // 商家拒单
 export const rejectOrder = async (orderId: number, reason?: string) => {
   try {
-    const res = await api.post(`/orders/${orderId}/reject`, { reason });
+    const res = await apiClient.post(`/orders/${orderId}/reject`, { reason });
     const d = res.data || {};
     const mapped: OrderDecision = {
       orderId: d.OrderID ?? d.orderId ?? orderId,
@@ -599,7 +598,7 @@ export const rejectOrder = async (orderId: number, reason?: string) => {
 // 获取表情包列表
 export const getEmojiList = async () => {
   try {
-    const response = await api.get('/chat/emojis');
+    const response = await apiClient.get('/chat/emojis');
     return response.data as string[];
   } catch (error) {
     console.error('获取表情包列表失败:', error);
@@ -610,7 +609,7 @@ export const getEmojiList = async () => {
 // 获取常用语列表
 export const getQuickPhrases = async () => {
   try {
-    const response = await api.get('/chat/quick-phrases');
+    const response = await apiClient.get('/chat/quick-phrases');
     return response.data as string[];
   } catch (error) {
     console.error('获取常用语列表失败:', error);
@@ -621,7 +620,7 @@ export const getQuickPhrases = async () => {
 // 保存常用语
 export const saveQuickPhrase = async (phrase: string) => {
   try {
-    const response = await api.post('/chat/quick-phrases', { phrase });
+    const response = await apiClient.post('/chat/quick-phrases', { phrase });
     return response.data;
   } catch (error) {
     console.error('保存常用语失败:', error);
@@ -664,14 +663,14 @@ export const getAfterSaleList = async (
   params: AfterSaleListParams
 ): Promise<PageResult<AfterSaleApplication>> => {
   try {
-    const response = await api.get('/aftersale', {
+    const response = await apiClient.get('/aftersale', {
       params: {
         page: params.page.toString(),
         pageSize: params.pageSize.toString(),
         ...(params.keyword && { keyword: params.keyword })
       }
     });
-    
+
     return response.data;
   } catch (error) {
     console.error('获取售后申请列表失败:', error);
@@ -682,8 +681,8 @@ export const getAfterSaleList = async (
 // 获取售后申请详情
 export const getAfterSaleDetail = async (id: number): Promise<AfterSaleApplication> => {
   try {
-    const response = await api.get(`/aftersale/${id}`);
-    
+    const response = await apiClient.get(`/aftersale/${id}`);
+
     return response.data;
   } catch (error) {
     console.error('获取售后申请详情失败:', error);
@@ -698,11 +697,11 @@ export const decideAfterSale = async (
   data: { remark: string }
 ) => {
   try {
-    const response = await api.post(`/aftersale/${id}/decide`, {
+    const response = await apiClient.post(`/aftersale/${id}/decide`, {
       action,
       ...data
     });
-    
+
     return response.data;
   } catch (error) {
     console.error('处理售后申请失败:', error);
@@ -724,14 +723,14 @@ export const getReviewList = async (params: {
       sellerId: params.sellerId.toString(),
       ...(params.keyword && { keyword: params.keyword })
     };
-    
+
     console.log('评论API请求参数:', requestParams);
     console.log('请求URL:', '/reviews');
-    
-    const response = await api.get('/reviews', {
+
+    const response = await apiClient.get('/reviews', {
       params: requestParams
     });
-    
+
     console.log('评论API响应数据:', response.data);
     return response.data;
   } catch (error) {
@@ -743,10 +742,10 @@ export const getReviewList = async (params: {
 // 回复评论
 export const replyReview = async (id: number, content: string) => {
   try {
-    const response = await api.post(`/reviews/${id}/reply`, {
+    const response = await apiClient.post(`/reviews/${id}/reply`, {
       content
     });
-    
+
     return response.data;
   } catch (error) {
     console.error('回复评论失败:', error);
@@ -770,12 +769,12 @@ export const getPenaltyList = async (params?: {
   keyword?: string;
 }) => {
   try {
-    const response = await api.get('/penalties', {
+    const response = await apiClient.get('/penalties', {
       params: {
         ...(params?.keyword && { keyword: params.keyword })
       }
     });
-    
+
     return response.data;
   } catch (error) {
     console.error('获取处罚记录失败:', error);
@@ -786,8 +785,8 @@ export const getPenaltyList = async (params?: {
 // 获取处罚详情
 export const getPenaltyDetail = async (id: string) => {
   try {
-    const response = await api.get(`/penalties/${id}`);
-    
+    const response = await apiClient.get(`/penalties/${id}`);
+
     return response.data;
   } catch (error) {
     console.error('获取处罚详情失败:', error);
@@ -798,10 +797,10 @@ export const getPenaltyDetail = async (id: string) => {
 // 提交处罚申诉
 export const appealPenalty = async (id: string, reason: string) => {
   try {
-    const response = await api.post(`/penalties/${id}/appeal`, {
+    const response = await apiClient.post(`/penalties/${id}/appeal`, {
       reason
     });
-    
+
     return response.data;
   } catch (error) {
     console.error('申诉处罚失败:', error);
@@ -837,7 +836,7 @@ export const handleApiError = (error: any) => {
 };
 
 // 请求拦截器 - 添加认证token
-api.interceptors.request.use(
+apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
     if (token) {
@@ -851,7 +850,7 @@ api.interceptors.request.use(
 );
 
 // 响应拦截器 - 统一处理错误
-api.interceptors.response.use(
+apiClient.interceptors.response.use(
   (response) => {
     return response;
   },

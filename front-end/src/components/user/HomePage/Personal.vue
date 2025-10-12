@@ -16,14 +16,25 @@
         <div class="p-6">
           <!-- 用户信息 -->
           <div class="flex items-center space-x-4 mb-8">
-            <div
-              class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center text-white text-xl font-bold"
-            >
-              {{ userInfo.name.charAt(0) }}
+            <!-- 头像显示 -->
+            <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+              <img 
+                v-if="userInfo.image && userInfo.image !== ''" 
+                :src="userInfo.image" 
+                alt="用户头像" 
+                class="w-full h-full object-cover"
+                @error="handleImageError"
+              />
+              <div 
+                v-else
+                class="w-full h-full bg-orange-500 flex items-center justify-center text-white text-xl font-bold"
+              >
+                {{ userInfo.name ? userInfo.name.charAt(0) : '?' }}
+              </div>
             </div>
             <div>
-              <h3 class="font-bold text-lg">{{ userInfo.name }}</h3>
-              <p class="text-gray-600 text-sm">{{ userInfo.phoneNumber }}</p>
+              <h3 class="font-bold text-lg">{{ userInfo.name || '未设置姓名' }}</h3>
+              <p class="text-gray-600 text-sm">{{ userInfo.phoneNumber ? userInfo.phoneNumber : '未设置手机号' }}</p>
             </div>
           </div>
           <!-- 功能菜单 -->
@@ -64,6 +75,9 @@ import { onMounted, reactive, ref } from "vue";
 
 import { useUserStore } from "@/stores/user";
 import { getUserInfo } from "@/api/user_home";
+import { restoreUserState, getCurrentUserId } from "@/utils/auth";
+import { handleImageError } from "@/utils/errorHandler";
+import { devLog } from "@/utils/logger";
 
 import AddrSetting from "./PersonalTransition/AddrSetting.vue";
 import CouponSetting from "./PersonalTransition/CouponSetting.vue";
@@ -71,17 +85,35 @@ import AccountSetting from "./PersonalTransition/AccountSetting.vue";
 import ExitAccount from "./PersonalTransition/ExitAccount.vue";
 
 const userStore = useUserStore();
-const userID = userStore.getUserID();
 
 const userInfo = ref({
-  name: "张小明",
-  phoneNumber: 1234556,
+  name: "",
+  phoneNumber: 0,
   image: '',
-  defaultAddress: "同济大学"
+  defaultAddress: ""
 });
 
 onMounted(async () => {
-  userInfo.value = await getUserInfo();
+  try {
+    devLog.component('Personal', '组件加载开始');
+    
+    // 恢复用户状态
+    restoreUserState();
+    
+    // 获取当前用户ID
+    const currentUserID = getCurrentUserId();
+    devLog.user('当前用户ID:', currentUserID);
+    
+    if (currentUserID > 0) {
+      const result = await getUserInfo();
+      if (result) {
+        userInfo.value = result;
+        devLog.user('用户信息已更新:', result);
+      }
+    }
+  } catch (error) {
+    devLog.error('获取用户信息失败:', error);
+  }
 });
 
 const showUserPanel = ref(false);
@@ -100,5 +132,7 @@ const userMenus = [
 function openForm(f: { value: Boolean }) {
   f.value = true;
 }
+
+// 使用统一的图片错误处理函数
 
 </script>

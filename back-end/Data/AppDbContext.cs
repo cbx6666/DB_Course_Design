@@ -15,15 +15,17 @@ namespace BackEnd.Data
         public DbSet<CouponManager> CouponManagers { get; set; }
         public DbSet<Courier> Couriers { get; set; }
         public DbSet<Customer> Customers { get; set; }
+        public DbSet<DeliveryInfo> DeliveryInfos { get; set; }
         public DbSet<DeliveryComplaint> DeliveryComplaints { get; set; }
         public DbSet<DeliveryTask> DeliveryTasks { get; set; }
         public DbSet<Dish> Dishes { get; set; }
+        public DbSet<DishCategory> DishCategories { get; set; }
         public DbSet<Evaluate_AfterSale> Evaluate_AfterSales { get; set; }
         public DbSet<Evaluate_Complaint> Evaluate_Complaints { get; set; }
         public DbSet<FavoriteItem> FavoriteItems { get; set; }
         public DbSet<FavoritesFolder> FavoritesFolders { get; set; }
         public DbSet<FoodOrder> FoodOrders { get; set; }
-        public DbSet<Menu_Dish> Menu_Dishes { get; set; }
+        public DbSet<Menu_DishCategory> Menu_DishCategories { get; set; }
         public DbSet<Menu> Menus { get; set; }
         public DbSet<Review_Comment> Review_Comments { get; set; }
         public DbSet<Seller> Sellers { get; set; }
@@ -44,15 +46,17 @@ namespace BackEnd.Data
             modelBuilder.ApplyConfiguration(new CouponManagerConfig());
             modelBuilder.ApplyConfiguration(new CourierConfig());
             modelBuilder.ApplyConfiguration(new CustomerConfig());
+            modelBuilder.ApplyConfiguration(new DeliveryInfoConfig());
             modelBuilder.ApplyConfiguration(new DeliveryComplaintConfig());
             modelBuilder.ApplyConfiguration(new DeliveryTaskConfig());
             modelBuilder.ApplyConfiguration(new DishConfig());
+            modelBuilder.ApplyConfiguration(new DishCategoryConfig());
             modelBuilder.ApplyConfiguration(new Evaluate_AfterSaleConfig());
             modelBuilder.ApplyConfiguration(new Evaluate_ComplaintConfig());
             modelBuilder.ApplyConfiguration(new FavoriteItemConfig());
             modelBuilder.ApplyConfiguration(new FavoritesFolderConfig());
             modelBuilder.ApplyConfiguration(new FoodOrderConfig());
-            modelBuilder.ApplyConfiguration(new Menu_DishConfig());
+            modelBuilder.ApplyConfiguration(new Menu_DishCategoryConfig());
             modelBuilder.ApplyConfiguration(new MenuConfig());
             modelBuilder.ApplyConfiguration(new Review_CommentConfig());
             modelBuilder.ApplyConfiguration(new SellerConfig());

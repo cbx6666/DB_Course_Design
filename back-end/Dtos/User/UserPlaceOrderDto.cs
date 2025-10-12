@@ -104,6 +104,11 @@ namespace BackEnd.DTOs.User
         /// </summary>
         [Required]
         public string Address { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 性别
+        /// </summary>
+        public string? Gender { get; set; }
     }
 
     /// <summary>

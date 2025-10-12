@@ -37,7 +37,7 @@ namespace BackEnd.Services
             {
                 Name = user.Username,
                 PhoneNumber = user.PhoneNumber,
-                Image = user.Avatar
+                Image = string.IsNullOrWhiteSpace(user.Avatar) ? "/images/default-avatar.jpg" : user.Avatar
             };
         }
 
@@ -55,15 +55,18 @@ namespace BackEnd.Services
             }
 
             var customer = userWithCustomer.Customer;
-            var recipientName = !string.IsNullOrEmpty(userWithCustomer.FullName) 
-                ? userWithCustomer.FullName 
-                : userWithCustomer.Username;
+            var recipientName = userWithCustomer.Username;
 
+            // 获取默认收货信息
+            var defaultDeliveryInfo = customer.DeliveryInfos.FirstOrDefault(di => di.IsDefault == 1);
+            
             return new UserAddressDto
             {
-                Name = recipientName,
-                PhoneNumber = userWithCustomer.PhoneNumber,
-                Address = customer.DefaultAddress ?? "xx市xx区xx街道xx号"
+                Name = defaultDeliveryInfo?.Name ?? recipientName,
+                PhoneNumber = defaultDeliveryInfo != null && long.TryParse(defaultDeliveryInfo.PhoneNumber, out long phone) 
+                    ? phone 
+                    : userWithCustomer.PhoneNumber,
+                Address = defaultDeliveryInfo?.Address ?? "xx市xx区xx街道xx号"
             };
         }
     }

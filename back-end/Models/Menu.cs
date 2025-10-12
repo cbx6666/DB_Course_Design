@@ -41,14 +41,20 @@ namespace BackEnd.Models
         public Store Store { get; set; } = null!;
 
         /// <summary>
-        /// 菜单菜品关联集合
+        /// 菜单菜品种类关联集合
         /// </summary>
-        public ICollection<Menu_Dish> MenuDishes { get; set; } = new List<Menu_Dish>();
+        public ICollection<Menu_DishCategory> MenuDishCategories { get; set; } = new List<Menu_DishCategory>();
 
         /// <summary>
-        /// 菜品集合（计算属性）
+        /// 菜品种类集合（计算属性）
         /// </summary>
         [NotMapped]
-        public IEnumerable<Dish> Dishes => MenuDishes.Select(md => md.Dish);
+        public IEnumerable<DishCategory> DishCategories => MenuDishCategories.Select(mdc => mdc.DishCategory);
+
+        /// <summary>
+        /// 菜品集合（计算属性，通过菜品种类获取）
+        /// </summary>
+        [NotMapped]
+        public IEnumerable<Dish> Dishes => MenuDishCategories.SelectMany(mdc => mdc.DishCategory.Dishes);
     }
 }

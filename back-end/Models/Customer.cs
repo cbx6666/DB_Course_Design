@@ -21,15 +21,14 @@ namespace BackEnd.Models
         public User User { get; set; } = null!;
 
         /// <summary>
-        /// 默认地址
-        /// </summary>
-        [StringLength(100)]
-        public string? DefaultAddress { get; set; }
-
-        /// <summary>
         /// 信誉积分
         /// </summary>
         public int ReputationPoints { get; set; } = 0;
+
+        /// <summary>
+        /// 收货信息集合
+        /// </summary>
+        public ICollection<DeliveryInfo> DeliveryInfos { get; set; } = new List<DeliveryInfo>();
 
         /// <summary>
         /// 会员状态

@@ -32,11 +32,6 @@ namespace BackEnd.Data.EntityConfigs
             builder.Property(u => u.AccountCreationTime).HasColumnName("ACCOUNTCREATIONTIME").IsRequired();
 
             // 枚举类型配置
-            builder.Property(u => u.IsProfilePublic)
-                .HasColumnName("ISPROFILEPUBLIC")
-                .IsRequired()
-                .HasConversion<string>()
-                .HasMaxLength(20);
 
             builder.Property(u => u.Role)
                 .HasColumnName("ROLE")

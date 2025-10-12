@@ -52,7 +52,6 @@ namespace BackEnd.Services
                     BirthDate = user.Birthday?.ToString("yyyy-MM-dd") ?? string.Empty,
                     ManagementScope = administrator.ManagedEntities,
                     AverageRating = administrator.IssueHandlingScore,
-                    IsPublic = user.IsProfilePublic == ProfilePrivacyLevel.Public
                 };
             }
             catch (Exception)
@@ -84,7 +83,6 @@ namespace BackEnd.Services
                 // 更新允许修改的字段
                 existingAdmin.User.Username = request.Username;
                 existingAdmin.ManagedEntities = request.ManagementScope;
-                existingAdmin.User.IsProfilePublic = request.IsPublic ? ProfilePrivacyLevel.Public : ProfilePrivacyLevel.Private;
 
                 // 处理生日
                 if (!string.IsNullOrWhiteSpace(request.BirthDate))

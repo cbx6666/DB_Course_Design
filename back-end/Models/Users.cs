@@ -73,11 +73,6 @@ namespace BackEnd.Models
         public DateTime AccountCreationTime { get; set; }
 
         /// <summary>
-        /// 个人资料隐私级别
-        /// </summary>
-        public ProfilePrivacyLevel IsProfilePublic { get; set; } = ProfilePrivacyLevel.Private;
-
-        /// <summary>
         /// 用户角色
         /// </summary>
         [Required]

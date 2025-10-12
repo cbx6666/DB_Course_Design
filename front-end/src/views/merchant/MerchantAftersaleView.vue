@@ -2,63 +2,9 @@
 <!-- The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work. -->
 
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- 顶部导航栏 -->
-    <header
-      class="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md shadow-sm z-50 h-16 border-b border-gray-100">
-      <div class="flex items-center justify-between h-full px-6">
-        <div class="flex items-center">
-          <h1 class="text-xl font-bold text-[#F9771C]">{{ projectName }}</h1>
-        </div>
-        <div class="flex items-center space-x-4">
-          <el-icon class="text-gray-600 text-xl cursor-pointer hover:text-[#F9771C] transition-colors">
-            <Bell />
-          </el-icon>
-          <div class="flex items-center space-x-2">
-            <img
-              src="https://readdy.ai/api/search-image?query=professional%20restaurant%20owner%20portrait%20with%20friendly%20smile%20wearing%20chef%20uniform%20against%20clean%20white%20background%20modern%20lighting&width=40&height=40&seq=merchant-avatar-001&orientation=squarish"
-              alt="商家头像"
-              class="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
-            />
-            <span class="text-gray-700 font-medium">{{ merchantInfo.username || '加载中...' }}</span>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <div class="flex pt-16">
-      <!-- 左侧导航菜单 -->
-      <aside
-        class="fixed left-0 top-16 bottom-0 w-52 bg-white/80 backdrop-blur-md shadow-sm overflow-y-auto border-r border-gray-100">
-        <nav class="p-4">
-          <div class="space-y-2">
-            <div v-for="(item, index) in menuItems" :key="index" @click="handleMenuClick(item)" :class="{
-                'bg-orange-50 text-[#F9771C] border-r-3 border-[#F9771C]': $route.name === item.routeName,
-                'text-gray-700 hover:bg-gray-50/80 hover:text-[#F9771C]': $route.name !== item.routeName
-              }" class="flex items-center px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 font-medium">
-              <el-icon class="mr-3 text-lg">
-                <component :is="item.icon" />
-              </el-icon>
-              <span>{{ item.label }}</span>
-            </div>
-          </div>
-        </nav>
-        <!-- 退出登录区域 -->
-        <div class="p-4 border-t border-gray-100">
-          <div @click="handleLogout"
-            class="flex items-center px-4 py-3 rounded-lg cursor-pointer transition-colors text-red-500 hover:bg-red-50">
-            <el-icon class="mr-3 text-lg">
-              <SwitchButton />
-            </el-icon>
-            <span class="font-medium">退出登录</span>
-          </div>
-        </div>
-      </aside>
-
-      <!-- 主内容区 -->
-      <main class="ml-52 flex-1 p-8">
-        <!-- 订单售后 -->
-        <div v-if="activeMenu === 'aftersale'">
+  <MerchantLayout>
+    <!-- 订单售后 -->
+    <div>
           <h2 class="text-2xl font-bold text-gray-800 mb-6">订单售后</h2>
 
           <!-- 切换标签 -->
@@ -301,55 +247,30 @@
             </el-dialog>
 
           </div>
-        </div>
-
-      </main>
     </div>
-  </div>
+  </MerchantLayout>
 </template>
 
 <script lang="ts" setup>
-import { getProjectName } from '@/stores/name';
-
 import { ref, reactive, onMounted, nextTick } from 'vue';
-// ▼▼▼ 修改点 1: 在图标导入中加入 SwitchButton ▼▼▼
-import { Bell, House, List, Ticket, Warning, User, SwitchButton } from '@element-plus/icons-vue';
-import { useRouter, useRoute } from 'vue-router';
-// ▼▼▼ 修改点 2: 导入 ElMessageBox 用于确认弹窗 ▼▼▼
-import { ElMessage, ElMessageBox } from 'element-plus'; // 假设您可能需要ElMessage, 一并导入
+import { ElMessage, ElMessageBox } from 'element-plus';
 
-// --- 您已有的 API 导入 (保持不变) ---
+// API 导入
 import { replyReview, getReviewList, getPenaltyList, getPenaltyDetail, appealPenalty, type Review } from '@/api/merchant_api';
 import type { AfterSaleApplication, AfterSaleListParams } from '@/api/merchant_api';
 import { getAfterSaleList, getAfterSaleDetail, decideAfterSale } from '@/api/merchant_api';
 import { type PenaltyRecord } from '@/api/merchant_api';
+import { getMerchantInfo, type MerchantInfo } from '@/api/merchant_api';
 
-// --- 您已有的登出逻辑相关导入 (保持不变) ---
-import loginApi from '@/api/login_api';
-import { removeToken } from '@/utils/jwt';
+// 布局组件
+import MerchantLayout from '@/components/merchant/MerchantLayout.vue';
+
 // 本地聊天消息类型
 interface LocalChatMessage {
   sender: 'user' | 'merchant';
   content: string;
   time: string;
 }
-
-const activeMenu = ref('aftersale');
-const router = useRouter();
-const $route = useRoute();
-
-const useProjectName = getProjectName();
-const projectName = useProjectName.projectName;
-
-const menuItems = [
-  { key: 'overview', label: '店铺概况', icon: House, routeName: 'MerchantHome' },
-  { key: 'orders', label: '订单中心', icon: List, routeName: 'MerchantOrders' },
-  { key: 'coupons', label: '配券中心', icon: Ticket, routeName: 'MerchantCoupons' },
-  { key: 'aftersale', label: '订单售后', icon: Warning, routeName: 'MerchantAftersale' },
-  { key: 'profile', label: '商家信息', icon: User, routeName: 'MerchantProfile' }
-] as const;
-
-import { getMerchantInfo, type MerchantInfo } from '@/api/merchant_api';
 
 const fetchAllData = async () => {
   try {
@@ -374,8 +295,8 @@ const defaultMerchantInfo = {
 
 const merchantInfo = ref({ ...defaultMerchantInfo });
 
-const handleMenuClick = (menuItem: typeof menuItems[number]) => {
-  router.push({ name: menuItem.routeName });
+const handleMenuClick = (menuItem: any) => {
+  // 菜单点击处理已由MerchantLayout组件处理
 };
 
 // 处罚记录
@@ -486,7 +407,7 @@ const activeChatOrderNo = ref<string | null>(null);
 async function loadChatHistory() {
   chatLoading.value = true;
   try {
-    // 模拟聊天记录，实际项目中应该调用后端API
+    // 聊天记录，实际项目中应该调用后端API
     const synthetic: LocalChatMessage[] = [];
     if (currentReview.value) {
       // 用户最开始的评论
@@ -664,41 +585,6 @@ const punishmentDict: Record<string, string> = {
 };
 
 
-async function handleLogout() {
-  try {
-    // 1. 弹出确认框
-    await ElMessageBox.confirm(
-      '您确定要退出当前商家账号吗？', // 提示信息可以针对商家进行微调
-      '退出登录',
-      {
-        confirmButtonText: '确定退出',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    );
-
-    // 2. 调用后端登出接口
-    await loginApi.logout();
-    
-    // 3. 核心：清除本地登录状态
-    removeToken();
-
-    ElMessage.success('您已成功退出登录');
-
-    // 4. 重定向到登录页面
-    router.replace('/login'); // 确保 '/login' 是你的登录页路由
-
-  } catch (error: any) {
-    if (error === 'cancel') {
-      ElMessage.info('已取消退出操作');
-    } else {
-      console.error('登出时发生错误:', error);
-      ElMessage.warning('与服务器通信失败，但已在本地强制退出');
-      removeToken();
-      router.replace('/login');
-    }
-  }
-}
 </script>
 
 <style scoped>
@@ -834,5 +720,6 @@ input[type="number"]::-webkit-inner-spin-button {
 
 input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 </style>

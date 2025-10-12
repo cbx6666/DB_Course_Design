@@ -64,6 +64,9 @@ builder.Services.AddAuthentication(options =>
 // 添加授权服务
 builder.Services.AddAuthorization();
 
+// 添加 HttpContextAccessor 支持
+builder.Services.AddHttpContextAccessor();
+
 // 添加 CORS 支持
 builder.Services.AddCors(options =>
 {
@@ -92,7 +95,6 @@ builder.Services.AddScoped<IEvaluate_ComplaintRepository, Evaluate_ComplaintRepo
 builder.Services.AddScoped<IFavoriteItemRepository, FavoriteItemRepository>();
 builder.Services.AddScoped<IFavoritesFolderRepository, FavoritesFolderRepository>();
 builder.Services.AddScoped<IFoodOrderRepository, FoodOrderRepository>();
-builder.Services.AddScoped<IMenu_DishRepository, Menu_DishRepository>();
 builder.Services.AddScoped<IMenuRepository, MenuRepository>();
 builder.Services.AddScoped<IReview_CommentRepository, Review_CommentRepository>();
 builder.Services.AddScoped<ISellerRepository, SellerRepository>();
@@ -141,7 +143,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles();
+// 配置静态文件服务
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "wwwroot")),
+    RequestPath = ""
+});
 
 // 启用 CORS
 app.UseCors("AllowAll");

@@ -1,963 +1,439 @@
-/* eslint-disable */
-<!-- The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work. -->
-
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <header class="fixed top-0 left-0 right-0 bg-white shadow-sm z-50 h-16">
-      <div class="flex items-center justify-between h-full px-6">
-        <div class="flex items-center">
-          <h1 class="text-xl font-bold text-[#F9771C]">{{ projectName }}</h1>
+  <MerchantLayout>
+    <!-- 订单中心 -->
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">订单中心</h2>
+
+      <!-- 订单统计卡片 -->
+      <div class="grid grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm">待处理订单</p>
+              <p class="text-2xl font-bold text-orange-500">{{ orderStats.pending }}</p>
+            </div>
+            <el-icon class="text-orange-500 text-3xl">
+              <Clock />
+            </el-icon>
+          </div>
         </div>
-        <div class="flex items-center space-x-4">
-          <el-icon class="text-gray-600 text-xl cursor-pointer">
-            <Bell />
-          </el-icon>
-          <div class="flex items-center space-x-2">
-            <span class="text-gray-700 font-medium">商家中心</span>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm">今日订单</p>
+              <p class="text-2xl font-bold text-blue-500">{{ orderStats.today }}</p>
+            </div>
+            <el-icon class="text-blue-500 text-3xl">
+              <Document />
+            </el-icon>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm">本月订单</p>
+              <p class="text-2xl font-bold text-green-500">{{ orderStats.monthly }}</p>
+            </div>
+            <el-icon class="text-green-500 text-3xl">
+              <TrendCharts />
+            </el-icon>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm">总收入</p>
+              <p class="text-2xl font-bold text-purple-500">¥{{ orderStats.revenue }}</p>
+            </div>
+            <el-icon class="text-purple-500 text-3xl">
+              <Money />
+            </el-icon>
           </div>
         </div>
       </div>
-    </header>
 
-    <div class="flex pt-16">
-      <aside class="fixed left-0 top-16 bottom-0 w-52 bg-white shadow-sm overflow-y-auto z-50">
-        <nav class="p-4">
-          <div class="space-y-2">
-            <div v-for="(item, index) in menuItems" :key="index" @click="handleMenuClick(item)" :class="{
-                'bg-orange-50 text-[#F9771C] border-r-3 border-[#F9771C]': $route.name === item.routeName,
-                'text-gray-700 hover:bg-gray-50': $route.name !== item.routeName
-              }"
-              class="flex items-center px-4 py-3 rounded-l-lg cursor-pointer transition-colors whitespace-nowrap !rounded-button">
-              <el-icon class="mr-3 text-lg">
-                <component :is="item.icon" />
-              </el-icon>
-              <span class="font-medium">{{ item.label }}</span>
-            </div>
-          </div>
-        </nav>
-        <div class="p-4 border-t border-gray-100">
-          <div @click="handleLogout"
-            class="flex items-center px-4 py-3 rounded-lg cursor-pointer transition-colors text-red-500 hover:bg-red-50">
-            <el-icon class="mr-3 text-lg">
-              <SwitchButton />
-            </el-icon>
-            <span class="font-medium">退出登录</span>
-          </div>
-        </div>
-
-      </aside>
-
-      <main class="ml-52 flex-1 p-6">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">订单中心</h2>
-
-        <div v-if="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <!-- 订单列表 -->
+      <div class="bg-white rounded-lg shadow-sm">
+        <div class="p-6 border-b border-gray-200">
           <div class="flex items-center justify-between">
-            <div class="flex items-center">
-              <svg class="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clip-rule="evenodd"></path>
-              </svg>
-              <span class="text-red-800">{{ errorMessage }}</span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <button @click="retryLoad" class="btn-error">重试</button>
-              <button @click="clearError" class="btn-icon text-red-400 hover:text-red-600">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
+            <h3 class="text-lg font-semibold text-gray-800">订单列表</h3>
+            <div class="flex items-center space-x-4">
+              <el-select v-model="selectedStatus" placeholder="筛选状态" @change="filterOrders">
+                <el-option label="全部" value="all" />
+                <el-option label="待处理" value="pending" />
+                <el-option label="已接单" value="accepted" />
+                <el-option label="制作中" value="preparing" />
+                <el-option label="已完成" value="completed" />
+              </el-select>
+              <el-button @click="refreshOrders" :loading="loading.orders" icon="Refresh" />
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div class="flex space-x-4">
-            <button v-for="tab in orderTabs" :key="tab.value" @click="activeOrderTab = tab.value" :class="{
-                'tab-button active': activeOrderTab === tab.value,
-                'tab-button': activeOrderTab !== tab.value
-              }" class="whitespace-nowrap">
-              <span>{{ tab.label }}</span>
-            </button>
-          </div>
-        </div>
-
-        <div v-if="activeOrderTab === 'orders'">
-          <div
-            class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/30 overflow-hidden relative z-10 transform transition-all duration-300 hover:shadow-3xl hover:scale-[1.01]">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#F9771C] via-[#FF8C42] to-transparent">
-            </div>
-
-            <!-- 工具栏：自动接单开关 -->
-            <!-- <div class="p-6 flex items-center justify-end gap-4">
-              <div
-                class="flex items-center gap-3 bg-gradient-to-r from-orange-50 to-yellow-50 px-6 py-3 rounded-2xl border border-orange-200/50 shadow-lg backdrop-blur-sm">
-                <span class="text-sm font-medium text-orange-800">自动接单</span>
-                <el-switch v-model="autoAcceptOrders" @change="(v:any)=>onAutoAcceptChange(Boolean(v))"
-                  :style="{ '--el-switch-on-color': '#F9771C', '--el-switch-off-color': '#E5E7EB' }" />
-              </div>
-            </div> -->
-
-            <el-table :data="orders" style="width: 100%" class="custom-table relative z-10" v-loading="loading.orders"
-              element-loading-text="加载订单中..." element-loading-spinner="el-icon-loading"
-              element-loading-background="rgba(255, 255, 255, 0.8)">
-              <el-table-column prop="orderId" label="订单ID" width="120" align="center" />
-              <el-table-column prop="paymentTime" label="支付时间" width="160">
-                <template #default="scope">
-                  <!-- 格式化显示支付时间 -->
-                  <span>{{ formatDate(scope.row.paymentTime) }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="customerId" label="客户ID" width="100" align="center" />
-              <el-table-column prop="storeId" label="门店ID" width="100" align="center" />
-              <el-table-column prop="sellerId" label="商家ID" width="100" align="center" />
-              <el-table-column prop="orderState" label="接单状态" width="120" align="center">
-                <template #default="scope">
-                  <span
-                    :class="[orderStateMap[scope.row.orderState]?.colorClass, 'px-3 py-1 rounded-full text-xs font-medium']">
-                    {{ orderStateMap[scope.row.orderState]?.label || '未知状态' }}
-                  </span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="deliveryStatus" label="配送任务状态" width="140" align="center">
-                <template #default="scope">
-                  <span
-                    :class="[deliveryStatusMap[String(scope.row.deliveryStatus ?? -1)]?.colorClass, 'px-3 py-1 rounded-full text-xs font-medium']">
-                    {{ deliveryStatusMap[String(scope.row.deliveryStatus ?? -1)]?.label }}
-                  </span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="remarks" label="备注" min-width="200" />
-              <el-table-column label="操作" min-width="520">
-                <template #default="scope">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <button @click="showOrderDetails(scope.row)" class="btn-primary btn-small shrink-0">
-                      订单信息
-                    </button>
-
-                    <!-- 接单/出餐 按钮 -->
-                    <button v-if="scope.row.orderState === 0" @click="acceptOrder(scope.row)"
-                      class="btn-success btn-small shrink-0">
-                      接单
-                    </button>
-                    <button v-else-if="scope.row.orderState === 1" @click="markAsReady(scope.row)"
-                      class="btn-warning btn-small shrink-0">
-                      出餐
-                    </button>
-                    <button v-else-if="scope.row.orderState === 2" disabled
-                      class="btn-secondary btn-small shrink-0 opacity-60 cursor-not-allowed">
-                      已出餐
-                    </button>
-                    <!-- 配送任务按钮 -->
-                    <button v-if="!scope.row.deliveryTaskId && scope.row.orderState !== 0"
-                      @click="openPublishDialog(scope.row)" class="btn-info btn-small shrink-0">
-                      发布配送
-                    </button>
-                    <button v-else-if="!scope.row.deliveryTaskId && scope.row.orderState === 0" disabled
-                      class="btn-secondary btn-small shrink-0 opacity-60 cursor-not-allowed">
-                      请先接单
-                    </button>
-                    <button v-else disabled class="btn-secondary btn-small shrink-0 opacity-60 cursor-not-allowed">
-                      已发布配送
-                    </button>
-
-                    <!-- 只要发布了配送任务，显示"查看配送"按钮 -->
-                    <button v-if="scope.row.deliveryTaskId" @click="openDeliveryInfo(scope.row)"
-                      class="btn-small shrink-0"
-                      style="background-color: #f8bbd0 !important; color: white !important; border-radius: 8px !important; padding: 8px 16px !important;">
-                      查看配送
-                    </button>
-                  </div>
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-        </div>
-
-        <div v-else-if="activeOrderTab === 'dishes'">
-          <div
-            class="bg-gradient-to-r from-orange-50 to-yellow-50 backdrop-blur-md rounded-3xl p-6 mb-6 shadow-2xl border border-orange-200/30 flex items-center justify-between relative z-10 transform transition-all duration-300 hover:shadow-3xl">
-            <div class="text-sm font-medium text-orange-800">管理菜品</div>
-            <button @click="showDishForm = true" class="btn-primary btn-medium">
-              新增菜品
-            </button>
-          </div>
-
-          <div
-            class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-gray-200/50 overflow-hidden relative z-10 transform transition-all duration-300 hover:shadow-3xl">
-            <el-table :data="dishes" style="width: 100%" class="custom-table" v-loading="loading.dishes"
-              element-loading-text="加载菜品中..." element-loading-spinner="el-icon-loading"
-              element-loading-background="rgba(255, 255, 255, 0.8)">
-              <el-table-column prop="dishId" label="菜品ID" width="120" />
-              <el-table-column prop="dishName" label="菜品名称" width="200" />
-              <el-table-column prop="price" label="价格" width="120">
-                <template #default="scope">¥{{ scope.row.price }}</template>
-              </el-table-column>
-              <el-table-column prop="description" label="描述" />
-              <el-table-column prop="isSoldOut" label="状态" width="120">
-                <template #default="scope">
-                  <span
-                    :class="{ 'text-gray-500': scope.row.isSoldOut === 0, 'text-green-600': scope.row.isSoldOut === 2 }"
-                    class="font-medium">
-                    {{ scope.row.isSoldOut === 0 ? '售罄' : '在售' }}
-                  </span>
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="200">
-                <template #default="scope">
-                  <div class="flex space-x-2">
-                    <button @click="editDish(scope.row)" class="btn-primary btn-small">编辑</button>
-                    <button @click="toggleSoldOut(scope.row)" class="btn-small"
-                      :class="{ 'btn-danger': scope.row.isSoldOut === 2, 'btn-success': scope.row.isSoldOut === 0 }">
-                      {{ scope.row.isSoldOut === 2 ? '设为售罄' : '设为在售' }}
-                    </button>
-                  </div>
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-
-          <!-- 新增菜品弹窗 -->
-          <div v-if="showDishForm"
-            class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-            <div
-              class="bg-white rounded-2xl p-8 w-[500px] shadow-2xl border border-gray-100 transform transition-all duration-300 scale-100">
-              <h3 class="text-xl font-bold text-gray-800 mb-6 text-center">新增菜品</h3>
-              <div class="space-y-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">菜品名称</label>
-                  <input v-model="newDish.dishName"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F9771C] focus:border-[#F9771C] text-sm transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="请输入菜品名称" />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">价格</label>
-                  <input v-model="newDish.price" type="number"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F9771C] focus:border-[#F9771C] text-sm transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="请输入价格" />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">描述</label>
-                  <textarea v-model="newDish.description" rows="3"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F9771C] focus:border-[#F9771C] text-sm resize-none transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="请输入菜品描述"></textarea>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <input id="newSoldOut" type="checkbox" v-model="newDish.isSoldOut" true-value="0" false-value="2" />
-                  <label for="newSoldOut" class="text-sm text-gray-700">售罄</label>
-                </div>
-              </div>
-              <div class="flex justify-end space-x-3 mt-6">
-                <button @click="showDishForm = false" class="btn-outline btn-medium">取消</button>
-                <button @click="createDishHandler" class="btn-info btn-medium">创建</button>
-              </div>
+        <div class="p-6">
+          <!-- 错误提示 -->
+          <div v-if="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div class="flex items-center justify-between">
+              <p class="text-red-600">{{ errorMessage }}</p>
+              <el-button @click="retryLoad" size="small" type="primary">重试</el-button>
             </div>
           </div>
 
-          <!-- 编辑菜品弹窗 -->
-          <div v-if="showEditForm"
-            class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-            <div
-              class="bg-white rounded-2xl p-8 w-[500px] shadow-2xl border border-gray-100 transform transition-all duration-300 scale-100">
-              <h3 class="text-xl font-bold text-gray-800 mb-6 text-center">编辑菜品</h3>
-              <div class="space-y-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">菜品名称</label>
-                  <input v-model="editingDish.dishName"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F9771C] focus:border-[#F9771C] text-sm transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="请输入菜品名称" />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">价格</label>
-                  <input v-model="editingDish.price" type="number"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F9771C] focus:border-[#F9771C] text-sm transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="请输入价格" />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">描述</label>
-                  <textarea v-model="editingDish.description" rows="3"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F9771C] focus:border-[#F9771C] text-sm resize-none transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="请输入菜品描述"></textarea>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <input id="editSoldOut" type="checkbox" v-model="editingDish.isSoldOut" true-value="0"
-                    false-value="2" />
-                  <label for="editSoldOut" class="text-sm text-gray-700">售罄</label>
-                </div>
-              </div>
-              <div class="flex justify-end space-x-4 mt-8">
-                <button @click="showEditForm = false" class="btn-outline btn-medium">取消</button>
-                <button @click="updateDishHandler" class="btn-info btn-medium">保存</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-
-    <!-- 订单详情对话框 -->
-    <div v-if="showOrderDetailsDialog"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div
-        class="bg-white rounded-2xl w-[720px] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl border border-gray-100 transform transition-all duration-300 scale-100">
-        <div
-          class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-yellow-50">
-          <div>
-            <div class="text-xl font-bold text-gray-900">订单详细信息</div>
-            <div class="text-sm text-orange-600 font-medium">订单ID: {{ selectedOrder?.orderId }}</div>
-          </div>
-          <button @click="closeOrderDetailsDialog" class="btn-icon text-gray-400 hover:text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-
-        <div class="flex-1 p-4 overflow-y-auto space-y-4" v-loading="loading.orders" element-loading-text="加载订单详情中...">
-          <div class="grid grid-cols-2 gap-4">
-            <div class="bg-gray-50 rounded-lg p-3">
-              <div class="text-sm text-gray-700">支付时间: {{ selectedOrder?.paymentTime }}</div>
-              <div class="text-sm text-gray-700">备注: {{ selectedOrder?.remarks || '-' }}</div>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-3">
-              <div class="text-sm text-gray-700">客户ID: {{ selectedOrder?.customerId }}</div>
-              <div class="text-sm text-gray-700">门店ID: {{ selectedOrder?.storeId }}，商家ID: {{ selectedOrder?.sellerId }}
-              </div>
-            </div>
-          </div>
-
-          <!-- 优惠券信息 -->
-          <div class="bg-gray-50 rounded-lg p-3">
-            <div class="text-sm font-medium text-gray-900 mb-2">优惠券信息</div>
-            <div v-if="orderCoupons.length > 0" class="space-y-2">
-              <div v-for="coupon in orderCoupons" :key="coupon.couponId"
-                class="flex items-center justify-between p-2 bg-white rounded border">
-                <div class="flex-1">
-                  <div class="text-sm font-medium text-gray-800">{{ coupon.couponName }}</div>
-                  <div class="text-xs text-gray-600">{{ coupon.description }}</div>
-                  <div class="text-xs text-gray-500">有效期: {{ coupon.validFrom }} - {{ coupon.validTo }}</div>
+          <!-- 订单列表 -->
+          <div v-if="!loading.orders && orders.length > 0" class="space-y-4">
+            <div 
+              v-for="order in filteredOrders" 
+              :key="order.orderId"
+              class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center space-x-4">
+                  <span class="font-semibold text-gray-800">订单 #{{ order.orderId }}</span>
+                  <el-tag :type="getStatusType(order.orderState)" size="small">
+                    {{ getStatusText(order.orderState) }}
+                  </el-tag>
                 </div>
                 <div class="text-right">
-                  <div class="text-sm font-bold text-red-600">
-                    <span v-if="coupon.discountType === 'percentage'">-{{ coupon.discountValue }}%</span>
-                    <span v-else>-¥{{ coupon.discountValue }}</span>
-                  </div>
-                  <div class="text-xs text-gray-500">已使用</div>
+                  <p class="text-lg font-bold text-gray-800">¥{{ order.totalAmount }}</p>
+                  <p class="text-sm text-gray-500">{{ order.orderTime ? formatTime(order.orderTime) : '未知时间' }}</p>
                 </div>
               </div>
-            </div>
-            <div v-else class="text-sm text-gray-500 text-center py-2">
-              未使用优惠券
+
+              <!-- 订单详情 -->
+              <div class="grid grid-cols-2 gap-4 mb-3">
+                <div>
+                  <p class="text-sm text-gray-600">客户信息</p>
+                  <p class="font-medium">{{ order.customerName }}</p>
+                  <p class="text-sm text-gray-500">{{ order.customerPhone }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600">配送地址</p>
+                  <p class="font-medium">{{ order.deliveryAddress }}</p>
+                </div>
+              </div>
+
+              <!-- 菜品列表 -->
+              <div class="mb-3">
+                <p class="text-sm text-gray-600 mb-2">订单菜品</p>
+                <div class="space-y-1">
+                  <div 
+                    v-for="item in order.items" 
+                    :key="item.dishId"
+                    class="flex items-center justify-between text-sm"
+                  >
+                    <span>{{ item.dish?.dishName || '未知菜品' }} × {{ item.quantity }}</span>
+                    <span class="text-gray-600">¥{{ (item.dish?.price || 0) * item.quantity }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 操作按钮 -->
+              <div class="flex items-center justify-end space-x-2">
+                <el-button 
+                  v-if="order.orderState === 0"
+                  @click="acceptOrder(order.orderId)"
+                  type="primary"
+                  size="small"
+                >
+                  接单
+                </el-button>
+                <el-button 
+                  v-if="order.orderState === 0"
+                  @click="rejectOrder(order.orderId)"
+                  type="danger"
+                  size="small"
+                >
+                  拒单
+                </el-button>
+                <el-button 
+                  v-if="order.orderState === 1"
+                  @click="startPreparing(order.orderId)"
+                  type="warning"
+                  size="small"
+                >
+                  开始制作
+                </el-button>
+                <el-button 
+                  v-if="order.orderState === 2"
+                  @click="finishOrder(order.orderId)"
+                  type="success"
+                  size="small"
+                >
+                  制作完成
+                </el-button>
+                <el-button @click="viewOrderDetail(order)" size="small">
+                  查看详情
+                </el-button>
+              </div>
             </div>
           </div>
 
-          <div>
-            <div class="text-sm font-medium text-gray-900 mb-2">商品明细（来自购物车条目）</div>
-            <div class="border border-gray-200 rounded-lg overflow-hidden">
-              <table class="w-full text-sm">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-3 py-2 text-left text-gray-700">菜品名称</th>
-                    <th class="px-3 py-2 text-left text-gray-700">数量</th>
-                    <th class="px-3 py-2 text-left text-gray-700">单价</th>
-                    <th class="px-3 py-2 text-left text-gray-700">小计</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="it in orderItems" :key="it.itemId" class="border-t border-gray-200">
-                    <td class="px-3 py-2">{{ it.dish?.dishName || '菜品信息加载中...' }}</td>
-                    <td class="px-3 py-2">{{ it.quantity }}</td>
-                    <td class="px-3 py-2">¥{{ it.dish?.price || 0 }}</td>
-                    <td class="px-3 py-2">¥{{ it.totalPrice }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="text-right mt-2 text-sm text-gray-700">总计：¥{{ orderTotal }}</div>
+          <!-- 空状态 -->
+          <div v-else-if="!loading.orders && orders.length === 0" class="text-center py-12">
+            <el-icon class="text-gray-400 text-6xl mb-4">
+              <Document />
+            </el-icon>
+            <p class="text-gray-500 text-lg">暂无订单</p>
+            <p class="text-gray-400 text-sm">当有新订单时，会在这里显示</p>
           </div>
-        </div>
 
-        <div class="p-4 border-t border-gray-200 flex justify-end">
-          <button @click="closeOrderDetailsDialog" class="btn-outline btn-medium">关闭</button>
+          <!-- 加载状态 -->
+          <div v-else-if="loading.orders" class="text-center py-12">
+            <el-icon class="text-gray-400 text-6xl mb-4 animate-spin">
+              <Loading />
+            </el-icon>
+            <p class="text-gray-500">加载订单中...</p>
+          </div>
         </div>
       </div>
     </div>
-
-    <!-- 发布配送任务对话框 -->
-    <div v-if="showPublishDialog"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div
-        class="bg-white rounded-2xl w-[520px] p-8 shadow-2xl border border-gray-100 transform transition-all duration-300 scale-100">
-        <div class="text-xl font-bold text-gray-800 mb-6 text-center">发布配送任务</div>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">预计到店时间</label>
-            <input v-model="publishForm.estimatedArrivalTime" type="datetime-local"
-              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F9771C] focus:border-[#F9771C] text-sm transition-all duration-200 bg-gray-50 hover:bg-white" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">预计送达时间</label>
-            <input v-model="publishForm.estimatedDeliveryTime" type="datetime-local"
-              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F9771C] focus:border-[#F9771C] text-sm transition-all duration-200 bg-gray-50 hover:bg-white" />
-          </div>
-        </div>
-        <div class="flex justify-end space-x-4 mt-8">
-          <button @click="closePublishDialog" class="btn-outline btn-medium">取消</button>
-          <button @click="submitPublish" class="btn-primary btn-medium">发布</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 配送信息对话框（展示骑手信息） -->
-    <div v-if="showDeliveryInfoDialog"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div
-        class="bg-white rounded-2xl w-[640px] p-8 max-h-[80vh] overflow-auto shadow-2xl border border-gray-100 transform transition-all duration-300 scale-100">
-        <div class="flex items-center justify-between mb-6">
-          <div class="text-xl font-bold text-gray-800">配送与骑手信息</div>
-          <button @click="closeDeliveryInfoDialog" class="btn-icon text-gray-400 hover:text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div v-if="deliveryInfo.deliveryTask" class="mb-3 text-sm text-gray-700">
-          <div>任务ID：{{ deliveryInfo.deliveryTask?.taskId }}</div>
-          <div>预计到店：{{ deliveryInfo.deliveryTask?.estimatedArrivalTime }}</div>
-          <div>预计送达：{{ deliveryInfo.deliveryTask?.estimatedDeliveryTime }}</div>
-        </div>
-        <div v-if="deliveryInfo.publish" class="mb-3 text-sm text-gray-700">
-          <div>发布者商家ID：{{ deliveryInfo.publish?.sellerId }}</div>
-          <div>发布时间：{{ deliveryInfo.publish?.publishTime }}</div>
-        </div>
-        <div v-if="deliveryInfo.accept" class="mb-3 text-sm text-gray-700">
-          <div>接单骑手ID：{{ deliveryInfo.accept?.courierId }}</div>
-          <div>接单时间：{{ deliveryInfo.accept?.acceptTime }}</div>
-        </div>
-        <div v-if="deliveryInfo.courier" class="mb-3 text-sm text-gray-700">
-          <div>骑手姓名：{{ deliveryInfo.courier?.fullName || '—' }}（ID：{{ deliveryInfo.courier?.userId }}）</div>
-          <div>电话：{{ deliveryInfo.courier?.phoneNumber || '—' }}</div>
-          <div>车型：{{ deliveryInfo.courier?.vehicleType }}，信誉：{{ deliveryInfo.courier?.reputationPoints }}，总配送：{{
-            deliveryInfo.courier?.totalDeliveries }}</div>
-          <div>平均时长：{{ deliveryInfo.courier?.avgDeliveryTime }} 分，评分：{{ deliveryInfo.courier?.averageRating }}</div>
-        </div>
-      </div>
-    </div>
-  </div>
+  </MerchantLayout>
 </template>
 
-<script lang="ts" setup>
-import { getProjectName } from '@/stores/name';
-
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-// ▼▼▼ 修改点 1: 在图标导入中加入 SwitchButton ▼▼▼
-import { Bell, House, List, Ticket, Warning, User, SwitchButton } from '@element-plus/icons-vue';
-// ▼▼▼ 修改点 2: 导入 ElMessageBox 用于确认弹窗 ▼▼▼
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { useRouter, useRoute } from 'vue-router';
+import { 
+  Clock, 
+  Document, 
+  TrendCharts, 
+  Money, 
+  Refresh, 
+  Loading 
+} from '@element-plus/icons-vue';
 
-// --- 您已有的 API 导入 (保持不变) ---
+import MerchantLayout from '@/components/merchant/MerchantLayout.vue';
 import {
   getOrders,
-  getCartItems,
-  getDishes,
-  createDish as createDishApi,
-  updateDish as updateDishApi,
-  toggleDishSoldOut,
-  handleApiError,
-  publishDeliveryTaskForOrder,
-  getOrderDeliveryInfo,
   acceptOrder as acceptOrderApi,
   rejectOrder as rejectOrderApi,
-  getOrderCoupons,
-  type OrderDeliveryInfo,
+  getMerchantInfo,
   type FoodOrder,
-  type ShoppingCartItem,
-  type Dish,
-  type OrderCouponInfo
+  type MerchantInfo
 } from '@/api/merchant_api';
+import { devLog } from '@/utils/logger';
 
-// --- ▼▼▼ 修改点 3: 添加登出功能所需的导入 ▼▼▼ ---
-import loginApi from '@/api/login_api';
-import { removeToken } from '@/utils/jwt';
-
-const useProjectName = getProjectName();
-const projectName = useProjectName.projectName;
-
-
-const router = useRouter();
-const $route = useRoute();
-
-const menuItems = [
-  { key: 'overview', label: '店铺概况', icon: House, routeName: 'MerchantHome' },
-  { key: 'orders', label: '订单中心', icon: List, routeName: 'MerchantOrders' },
-  { key: 'coupons', label: '配券中心', icon: Ticket, routeName: 'MerchantCoupons' },
-  { key: 'aftersale', label: '订单售后', icon: Warning, routeName: 'MerchantAftersale' },
-  { key: 'profile', label: '商家信息', icon: User, routeName: 'MerchantProfile' }
-] as const;
-
-const handleMenuClick = (menuItem: typeof menuItems[number]) => {
-  router.push({ name: menuItem.routeName });
-};
-
-// 数据加载状态
-const loading = ref({ orders: false, dishes: false });
-
-// 错误处理
+// 响应式数据
+const orders = ref<FoodOrder[]>([]);
+const merchantInfo = ref<MerchantInfo | null>(null);
+const selectedStatus = ref('all');
+const loading = ref({ orders: false });
 const errorMessage = ref('');
 
-const clearError = () => {
-  errorMessage.value = '';
-};
-
-const retryLoad = async () => {
-  errorMessage.value = '';
-  await Promise.all([loadOrders(), loadDishes()]);
-};
-
-// 初始化数据
-onMounted(async () => {
-  await fetchMerchantInfo();
-  await Promise.all([loadOrders(), loadDishes()]);
+// 订单统计
+const orderStats = ref({
+  pending: 0,
+  today: 0,
+  monthly: 0,
+  revenue: 0
 });
 
-import { getMerchantInfo, type MerchantInfo } from '@/api/merchant_api';
+// 计算属性
+const filteredOrders = computed(() => {
+  if (selectedStatus.value === 'all') {
+    return orders.value;
+  }
+  // 将字符串状态转换为数字进行比较
+  const statusMap: Record<string, number> = {
+    'pending': 0,
+    'accepted': 1,
+    'preparing': 2,
+    'completed': 3,
+    'cancelled': 4
+  };
+  const targetStatus = statusMap[selectedStatus.value];
+  return orders.value.filter(order => order.orderState === targetStatus);
+});
 
-const merchantInfo = ref<MerchantInfo | null>(null);
-
+// 获取商家信息
 const fetchMerchantInfo = async () => {
-  merchantInfo.value = await getMerchantInfo();
-  console.log("商家ID:", merchantInfo.value.sellerId);
+  try {
+    merchantInfo.value = await getMerchantInfo();
+    devLog.user('商家信息获取成功:', merchantInfo.value);
+  } catch (error) {
+    devLog.error('获取商家信息失败:', error);
+  }
 };
 
 // 加载订单数据
 const loadOrders = async () => {
   try {
     loading.value.orders = true;
+    errorMessage.value = '';
     
-    const apiOrders = await getOrders({ sellerId: merchantInfo.value!.sellerId });
+    if (!merchantInfo.value?.sellerId) {
+      throw new Error('商家ID不存在');
+    }
+
+    const apiOrders = await getOrders({ sellerId: merchantInfo.value.sellerId });
 
     if (apiOrders && (apiOrders as any).length > 0) {
-      // 为API返回的订单添加本地状态字段
       orders.value = (apiOrders as any).map((order: FoodOrder) => ({
         ...order,
-        localStatus: 'accepted', // 默认已接单
+        localStatus: 'accepted',
       }));
+      
+      // 计算订单统计
+      calculateOrderStats();
+    } else {
+      orders.value = [];
     }
   } catch (error) {
-    const errorMsg = handleApiError(error);
-    ElMessage.error(errorMsg);
-    errorMessage.value = `加载订单失败: ${errorMsg}`;
+    devLog.error('加载订单失败:', error);
+    errorMessage.value = '加载订单失败，请重试';
     orders.value = [];
   } finally {
     loading.value.orders = false;
   }
 };
 
-// 加载菜品数据
-const loadDishes = async () => {
-  try {
-    loading.value.dishes = true;
-    
-    // 检查是否有商家ID
-    if (!merchantInfo.value?.sellerId) {
-      console.warn('商家ID未获取到，无法加载菜品');
-      dishes.value = [];
-      return;
-    }
-    
-    console.log('加载菜品，商家ID:', merchantInfo.value.sellerId);
-    const apiDishes = await getDishes(merchantInfo.value.sellerId);
-    if (apiDishes && (apiDishes as any).length > 0) {
-      dishes.value = apiDishes as any;
-    } else {
-      dishes.value = [];
-    }
-  } catch (error) {
-    const errorMsg = handleApiError(error);
-    ElMessage.error(errorMsg);
-    errorMessage.value = `加载菜品失败: ${errorMsg}`;
-    dishes.value = [];
-  } finally {
-    loading.value.dishes = false;
-  }
-};
-
-// 对齐数据库，移除自动接单与菜品分类逻辑
-
-// const merchantInfo = ref({
-//   username: 'zhanglaosan',
-// });
-
-const orderTabs = [
-  { value: 'orders', label: '订单管理' },
-  { value: 'dishes', label: '菜品管理' }
-];
-
-const activeOrderTab = ref('orders');
-const showDishForm = ref(false);
-const showEditForm = ref(false);
-const orders = ref<(FoodOrder & { localStatus?: string; deliveryStatus?: number | null })[]>([]);
-
-// 前端本地接单状态与自动接单开关（仅前端态，数据库未定义订单状态）
-const autoAcceptOrders = ref(false);
-
-const showOrderDetailsDialog = ref(false);
-const selectedOrder = ref<FoodOrder | null>(null);
-const orderItems = ref<ShoppingCartItem[]>([]);
-const orderCoupons = ref<OrderCouponInfo[]>([]);
-const orderTotal = computed(() => orderItems.value.reduce((sum, it) => sum + Number(it.totalPrice || 0), 0));
-
-const showOrderDetails = async (order: FoodOrder) => {
-  try {
-    loading.value.orders = true;
-    selectedOrder.value = order;
-    orderItems.value = await getCartItems(order.cartId);
-    // 加载订单优惠券信息
-    orderCoupons.value = await getOrderCoupons(order.orderId);
-    showOrderDetailsDialog.value = true;
-  } catch (error) {
-    const errorMsg = handleApiError(error);
-    ElMessage.error(errorMsg);
-    showOrderDetailsDialog.value = false;
-  } finally {
-    loading.value.orders = false;
-  }
-};
-
-const closeOrderDetailsDialog = () => {
-  showOrderDetailsDialog.value = false;
-  selectedOrder.value = null;
-  orderItems.value = [];
-  orderCoupons.value = [];
-};
-
-// 菜品管理
-const dishes = ref<Dish[]>([]);
-
-const newDish = ref({ dishName: '', price: '', description: '', isSoldOut: 2 as any });
-const editingDish = ref({ dishId: 0, dishName: '', price: 0 as any, description: '', isSoldOut: 0 as any });
-
-const createDishHandler = async () => {
-  try {
-    if (!newDish.value.dishName || newDish.value.price === '' || !newDish.value.description) {
-      ElMessage.error('请填写完整的菜品信息');
-      return;
-    }
-    
-    if (!merchantInfo.value?.sellerId) {
-      ElMessage.error('商家信息未获取到，无法创建菜品');
-      return;
-    }
-    
-    const created = await createDishApi({
-      dishName: newDish.value.dishName,
-      price: newDish.value.price,
-      description: newDish.value.description,
-      isSoldOut: Number(newDish.value.isSoldOut) || 0,
-    }, merchantInfo.value.sellerId);
-    dishes.value.push(created as any);
-    showDishForm.value = false;
-    newDish.value = { dishName: '', price: '', description: '', isSoldOut: 2 } as any;
-    ElMessage.success('菜品创建成功');
-  } catch (error) {
-    ElMessage.error(handleApiError(error));
-  }
-};
-
-const editDish = (dish: any) => {
-  editingDish.value = { ...dish };
-  showEditForm.value = true;
-};
-
-const updateDishHandler = async () => {
-  try {
-    if (!editingDish.value.dishId) return;
-    
-    if (!merchantInfo.value?.sellerId) {
-      ElMessage.error('商家信息未获取到，无法更新菜品');
-      return;
-    }
-    
-    const updated = await updateDishApi(editingDish.value.dishId, {
-      dishName: editingDish.value.dishName,
-      price: Number(editingDish.value.price),
-      description: editingDish.value.description,
-      isSoldOut: Number(editingDish.value.isSoldOut) || 0,
-    }, merchantInfo.value.sellerId);
-    const idx = dishes.value.findIndex(d => d.dishId === updated.dishId);
-    if (idx !== -1) dishes.value[idx] = updated as any;
-    showEditForm.value = false;
-    ElMessage.success('菜品更新成功');
-  } catch (error) {
-    ElMessage.error(handleApiError(error));
-  }
-};
-
-const toggleSoldOut = async (dish: any) => {
-  try {
-    if (!merchantInfo.value?.sellerId) {
-      ElMessage.error('商家信息未获取到，无法更新菜品状态');
-      return;
-    }
-    
-    const newValue = dish.isSoldOut === 0 ? 2 : 0;
-    await toggleDishSoldOut(dish.dishId, newValue, merchantInfo.value.sellerId);
-    dish.isSoldOut = newValue;
-    ElMessage.success('状态更新成功');
-  } catch (error) {
-    ElMessage.error(handleApiError(error));
-  }
-};
-
-// 自动接单与接/拒处理（前端本地态）
-const onAutoAcceptChange = (val: boolean) => {
-  if (val) {
-    orders.value.forEach((o: any) => {
-      if (!o.localStatus || o.localStatus === 'rejected') {
-        o.localStatus = 'accepted';
-      }
-    });
-  }
-};
-
-const acceptOrder = async (order: any) => {
-  try {
-    await acceptOrderApi(order.orderId);
-    order.localStatus = 'accepted';
-    order.orderState = 1;
-    ElMessage.success('已接单');
-  } catch (error) {
-    ElMessage.error(handleApiError(error));
-  }
-};
-
-const rejectOrder = async (order: any) => {
-  try {
-    await rejectOrderApi(order.orderId);
-    order.localStatus = 'rejected';
-    ElMessage.success('已拒单');
-  } catch (error) {
-    ElMessage.error(handleApiError(error));
-  }
-};
-
-// 发布配送任务
-const showPublishDialog = ref(false);
-const publishTargetOrder = ref<FoodOrder | null>(null);
-const publishForm = ref({ estimatedArrivalTime: '', estimatedDeliveryTime: '' });
-
-const openPublishDialog = (order: FoodOrder) => {
-  publishTargetOrder.value = order;
-  // 默认时间：当前时间+10/30分钟
+// 计算订单统计
+const calculateOrderStats = () => {
   const now = new Date();
-  const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
-  const toLocal = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  const eta = new Date(now.getTime() + 10 * 60 * 1000);
-  const etd = new Date(now.getTime() + 30 * 60 * 1000);
-  publishForm.value.estimatedArrivalTime = toLocal(eta);
-  publishForm.value.estimatedDeliveryTime = toLocal(etd);
-  showPublishDialog.value = true;
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  orderStats.value = {
+    pending: orders.value.filter(order => order.orderState === 0).length,
+    today: orders.value.filter(order => order.orderTime ? new Date(order.orderTime) >= today : false).length,
+    monthly: orders.value.filter(order => order.orderTime ? new Date(order.orderTime) >= thisMonth : false).length,
+    revenue: orders.value.reduce((sum, order) => sum + (order.totalAmount || 0), 0)
+  };
 };
 
-const closePublishDialog = () => {
-  showPublishDialog.value = false;
-  publishTargetOrder.value = null;
+// 筛选订单
+const filterOrders = () => {
+  devLog.component('MerchantOrders', `筛选订单状态: ${selectedStatus.value}`);
 };
 
-const submitPublish = async () => {
-  if (!publishTargetOrder.value) return;
+// 刷新订单
+const refreshOrders = async () => {
+  await loadOrders();
+};
+
+// 重试加载
+const retryLoad = async () => {
+  errorMessage.value = '';
+  await loadOrders();
+};
+
+// 接单
+const acceptOrder = async (orderId: number) => {
   try {
-    let taskId: number | undefined;
+    await ElMessageBox.confirm('确定要接受这个订单吗？', '确认接单', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
 
-    // 优先调用后端
-    try {
-      console.log('[Publish] 准备发布配送任务，订单ID:', publishTargetOrder.value.orderId);
-      console.log('[Publish] 表单内容:', publishForm.value);
-
-      const result = await publishDeliveryTaskForOrder(publishTargetOrder.value.orderId, {
-        estimatedArrivalTime: publishForm.value.estimatedArrivalTime,
-        estimatedDeliveryTime: publishForm.value.estimatedDeliveryTime,
-      });
-
-       console.log('[Publish] 后端返回结果:', result);
-       taskId = result?.deliveryTask?.taskId || (5000 + publishTargetOrder.value.orderId);
-    } catch (error) {
-      ElMessage.error(handleApiError(error));
-      return;
-    }
-    
-    // 更新订单的配送状态为已发布
-    if (publishTargetOrder.value) {
-      const orderIndex = orders.value.findIndex(o => o.orderId === publishTargetOrder.value!.orderId);
-      if (orderIndex !== -1) {
-        orders.value[orderIndex].deliveryStatus = 0;
-        orders.value[orderIndex].deliveryTaskId = taskId;
-      }
-    }
-    
-    ElMessage.success('配送任务已发布');
-    showPublishDialog.value = false;
-    // 发布后立即加载配送与骑手信息
-    await openDeliveryInfo(publishTargetOrder.value);
+    await acceptOrderApi(orderId);
+    ElMessage.success('订单已接受');
+    await loadOrders();
   } catch (error) {
-    ElMessage.error(handleApiError(error));
-  }
-};
-
-// 配送与骑手信息展示
-const showDeliveryInfoDialog = ref(false);
-const deliveryInfo = ref<OrderDeliveryInfo>({});
-
-const openDeliveryInfo = async (order: FoodOrder) => {
-  try {
-    deliveryInfo.value = await getOrderDeliveryInfo(order.orderId);
-    showDeliveryInfoDialog.value = true;
-  } catch (error) {
-    ElMessage.error(handleApiError(error));
-  }
-};
-
-const closeDeliveryInfoDialog = () => {
-  showDeliveryInfoDialog.value = false;
-  deliveryInfo.value = {} as any;
-};
-
-// 订单状态映射
-const orderStateMap: Record<number, { label: string; colorClass: string }> = {
-  0: { label: '未接单', colorClass: 'bg-gray-100 text-gray-600' },
-  1: { label: '备菜中', colorClass: 'bg-yellow-100 text-yellow-600' },
-  2: { label: '已出餐', colorClass: 'bg-green-100 text-green-600' }
-};
-
-import { markAsReadyApi } from '@/api/merchant_api';
-
-const markAsReady = async (order: any) => {
-  try {
-    await markAsReadyApi(order.orderId);
-    order.orderState = 2; // 已出餐
-    ElMessage.success('订单已出餐');
-  } catch (error) {
-    ElMessage.error(handleApiError(error));
-  }
-};
-
-const deliveryStatusMap: Record<string, { label: string; colorClass: string }> = {
-  '-1': { label: '未发布配送', colorClass: 'bg-gray-100 text-gray-400' },
-  '0': { label: '未接单', colorClass: 'bg-gray-100 text-gray-600' },
-  '1': { label: '骑手未取餐', colorClass: 'bg-yellow-100 text-yellow-600' },
-  '2': { label: '配送中', colorClass: 'bg-blue-100 text-blue-600' },
-  '3': { label: '已完成', colorClass: 'bg-green-100 text-green-600' },
-  '4': { label: '已取消', colorClass: 'bg-red-100 text-red-600' },
-};
-
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString); // 将字符串转换为 Date 对象
-  return date.toLocaleString(); // 使用本地时间格式显示
-};
-
-
-async function handleLogout() {
-  try {
-    // 1. 弹出确认框
-    await ElMessageBox.confirm(
-      '您确定要退出当前商家账号吗？', // 提示信息可以针对商家进行微调
-      '退出登录',
-      {
-        confirmButtonText: '确定退出',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    );
-
-    // 2. 调用后端登出接口
-    await loginApi.logout();
-
-    // 3. 核心：清除本地登录状态
-    removeToken();
-
-    ElMessage.success('您已成功退出登录');
-
-    // 4. 重定向到登录页面
-    router.replace('/login'); // 确保 '/login' 是你的登录页路由
-
-  } catch (error: any) {
-    if (error === 'cancel') {
-      ElMessage.info('已取消退出操作');
-    } else {
-      console.error('登出时发生错误:', error);
-      ElMessage.warning('与服务器通信失败，但已在本地强制退出');
-      removeToken();
-      router.replace('/login');
+    if (error !== 'cancel') {
+      ElMessage.error('接单失败，请重试');
     }
   }
-}
+};
 
+// 拒单
+const rejectOrder = async (orderId: number) => {
+  try {
+    await ElMessageBox.confirm('确定要拒绝这个订单吗？', '确认拒单', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+
+    await rejectOrderApi(orderId);
+    ElMessage.success('订单已拒绝');
+    await loadOrders();
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('拒单失败，请重试');
+    }
+  }
+};
+
+// 开始制作
+const startPreparing = async (orderId: number) => {
+  try {
+    // 这里应该调用相应的API
+    ElMessage.success('开始制作');
+    await loadOrders();
+  } catch (error) {
+    ElMessage.error('操作失败，请重试');
+  }
+};
+
+// 完成订单
+const finishOrder = async (orderId: number) => {
+  try {
+    // 这里应该调用相应的API
+    ElMessage.success('订单制作完成');
+    await loadOrders();
+  } catch (error) {
+    ElMessage.error('操作失败，请重试');
+  }
+};
+
+// 查看订单详情
+const viewOrderDetail = (order: FoodOrder) => {
+  // 这里可以打开订单详情弹窗或跳转到详情页面
+  devLog.component('MerchantOrders', '查看订单详情:', order);
+};
+
+// 获取状态类型
+// 将数字状态转换为字符串状态
+const getStatusString = (orderState: number): string => {
+  const statusMap: Record<number, string> = {
+    0: 'pending',    // 待处理
+    1: 'accepted',   // 已接单
+    2: 'preparing',  // 制作中
+    3: 'completed',  // 已完成
+    4: 'cancelled'   // 已取消
+  };
+  return statusMap[orderState] || 'unknown';
+};
+
+const getStatusType = (orderState: number) => {
+  const statusString = getStatusString(orderState);
+  const statusMap: Record<string, string> = {
+    pending: 'warning',
+    accepted: 'primary',
+    preparing: 'info',
+    completed: 'success',
+    cancelled: 'danger',
+    unknown: 'info'
+  };
+  return statusMap[statusString] || 'info';
+};
+
+// 获取状态文本
+const getStatusText = (orderState: number) => {
+  const statusString = getStatusString(orderState);
+  const statusMap: Record<string, string> = {
+    pending: '待处理',
+    accepted: '已接单',
+    preparing: '制作中',
+    completed: '已完成',
+    cancelled: '已取消',
+    unknown: '未知状态'
+  };
+  return statusMap[statusString] || '未知状态';
+};
+
+// 格式化时间
+const formatTime = (time: string) => {
+  return new Date(time).toLocaleString('zh-CN');
+};
+
+// 初始化数据
+onMounted(async () => {
+  await fetchMerchantInfo();
+  await loadOrders();
+});
 </script>
-
-<style scoped>
-.\!rounded-button {
-  border-radius: 8px;
-}
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type="number"] {
-  -moz-appearance: textfield;
-}
-
-/* 自定义表格样式 - 苹果风格 */
-.custom-table :deep(.el-table) {
-  background: transparent !important;
-  border: none !important;
-  position: relative !important;
-  z-index: 10 !important;
-}
-
-.custom-table :deep(.el-table__header) {
-  background: rgba(255, 255, 255, 0.8) !important;
-  backdrop-filter: blur(10px) !important;
-  border-bottom: 1px solid rgba(249, 119, 28, 0.1) !important;
-  position: relative !important;
-  z-index: 10 !important;
-}
-
-.custom-table :deep(.el-table__header th) {
-  background: transparent !important;
-  border: none !important;
-  color: #374151 !important;
-  font-weight: 600 !important;
-  font-size: 0.875rem !important;
-  padding: 1rem 0.75rem !important;
-}
-.custom-table :deep(.el-table__body tr) {
-  background: rgba(255, 255, 255, 0.6) !important;
-  backdrop-filter: blur(8px) !important;
-  border: none !important;
-  transition: all 0.2s ease !important;
-  position: relative !important;
-  z-index: 10 !important;
-}
-
-.custom-table :deep(.el-table__body tr:hover) {
-  background: rgba(255, 255, 255, 0.8) !important;
-  backdrop-filter: blur(12px) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(249, 119, 28, 0.1) !important;
-}
-
-.custom-table :deep(.el-table__body td) {
-  border: none !important;
-  padding: 1rem 0.75rem !important;
-  color: #374151 !important;
-  background: transparent !important;
-}
-
-/* 状态标签优化 */
-.custom-table :deep(.px-3.py-1.rounded-full) {
-  backdrop-filter: blur(8px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-}
-</style>

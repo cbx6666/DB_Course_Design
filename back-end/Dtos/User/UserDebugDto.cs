@@ -28,9 +28,22 @@ namespace BackEnd.DTOs.User
 
         [Required]
         /// <summary>
-        /// 默认地址
+        /// 默认收货信息
         /// </summary>
-        public string DefaultAddress { get; set; } = string.Empty;
+        public List<DeliveryInfoDto> DeliveryInfos { get; set; } = new List<DeliveryInfoDto>();
+    }
+
+    /// <summary>
+    /// 收货信息DTO
+    /// </summary>
+    public class DeliveryInfoDto
+    {
+        public int DeliveryInfoID { get; set; }
+        public string Address { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string? Gender { get; set; }
+        public bool IsDefault { get; set; }
     }
 
     /// <summary>

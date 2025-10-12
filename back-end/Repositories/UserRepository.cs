@@ -39,6 +39,7 @@ namespace BackEnd.Repositories
         {
             return await _context.Users
                 .Include(u => u.Customer)
+                    .ThenInclude(c => c!.DeliveryInfos)
                 .FirstOrDefaultAsync(u => u.UserID == id);
         }
 
@@ -78,7 +79,7 @@ namespace BackEnd.Repositories
         /// <param name="user">用户信息</param>
         public async Task UpdateAsync(User user)
         {
-            _context.Set<User>().Update(user);
+            _context.Users.Update(user);
             await SaveAsync();
         }
 

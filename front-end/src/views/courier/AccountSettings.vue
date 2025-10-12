@@ -101,7 +101,7 @@ import { ref, computed, onMounted } from 'vue';
 import { ArrowLeft, Camera } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';   
-import type { UpdateProfilePayload } from '@/api/api.mock';
+import type { UpdateProfilePayload } from '@/api/rider_api';
 
 import { fetchProfileForEdit, updateUserProfile, uploadAvatarAPI } from '@/api/rider_api';
 // --- 响应式变量 ---

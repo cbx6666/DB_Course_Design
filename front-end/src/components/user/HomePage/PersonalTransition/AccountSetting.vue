@@ -17,7 +17,19 @@
                         <div class="flex flex-col items-center mb-4">
                             <div class="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-gray-400 text-2xl font-bold mb-2 cursor-pointer hover:ring-2 hover:ring-[#F9771C]"
                                 @click="triggerFileInput">
-                                <img :src="formData.image" class="w-full h-full object-cover" />
+                                <img 
+                                    v-if="formData.image && formData.image !== ''" 
+                                    :src="formData.image" 
+                                    alt="用户头像" 
+                                    class="w-full h-full object-cover"
+                                    @error="handleImageError"
+                                />
+                                <div 
+                                    v-else
+                                    class="w-full h-full bg-orange-500 flex items-center justify-center text-white text-xl font-bold"
+                                >
+                                    {{ formData.name ? formData.name.charAt(0) : '?' }}
+                                </div>
                             </div>
                             <!-- 隐藏文件输入框 -->
                             <input ref="fileInput" type="file" accept="image/*" class="hidden"
@@ -63,14 +75,15 @@ import type { AccountInfo } from '@/api/user_account';
 import { saveAccountInfo } from '@/api/user_account';
 import { useUserStore } from '@/stores/user';
 import { getAccountInfo } from '@/api/user_account';
+import { handleImageError } from '@/utils/errorHandler';
 
 const userStore = useUserStore();
 const userID = userStore.getUserID();
-// 用户信息, 测试用
+// 用户信息
 const accountInfo = ref({
-    name: "张小明",
-    phoneNumber: 1234556,
-    image: "https://i.bobopic.com/small/115698491.jpg"
+    name: "",
+    phoneNumber: 0,
+    image: ""
 });
 
 const props = defineProps<{
@@ -90,16 +103,29 @@ const formData = reactive<AccountInfo>({
 })
 
 onMounted(async () => {
-    accountInfo.value = await getAccountInfo();
+    try {
+        const result = await getAccountInfo();
+        console.log('AccountSetting - getAccountInfo 返回结果:', result);
+        accountInfo.value = result;
+    } catch (error) {
+        console.error('AccountSetting - 获取账户信息失败:', error);
+    }
 });
 
 watch(
     () => props.showAccountForm,
     (visible) => {
         if (visible) {
+            console.log('AccountSetting - 打开表单，accountInfo.value:', accountInfo.value);
+            console.log('AccountSetting - name:', accountInfo.value.name);
+            console.log('AccountSetting - phoneNumber:', accountInfo.value.phoneNumber);
+            console.log('AccountSetting - image:', accountInfo.value.image);
+            
             formData.name = accountInfo.value.name;
             formData.phoneNumber = accountInfo.value.phoneNumber;
             formData.image = accountInfo.value.image;
+            
+            console.log('AccountSetting - 设置后的 formData:', formData);
         }
     },
 );
@@ -149,4 +175,6 @@ function onAvatarChange(event: Event) {
         reader.readAsDataURL(file)
     }
 }
+
+// 使用统一的图片错误处理函数
 </script>

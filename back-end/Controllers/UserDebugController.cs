@@ -29,7 +29,7 @@ namespace BackEnd.Controllers
         /// </summary>
         /// <param name="userId">用户ID</param>
         /// <returns>用户基本信息</returns>
-        [HttpGet("user/home/userinfo")]
+        [HttpGet("debug/userinfo")]
         [ProducesResponseType(typeof(UserInfoResponseDto), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<ActionResult<UserInfoResponseDto>> GetUserInfo([FromQuery] int userId)

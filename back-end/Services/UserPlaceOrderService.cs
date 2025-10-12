@@ -2,6 +2,7 @@ using BackEnd.Models;
 using BackEnd.DTOs.User;
 using BackEnd.Services.Interfaces;
 using BackEnd.Repositories.Interfaces;
+using BackEnd.Data;
 
 namespace BackEnd.Services
 {
@@ -35,7 +36,7 @@ namespace BackEnd.Services
             _foodOrderRepository = foodOrderRepository;
             _userRepository = userRepository;
             _customerRepository = customerRepository;
-            _avatarFolder = Path.Combine(env.WebRootPath, "avatars");
+            _avatarFolder = Path.Combine(env.WebRootPath ?? env.ContentRootPath, "avatars");
             Directory.CreateDirectory(_avatarFolder);
         }
 
@@ -101,12 +102,29 @@ namespace BackEnd.Services
                 return new ResponseDto { Success = false, Message = "用户不存在" };
             }
 
+            // 调试信息：检查当前用户数据
+            Console.WriteLine($"当前用户数据:");
+            Console.WriteLine($"- UserID: {user.UserID}");
+            Console.WriteLine($"- Username: {user.Username}");
+            Console.WriteLine($"- FullName: {user.FullName ?? "null"}");
+            Console.WriteLine($"- PhoneNumber: {user.PhoneNumber}");
+            Console.WriteLine($"- Avatar: {user.Avatar ?? "null"}");
+            Console.WriteLine($"- Role: {user.Role}");
+
             // 更新用户信息
-            user.FullName = dto.Name;
+            user.Username = dto.Name;
             user.PhoneNumber = dto.PhoneNumber;
             user.Avatar = string.IsNullOrWhiteSpace(dto.Image) 
-                          ? "/images/default-avatar.png" // 默认头像路径，可替换成你项目里的默认图片
+                          ? "/images/default-avatar.jpg" // 本地默认头像
                           : dto.Image;
+            
+            // 对于消费者用户，确保FullName为null，避免Oracle类型转换错误
+            if (user.Role == Models.Enums.UserIdentity.Customer)
+            {
+                user.FullName = null;
+            }
+            
+            // 使用Repository的更新方法
             await _userRepository.UpdateAsync(user);
 
             return new ResponseDto { Success = true, Message = "账户信息更新成功" };
@@ -123,7 +141,9 @@ namespace BackEnd.Services
             if (file == null || file.Length == 0)
                 throw new ArgumentException("文件不能为空");
 
+            // 获取上传文件的扩展名，比如 .jpg、.png
             var ext = Path.GetExtension(file.FileName);
+            // 构建文件名，使用用户ID作为文件名的一部分
             var fileName = $"{userId}{ext}";
             var filePath = Path.Combine(_avatarFolder, fileName);
 
@@ -164,8 +184,30 @@ namespace BackEnd.Services
             // 构建地址字符串 (详细地址)
             string addressString = dto.Address;
 
-            // 更新默认地址
-            customer.DefaultAddress = addressString;
+            // 创建或更新收货信息
+            var existingDeliveryInfo = customer.DeliveryInfos.FirstOrDefault(di => di.IsDefault == 1);
+            if (existingDeliveryInfo != null)
+            {
+                // 更新现有默认收货信息
+                existingDeliveryInfo.Address = addressString;
+                existingDeliveryInfo.PhoneNumber = dto.PhoneNumber.ToString();
+                existingDeliveryInfo.Name = dto.Name;
+                existingDeliveryInfo.Gender = dto.Gender;
+            }
+            else
+            {
+                // 创建新的默认收货信息
+                var newDeliveryInfo = new DeliveryInfo
+                {
+                    Address = addressString,
+                    PhoneNumber = dto.PhoneNumber.ToString(),
+                    Name = dto.Name,
+                    Gender = dto.Gender,
+                    IsDefault = 1,
+                    CustomerID = customer.UserID
+                };
+                customer.DeliveryInfos.Add(newDeliveryInfo);
+            }
 
             // EF 已跟踪 customer，直接保存即可
             await _customerRepository.SaveAsync();

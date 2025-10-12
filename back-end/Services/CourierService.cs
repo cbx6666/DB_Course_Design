@@ -149,7 +149,7 @@ namespace BackEnd.Services
                 Id = task.TaskID.ToString(),
                 Status = task.Status.ToString().ToLower(),
                 Restaurant = task.Store?.StoreName ?? "未知商家",
-                Address = task.Customer?.DefaultAddress ?? "未知地址",
+                Address = task.Customer?.DeliveryInfos.FirstOrDefault(di => di.IsDefault == 1)?.Address ?? "未知地址",
                 Fee = task.DeliveryFee.ToString("F2"),
                 StatusText = GetStatusText(task.Status),
                 IsReadyForPickup = task.Order != null && task.Order.FoodOrderState == FoodOrderState.Completed
@@ -200,8 +200,8 @@ namespace BackEnd.Services
                 Id = task.TaskID.ToString(),
                 RestaurantName = task.Store?.StoreName ?? "未知商家",
                 RestaurantAddress = task.Store?.StoreAddress ?? "未知商家地址",
-                CustomerName = task.Customer?.User?.FullName ?? task.Customer?.User?.Username ?? "未知顾客",
-                CustomerAddress = task.Customer?.DefaultAddress ?? "未知顾客地址",
+                CustomerName = task.Customer?.User?.Username ?? "未知顾客",
+                CustomerAddress = task.Customer?.DeliveryInfos.FirstOrDefault(di => di.IsDefault == 1)?.Address ?? "未知顾客地址",
                 Fee = task.DeliveryFee,
                 Distance = "约 2.5 公里",
                 MapImageUrl = "https://example.com/static-map.png"

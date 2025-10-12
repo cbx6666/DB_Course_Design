@@ -443,7 +443,6 @@ const registerForm = reactive({
     gender: '', // 2字符
     avatarUrl: '',
     birthday: '',
-    isPublic: 0, // 0不公开，1公开，2仅好友
     verificationCode: ''
 });
 // 骑手信息
@@ -611,7 +610,7 @@ const sendVerificationCode = () => {
         alert('请先输入手机号码');
         return;
     }
-    // 模拟发送验证码
+    // 发送验证码
     codeCountdown.value = 60;
     const timer = setInterval(() => {
         codeCountdown.value--;
@@ -727,8 +726,7 @@ const handleRegister = async () => {
             gender: registerForm.gender,
             birthday: registerForm.birthday,
             verificationCode: registerForm.verificationCode,
-            role: role,
-            isPublic: 1, // 假设默认公开
+            role: role
         };
 
         // 步骤2：根据选择的角色，向 payload 中添加特定的信息
@@ -930,6 +928,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 input[type="number"] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 /* 自定义选择框样式 */

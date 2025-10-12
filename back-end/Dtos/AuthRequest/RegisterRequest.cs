@@ -46,10 +46,6 @@ namespace BackEnd.DTOs.AuthRequest
         /// 头像URL
         /// </summary>
         public string? AvatarUrl { get; set; }
-        /// <summary>
-        /// 是否公开资料
-        /// </summary>
-        public int IsPublic { get; set; }
 
         /// <summary>
         /// 骑手信息

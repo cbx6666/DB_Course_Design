@@ -234,6 +234,11 @@ namespace BackEnd.DTOs.User
         /// 头像
         /// </summary>
         public string Image { get; set; } = null!;
+
+        /// <summary>
+        /// 默认地址
+        /// </summary>
+        public string DefaultAddress { get; set; } = string.Empty;
     }
 
     /// <summary>

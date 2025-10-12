@@ -61,9 +61,9 @@ import { getAddress } from '@/api/user_address';
 const userStore = useUserStore();
 const userID = userStore.getUserID();
 const addrInfo = ref({
-    name: "张小明",
-    phoneNumber: 1234556,
-    address: "同济大学"
+    name: "",
+    phoneNumber: 0,
+    address: ""
 });
 
 const props = defineProps<{

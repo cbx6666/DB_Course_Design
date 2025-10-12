@@ -53,10 +53,6 @@ namespace BackEnd.DTOs.Administrator
         /// 平均评分
         /// </summary>
         public decimal AverageRating { get; set; }
-        /// <summary>
-        /// 资料是否公开
-        /// </summary>
-        public bool IsPublic { get; set; }
     }
 
     /// <summary>
@@ -76,10 +72,6 @@ namespace BackEnd.DTOs.Administrator
         /// 出生日期
         /// </summary>
         public string BirthDate { get; set; } = string.Empty;
-        /// <summary>
-        /// 资料是否公开
-        /// </summary>
-        public bool IsPublic { get; set; }
     }
 
     /// <summary>

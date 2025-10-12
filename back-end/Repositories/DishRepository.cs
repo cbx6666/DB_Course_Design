@@ -29,8 +29,7 @@ namespace BackEnd.Repositories
         {
             return await _context.Dishes
                                  .Include(d => d.ShoppingCartItems) // 一对多：购物车项
-                                 .Include(d => d.MenuDishes)        // 多对多中间表
-                                     .ThenInclude(md => md.Menu)    // 另一端：菜单
+                                 .Include(d => d.DishCategory)      // 多对一：菜品种类
                                  .ToListAsync();
         }
 
@@ -43,8 +42,7 @@ namespace BackEnd.Repositories
         {
             return await _context.Dishes
                                  .Include(d => d.ShoppingCartItems)
-                                 .Include(d => d.MenuDishes)
-                                     .ThenInclude(md => md.Menu)
+                                 .Include(d => d.DishCategory)
                                  .FirstOrDefaultAsync(d => d.DishID == id);
         }
 

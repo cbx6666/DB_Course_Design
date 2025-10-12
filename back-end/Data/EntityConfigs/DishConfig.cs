@@ -27,6 +27,7 @@ namespace BackEnd.Data.EntityConfigs
             builder.Property(d => d.Price).HasColumnName("PRICE").IsRequired().HasColumnType("decimal(10,2)");
             builder.Property(d => d.Description).HasColumnName("DESCRIPTION").IsRequired().HasMaxLength(500);
             builder.Property(d => d.DishImage).HasColumnName("DISHIMAGE").HasMaxLength(500).IsRequired(false);
+            builder.Property(d => d.CategoryID).HasColumnName("CATEGORYID").IsRequired();
 
             // 售罄状态配置
             builder.Property(d => d.IsSoldOut)
@@ -35,6 +36,22 @@ namespace BackEnd.Data.EntityConfigs
                 .HasConversion<string>()
                 .HasMaxLength(20)
                 .HasDefaultValue(DishIsSoldOut.IsSoldOut);
+
+            // 关系配置
+            ConfigureRelationships(builder);
+        }
+
+        /// <summary>
+        /// 配置实体关系
+        /// </summary>
+        /// <param name="builder">实体类型构建器</param>
+        private static void ConfigureRelationships(EntityTypeBuilder<Dish> builder)
+        {
+            // 配置与DishCategory的多对一关系
+            builder.HasOne(d => d.DishCategory)
+                .WithMany(dc => dc.Dishes)
+                .HasForeignKey(d => d.CategoryID)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

@@ -42,26 +42,6 @@ namespace BackEnd.Models.Enums
         Member = 1
     }
 
-    /// <summary>
-    /// 用户信息隐私级别枚举
-    /// </summary>
-    public enum ProfilePrivacyLevel
-    {
-        /// <summary>
-        /// 不公开
-        /// </summary>
-        Private = 0,
-
-        /// <summary>
-        /// 公开
-        /// </summary>
-        Public = 1,
-
-        /// <summary>
-        /// 仅好友
-        /// </summary>
-        FriendsOnly = 2
-    }
 
     /// <summary>
     /// 菜品售罄状态枚举
