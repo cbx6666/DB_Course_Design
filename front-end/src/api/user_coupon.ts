@@ -11,7 +11,7 @@ export interface CouponInfo {
 }
 
 export async function getCouponInfo(UserId: number) {
-    return getData<CouponInfo[]>("/api/user/coupons", {
+    return getData<CouponInfo[]>("/user/coupons", {
         params: {
             userId: UserId
         }

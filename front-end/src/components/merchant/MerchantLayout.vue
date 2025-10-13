@@ -13,12 +13,12 @@
           </el-icon>
           <div class="flex items-center space-x-2">
             <img
-              :src="merchantInfo.avatar || defaultAvatar"
+              :src="merchantInfo?.avatar || defaultAvatar"
               alt="商家头像" 
               class="w-10 h-10 rounded-full object-cover"
               @error="handleImageError"
             />
-            <span class="text-gray-700 font-medium">{{ merchantInfo.username || '加载中...' }}</span>
+            <span class="text-gray-700 font-medium">{{ merchantInfo?.username || '加载中...' }}</span>
           </div>
         </div>
       </div>

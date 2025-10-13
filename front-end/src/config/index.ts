@@ -1,19 +1,9 @@
 // src/config/index.ts
 
-// 环境变量类型声明
-interface ImportMetaEnv {
-    readonly VITE_API_BASE_URL?: string;
-    readonly MODE: string;
-}
-
-interface ImportMeta {
-    readonly env: ImportMetaEnv;
-}
-
 // API配置
 export const API_CONFIG = {
     // 基础URL，可以通过环境变量覆盖
-    BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5250',
+    BASE_URL: process.env.VUE_APP_API_BASE_URL || 'http://localhost:5250',
     API_PREFIX: '/api',
     TIMEOUT: 10000,
 

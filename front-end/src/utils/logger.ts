@@ -9,7 +9,7 @@ export enum LogLevel {
 }
 
 // 当前日志级别（生产环境可以设置为WARN或ERROR）
-const CURRENT_LOG_LEVEL = import.meta.env.DEV ? LogLevel.DEBUG : LogLevel.WARN;
+const CURRENT_LOG_LEVEL = process.env.NODE_ENV === 'development' ? LogLevel.DEBUG : LogLevel.WARN;
 
 /**
  * 统一的日志工具
@@ -45,25 +45,25 @@ export const logger = {
  */
 export const devLog = {
     api: (message: string, ...args: any[]) => {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV === 'development') {
             console.log(`[API] ${message}`, ...args);
         }
     },
 
     component: (componentName: string, message: string, ...args: any[]) => {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV === 'development') {
             console.log(`[${componentName}] ${message}`, ...args);
         }
     },
 
     user: (message: string, ...args: any[]) => {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV === 'development') {
             console.log(`[USER] ${message}`, ...args);
         }
     },
 
     error: (message: string, ...args: any[]) => {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV === 'development') {
             console.error(`[ERROR] ${message}`, ...args);
         }
     },

@@ -1,6 +1,39 @@
-@back_end_HostAddress = http://localhost:5240
+@back_end_HostAddress = http://localhost:5250
 
 GET {{back_end_HostAddress}}/weatherforecast/
 Accept: application/json
+
+###
+
+# 测试更新账户信息（支持文件上传）
+PUT {{back_end_HostAddress}}/api/account/update
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="Id"
+
+21
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="Name"
+
+测试用户
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="AvatarFile"; filename="avatar.jpg"
+Content-Type: image/jpeg
+
+< ./test-avatar.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+# 测试获取用户信息（验证头像URL是否正确保存）
+GET {{back_end_HostAddress}}/api/user/profile/userProfile
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+###
+
+# 测试访问头像文件（验证静态文件服务）
+GET {{back_end_HostAddress}}/avatars/21_4d69f912-cc12-46f6-a640-20044a85f055.jpg
 
 ###

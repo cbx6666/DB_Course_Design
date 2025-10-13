@@ -43,13 +43,6 @@
                                 required />
                         </div>
 
-                        <!-- 手机号 -->
-                        <div>
-                            <label class="block text-sm text-gray-700 mb-1">手机号</label>
-                            <input v-model="formData.phoneNumber" type="text" class="w-full border rounded px-2 py-1"
-                                required />
-                        </div>
-
                         <!-- 操作按钮 -->
                         <div class="flex gap-3 pt-2">
                             <button type="button" class="flex-1 border rounded px-4 py-2 hover:bg-gray-50"
@@ -71,7 +64,7 @@
 <script setup lang="ts">
 import { reactive, defineProps, defineEmits, ref, watch, onMounted } from 'vue'
 
-import type { AccountInfo } from '@/api/user_account';
+import type { AccountInfo, AccountUpdateData } from '@/api/user_account';
 import { saveAccountInfo } from '@/api/user_account';
 import { useUserStore } from '@/stores/user';
 import { getAccountInfo } from '@/api/user_account';
@@ -82,7 +75,6 @@ const userID = userStore.getUserID();
 // 用户信息
 const accountInfo = ref({
     name: "",
-    phoneNumber: 0,
     image: ""
 });
 
@@ -98,17 +90,22 @@ const emit = defineEmits<{
 const formData = reactive<AccountInfo>({
     id: userID,
     name: '',
-    phoneNumber: 1,
     image: ''
 })
+
+// 添加文件引用
+const selectedFile = ref<File | null>(null)
 
 onMounted(async () => {
     try {
         const result = await getAccountInfo();
-        console.log('AccountSetting - getAccountInfo 返回结果:', result);
         accountInfo.value = result;
+        // 确保头像URL是完整的URL
+        if (result.image && !result.image.startsWith('http') && !result.image.startsWith('data:')) {
+            result.image = `http://localhost:5250${result.image}`;
+        }
     } catch (error) {
-        console.error('AccountSetting - 获取账户信息失败:', error);
+        console.error('获取账户信息失败:', error);
     }
 });
 
@@ -116,16 +113,11 @@ watch(
     () => props.showAccountForm,
     (visible) => {
         if (visible) {
-            console.log('AccountSetting - 打开表单，accountInfo.value:', accountInfo.value);
-            console.log('AccountSetting - name:', accountInfo.value.name);
-            console.log('AccountSetting - phoneNumber:', accountInfo.value.phoneNumber);
-            console.log('AccountSetting - image:', accountInfo.value.image);
-            
             formData.name = accountInfo.value.name;
-            formData.phoneNumber = accountInfo.value.phoneNumber;
-            formData.image = accountInfo.value.image;
-            
-            console.log('AccountSetting - 设置后的 formData:', formData);
+            // 确保头像URL是完整的URL
+            formData.image = accountInfo.value.image && !accountInfo.value.image.startsWith('http') && !accountInfo.value.image.startsWith('data:')
+                ? `http://localhost:5250${accountInfo.value.image}`
+                : accountInfo.value.image;
         }
     },
 );
@@ -145,11 +137,31 @@ function closeForm() {
 // 保存修改
 async function saveAccount() {
     try {
-        const result = await saveAccountInfo(formData)
+        if (!selectedFile.value) {
+            alert('请选择头像文件');
+            return;
+        }
+
+        const updateData: AccountUpdateData = {
+            id: formData.id,
+            name: formData.name,
+            avatarFile: selectedFile.value
+        };
+
+        const result = await saveAccountInfo(updateData);
+        
         if (result) {
-            accountInfo.value.name = formData.name;
-            accountInfo.value.phoneNumber = formData.phoneNumber;
-            accountInfo.value.image = formData.image;
+            // 重新获取用户信息来获取正确的头像URL
+            try {
+                const updatedInfo = await getAccountInfo();
+                accountInfo.value = updatedInfo;
+                // 确保头像URL是完整的URL
+                formData.image = updatedInfo.image.startsWith('http') 
+                    ? updatedInfo.image 
+                    : `http://localhost:5250${updatedInfo.image}`;
+            } catch (error) {
+                console.error('获取更新后的用户信息失败:', error);
+            }
 
             emit('update:account', { ...formData })
             closeForm()
@@ -168,11 +180,12 @@ function onAvatarChange(event: Event) {
     const target = event.target as HTMLInputElement
     const file = target.files?.[0]
     if (file) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-            formData.image = e.target?.result as string
-        }
-        reader.readAsDataURL(file)
+        // 保存文件引用用于上传
+        selectedFile.value = file;
+        
+        // 生成预览URL用于显示
+        const previewUrl = URL.createObjectURL(file);
+        formData.image = previewUrl;
     }
 }
 

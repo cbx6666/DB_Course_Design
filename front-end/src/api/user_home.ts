@@ -47,15 +47,15 @@ export interface AfterSale {
 }
 
 export async function getAllStore() {
-    return getData<AllStore>(`/api/user/home/stores`);
+    return getData<AllStore>(`/user/home/stores`);
 }
 
 export async function getRecomStore() {
-    return getData<RecomStore>(`/api/user/home/recommend`);
+    return getData<RecomStore>(`/user/home/recommend`);
 }
 
 export async function getSearchStore(UserID: number, Address: string, Keyword: string) {
-    return getData<SearchStore>(`/api/user/home/search`, {
+    return getData<SearchStore>(`/user/home/search`, {
         params: {
             userId: UserID,
             address: Address,
@@ -65,15 +65,15 @@ export async function getSearchStore(UserID: number, Address: string, Keyword: s
 }
 
 export async function getOrderInfo() {
-    return getData<OrderInfo[]>(`/api/user/home/orders`);
+    return getData<OrderInfo[]>(`/user/home/orders`);
 }
 
 export async function getUserInfo() {
-    return getData<UserInfo>(`/api/user/home/userinfo`);
+    return getData<UserInfo>(`/user/home/userinfo`);
 }
 
 export async function postAfterSaleApplication(orderId: number, description: string) {
-    return postData<AfterSale>(`/api/user/applications/create`, {
+    return postData<AfterSale>(`/user/applications/create`, {
         orderId,
         description
     })

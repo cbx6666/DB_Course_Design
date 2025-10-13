@@ -172,6 +172,7 @@ export interface OrderCouponInfo {
 export interface MerchantInfo {
   username: string;
   sellerId: number;
+  avatar?: string;  // 添加头像属性
 }
 
 // ==================== 订单管理接口 ====================

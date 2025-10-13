@@ -151,6 +151,14 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = ""
 });
 
+// 配置头像文件服务
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "avatars")),
+    RequestPath = "/avatars"
+});
+
 // 启用 CORS
 app.UseCors("AllowAll");
 

@@ -630,7 +630,7 @@ const selectCategory = (category: string) => {
 
 
 // 处理登录
-import { getUserIdFromToken, getUserInfoFromToken } from '@/utils/jwt';
+import { getUserIdFromToken, getUserInfoFromToken, setToken } from '@/utils/jwt';
 import { useUserStore } from '@/stores/user';
 
 const userStore = useUserStore();
@@ -650,7 +650,7 @@ const handleLogin = async () => {
         });
 
         const { token, user, message } = response.data;
-        localStorage.setItem('authToken', token);
+        setToken(token);
 
         // 从token中解析userID，无需额外API调用
         const userID = getUserIdFromToken(token);

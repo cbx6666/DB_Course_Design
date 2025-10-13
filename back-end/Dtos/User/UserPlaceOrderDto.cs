@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http;
 
 namespace BackEnd.DTOs.User
 {
@@ -65,15 +66,9 @@ namespace BackEnd.DTOs.User
         public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// 手机号
+        /// 头像文件
         /// </summary>
-        [Required]
-        public long PhoneNumber { get; set; } = 0;
-
-        /// <summary>
-        /// 头像
-        /// </summary>
-        public string? Image { get; set; }
+        public IFormFile? AvatarFile { get; set; }
     }
 
     /// <summary>

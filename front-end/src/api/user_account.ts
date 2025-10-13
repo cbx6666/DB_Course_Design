@@ -1,17 +1,31 @@
 import { getData } from '@/api/multiuse_function'
-import { putData } from '@/api/multiuse_function';
+import API from '@/api/index';
 
 export interface AccountInfo {
     id: number;
     name: string;
-    phoneNumber: number;
     image: string;
 }
 
-export async function getAccountInfo() {
-    return getData<AccountInfo>("/api/user/profile/userProfile");
+export interface AccountUpdateData {
+    id: number;
+    name: string;
+    avatarFile: File;
 }
 
-export async function saveAccountInfo(data: AccountInfo) {
-    return putData<AccountInfo>("/api/account/update", data);
+export async function getAccountInfo() {
+    return getData<AccountInfo>("/user/profile/userProfile");
+}
+
+export async function saveAccountInfo(data: AccountUpdateData) {
+    const formData = new FormData();
+    formData.append('Id', data.id.toString());
+    formData.append('Name', data.name);
+    formData.append('AvatarFile', data.avatarFile);
+
+    return API.put('/account/update', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
 }

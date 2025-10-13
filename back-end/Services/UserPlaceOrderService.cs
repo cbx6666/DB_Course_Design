@@ -102,30 +102,23 @@ namespace BackEnd.Services
                 return new ResponseDto { Success = false, Message = "用户不存在" };
             }
 
-            // 调试信息：检查当前用户数据
-            Console.WriteLine($"当前用户数据:");
-            Console.WriteLine($"- UserID: {user.UserID}");
-            Console.WriteLine($"- Username: {user.Username}");
-            Console.WriteLine($"- FullName: {user.FullName ?? "null"}");
-            Console.WriteLine($"- PhoneNumber: {user.PhoneNumber}");
-            Console.WriteLine($"- Avatar: {user.Avatar ?? "null"}");
-            Console.WriteLine($"- Role: {user.Role}");
+            string avatar = "/images/default-avatar.jpg"; // 默认头像
 
-            // 更新用户信息
-            user.Username = dto.Name;
-            user.PhoneNumber = dto.PhoneNumber;
-            user.Avatar = string.IsNullOrWhiteSpace(dto.Image) 
-                          ? "/images/default-avatar.jpg" // 本地默认头像
-                          : dto.Image;
-            
-            // 对于消费者用户，确保FullName为null，避免Oracle类型转换错误
-            if (user.Role == Models.Enums.UserIdentity.Customer)
+            // 处理头像上传
+            if (dto.AvatarFile != null && dto.AvatarFile.Length > 0)
             {
-                user.FullName = null;
+                try
+                {
+                    // 使用文件上传方法处理头像
+                    avatar = await UpdateUserAvatarAsync(dto.Id, dto.AvatarFile);
+                }
+                catch (Exception ex)
+                {
+                    return new ResponseDto { Success = false, Message = $"头像上传失败: {ex.Message}" };
+                }
             }
             
-            // 使用Repository的更新方法
-            await _userRepository.UpdateAsync(user);
+            await _userRepository.UpdatePartialAsync(dto.Id, dto.Name, avatar);
 
             return new ResponseDto { Success = true, Message = "账户信息更新成功" };
         }
@@ -139,29 +132,26 @@ namespace BackEnd.Services
         public async Task<string> UpdateUserAvatarAsync(int userId, IFormFile file)
         {
             if (file == null || file.Length == 0)
+            {
                 throw new ArgumentException("文件不能为空");
+            }
 
-            // 获取上传文件的扩展名，比如 .jpg、.png
-            var ext = Path.GetExtension(file.FileName);
-            // 构建文件名，使用用户ID作为文件名的一部分
-            var fileName = $"{userId}{ext}";
+            // 生成唯一文件名
+            var fileExtension = Path.GetExtension(file.FileName);
+            var fileName = $"{userId}_{Guid.NewGuid()}{fileExtension}";
             var filePath = Path.Combine(_avatarFolder, fileName);
 
+            // 确保目录存在
+            Directory.CreateDirectory(_avatarFolder);
+
+            // 保存文件
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
 
-            // 更新数据库
-            var relativeUrl = $"/avatars/{fileName}";
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null)
-                throw new KeyNotFoundException("用户不存在");
-
-            user.Avatar = relativeUrl;
-            await _userRepository.UpdateAsync(user);
-
-            return relativeUrl;
+            // 返回相对路径
+            return $"/avatars/{fileName}";
         }
 
         /// <summary>

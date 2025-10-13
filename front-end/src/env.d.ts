@@ -5,8 +5,8 @@ interface ImportMetaEnv {
   readonly MODE: string;
   readonly DEV: boolean;
   readonly PROD: boolean;
-  // 如果您在 .env 文件中有自定义的 VUE_APP_ 开头的变量，也可以在这里声明
-  // readonly VUE_APP_API_URL: string;
+  // 自定义的 VUE_APP_ 开头的变量
+  readonly VUE_APP_API_BASE_URL?: string;
 }
 
 interface ImportMeta {

@@ -83,7 +83,17 @@ const formData = reactive<Address>({
 });
 
 onMounted(async () => {
-    addrInfo.value = await getAddress(userID);
+    try {
+        addrInfo.value = await getAddress(userID);
+    } catch (error) {
+        console.warn('获取地址信息失败:', error);
+        // 设置默认值，避免页面崩溃
+        addrInfo.value = {
+            name: "",
+            phoneNumber: 0,
+            address: ""
+        };
+    }
 })
 
 watch(

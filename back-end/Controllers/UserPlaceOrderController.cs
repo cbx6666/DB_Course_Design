@@ -68,7 +68,7 @@ namespace BackEnd.Controllers
         [ProducesResponseType(typeof(ResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ResponseDto>> UpdateAccountInfo([FromBody][Required] UpdateAccountDto dto)
+        public async Task<ActionResult<ResponseDto>> UpdateAccountInfo([FromForm] UpdateAccountDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -86,41 +86,6 @@ namespace BackEnd.Controllers
             {
                 _logger.LogError(ex, "更新账户信息时发生错误");
                 return StatusCode(500, new ResponseDto { Success = false, Message = "服务器内部错误，更新账户信息失败" });
-            }
-        }
-
-        /// <summary>
-        /// 上传头像
-        /// </summary>
-        /// <param name="file">头像文件</param>
-        /// <returns>上传结果</returns>
-        [HttpPost("account/avatar")]
-        public async Task<ActionResult<ResponseDto>> UploadAvatar(IFormFile file)
-        {
-            try
-            {
-                // 从 Token 中安全地获取用户 ID
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!int.TryParse(userIdString, out int userId))
-                {
-                    return Unauthorized("无效的Token");
-                }
-
-                var relativeUrl = await _orderService.UpdateUserAvatarAsync(userId, file);
-                return Ok(new ResponseDto { Success = true, Message = relativeUrl });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new ResponseDto { Success = false, Message = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new ResponseDto { Success = false, Message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "上传头像失败");
-                return StatusCode(500, new ResponseDto { Success = false, Message = "服务器错误" });
             }
         }
 

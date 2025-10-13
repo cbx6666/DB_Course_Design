@@ -152,15 +152,15 @@ namespace BackEnd.Services
                 {
                     Name = user.Username ?? string.Empty,
                     PhoneNumber = user.PhoneNumber,
-                    Image = string.IsNullOrWhiteSpace(user.Avatar) ? "/images/default-avatar.jpg" : user.Avatar,
+                    Image = string.IsNullOrWhiteSpace(user.Avatar) 
+                        ? "/images/default-avatar.jpg" 
+                        : user.Avatar,
                     DefaultAddress = string.Empty // 暂时返回空字符串
                 };
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"GetUserInfoAsync 异常: {ex.Message}");
-                Console.WriteLine($"堆栈跟踪: {ex.StackTrace}");
-                throw; // 重新抛出异常以便调试
+                throw; // 重新抛出异常
             }
         }
 

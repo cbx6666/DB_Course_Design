@@ -62,7 +62,10 @@
 
           <AddrSetting v-model:showAddressForm="showAddressForm" />
           <CouponSetting v-model:showCouponForm="showCouponForm" />
-          <AccountSetting v-model:showAccountForm="showAccountForm" />
+          <AccountSetting 
+            v-model:showAccountForm="showAccountForm" 
+            @update:account="handleAccountUpdate"
+          />
           <ExitAccount v-model:showExitForm="showExitForm" />
         </div>
       </div>
@@ -95,26 +98,44 @@ const userInfo = ref({
 
 onMounted(async () => {
   try {
-    devLog.component('Personal', '组件加载开始');
-    
     // 恢复用户状态
     restoreUserState();
     
     // 获取当前用户ID
     const currentUserID = getCurrentUserId();
-    devLog.user('当前用户ID:', currentUserID);
     
     if (currentUserID > 0) {
-      const result = await getUserInfo();
-      if (result) {
-        userInfo.value = result;
-        devLog.user('用户信息已更新:', result);
-      }
+      await loadUserInfo();
     }
   } catch (error) {
-    devLog.error('获取用户信息失败:', error);
+    console.error('获取用户信息失败:', error);
   }
 });
+
+// 加载用户信息
+async function loadUserInfo() {
+  try {
+    const result = await getUserInfo();
+    if (result) {
+      // 确保头像URL是完整的URL
+      if (result.image && !result.image.startsWith('http') && !result.image.startsWith('data:')) {
+        result.image = `http://localhost:5250${result.image}`;
+      }
+      userInfo.value = result;
+    }
+  } catch (error) {
+    console.error('加载用户信息失败:', error);
+  }
+}
+
+// 处理账户更新
+function handleAccountUpdate(updatedAccount: any) {
+  // 更新本地用户信息
+  userInfo.value.name = updatedAccount.name;
+  userInfo.value.image = updatedAccount.image;
+  // 重新加载用户信息以确保数据同步
+  loadUserInfo();
+}
 
 const showUserPanel = ref(false);
 const showAddressForm = ref(false);

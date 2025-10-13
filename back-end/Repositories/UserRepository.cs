@@ -84,6 +84,24 @@ namespace BackEnd.Repositories
         }
 
         /// <summary>
+        /// 部分更新用户信息（只更新指定字段）
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="username">用户名</param>
+        /// <param name="avatar">头像</param>
+        public async Task UpdatePartialAsync(int userId, string username, string? avatar)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                user.Username = username;
+                user.Avatar = avatar;
+                
+                await SaveAsync();
+            }
+        }
+
+        /// <summary>
         /// 删除用户
         /// </summary>
         /// <param name="user">用户信息</param>

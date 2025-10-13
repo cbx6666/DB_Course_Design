@@ -62,7 +62,13 @@ function closeForm() {
 }
 
 onMounted(async () => {
-  coupons.value = await getCouponInfo(userID);
+  try {
+    coupons.value = await getCouponInfo(userID);
+  } catch (error) {
+    console.warn('获取优惠券信息失败:', error);
+    // 设置默认值，避免页面崩溃
+    coupons.value = [];
+  }
 })
 
 </script>
