@@ -10,9 +10,9 @@ package-lock.json
 # 后端信息
 back-end/obj/
 back-end/bin/
-backend/.vs/
-backend/Migrations
-backend/wwwroot
+back-end/.vs/
+back-end/Migrations/
+back-end/wwwroot/
 
 # 文档
 *.bkp
