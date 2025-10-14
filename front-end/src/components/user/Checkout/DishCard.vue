@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 import { ref, defineProps, defineEmits } from 'vue'
-import type { MenuItem } from '@/api/user_checkout'
+import type { MenuItem } from '@/api/user'
 
 interface DishWithQty extends MenuItem {
   quantity: number

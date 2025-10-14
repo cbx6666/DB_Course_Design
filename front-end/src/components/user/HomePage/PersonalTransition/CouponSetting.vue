@@ -39,9 +39,9 @@
 <script setup lang="ts">
 import { defineProps, defineEmits, ref, reactive, onMounted } from 'vue'
 
-import type { CouponInfo } from '@/api/user_coupon';
+import type { CouponInfo } from '@/api/user';
 import { useUserStore } from '@/stores/user';
-import { getCouponInfo } from '@/api/user_coupon';
+import { getCouponInfo } from '@/api/user';
 
 const userStore = useUserStore();
 const userID = userStore.getUserID();

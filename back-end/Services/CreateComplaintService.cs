@@ -73,7 +73,7 @@ namespace BackEnd.Services
                 }
 
                 // 验证配送任务是否属于当前用户的订单
-                if (deliveryTask.CustomerID != userId)
+                if (deliveryTask.Order.CustomerID != userId)
                 {
                     return Fail("无权对此配送任务发起投诉");
                 }

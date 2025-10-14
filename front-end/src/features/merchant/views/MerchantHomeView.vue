@@ -11,9 +11,7 @@
             <Bell />
           </el-icon>
           <div class="flex items-center space-x-2">
-            <img
-              src="https://readdy.ai/api/search-image?query=professional%20restaurant%20owner%20portrait%20with%20friendly%20smile%20wearing%20chef%20uniform%20against%20clean%20white%20background%20modern%20lighting&width=40&height=40&seq=merchant-avatar-001&orientation=squarish"
-              alt="商家头像" class="w-10 h-10 rounded-full object-cover" />
+            <MerchantAvatar :src="merchantInfo.avatar" :size="40" />
             <!-- 商家姓名：默认“加载中” -->
             <span class="text-gray-700 font-medium">{{ merchantInfo.username || '加载中...' }}</span>
           </div>
@@ -121,6 +119,29 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">店铺名称</label>
                 <p class="text-gray-900">{{ shopInfo.name }}</p>
               </div>
+              <div class="col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">店铺图片</label>
+                <div class="flex flex-col items-center justify-center space-y-3">
+                  <div class="w-28 h-28 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
+                    <img
+                      v-if="shopInfo.storeImage"
+                      :src="shopInfo.storeImage"
+                      alt="店铺图片"
+                      class="w-full h-full object-cover"
+                      @error="onStoreImageError"
+                    />
+                    <span v-else class="text-gray-400 text-sm">暂无图片</span>
+                  </div>
+                  <el-upload
+                    :show-file-list="false"
+                    :before-upload="beforeImageUpload"
+                    :http-request="uploadStoreImage"
+                  >
+                    <el-button type="primary">上传/更换店铺图片</el-button>
+                  </el-upload>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">支持 JPG/PNG，大小不超过 2MB。</p>
+              </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">建立时间</label>
                 <p class="text-gray-900">{{ shopInfo.createTime }}</p>
@@ -212,8 +233,11 @@
 import { getProjectName } from '@/stores/name';
 
 import { ref, onMounted } from 'vue';
-import { Bell, Star, TrendCharts, Medal, House, List, Ticket, Warning, User } from '@element-plus/icons-vue';
+import { Bell, Star, TrendCharts, Medal, House, List, Ticket, Warning, User, Menu } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { API_CONFIG } from '@/config';
+import MerchantAvatar from '@/features/merchant/components/MerchantAvatar.vue';
+import apiClient from '@/api/client';
 import { useRouter, useRoute } from 'vue-router';
 import loginApi from '@/api/login_api';      // 导入通用认证API
 import { removeToken } from '@/utils/jwt';   // 导入Token移除工具
@@ -223,13 +247,14 @@ import {
   getMerchantInfo, 
   toggleBusinessStatus as apiToggleBusinessStatus,
   updateShopField
-} from '@/api/merchant_api';
+} from '@/api/merchant';
 
 // 默认空值
 const defaultShopInfo = {
   id: '***',
   name: '***',
   createTime: '***',
+  storeImage: '',
   address: '',
   startTime: '',
   endTime: '',
@@ -240,7 +265,8 @@ const defaultShopInfo = {
 };
 
 const defaultMerchantInfo = {
-  username: ''
+  username: '',
+  avatar: ''
 };
 
 // 响应式数据
@@ -254,6 +280,7 @@ const projectName = useProjectName.projectName;
 const menuItems = [
   { key: 'overview', label: '店铺概况', icon: House, routeName: 'MerchantHome' },
   { key: 'orders', label: '订单中心', icon: List, routeName: 'MerchantOrders' },
+  { key: 'menu', label: '菜品管理', icon: Menu, routeName: 'MerchantMenu' },
   { key: 'coupons', label: '配券中心', icon: Ticket, routeName: 'MerchantCoupons' },
   { key: 'aftersale', label: '订单售后', icon: Warning, routeName: 'MerchantAftersale' },
   { key: 'profile', label: '商家信息', icon: User, routeName: 'MerchantProfile' }
@@ -266,6 +293,8 @@ const handleMenuClick = (menuItem: typeof menuItems[number]) => {
 const isOpen = ref(false);
 const shopInfo = ref({ ...defaultShopInfo });
 const merchantInfo = ref({ ...defaultMerchantInfo });
+// 默认头像（与通用布局保持一致）
+const defaultAvatar = `${API_CONFIG.BASE_URL}${API_CONFIG.DEFAULT_AVATAR}`;
 const isLoading = ref(true);
 
 // 响应式状态
@@ -412,6 +441,7 @@ const fetchAllData = async () => {
         id: id || defaultShopInfo.id,
         name: name || defaultShopInfo.name,
         createTime: createTime || defaultShopInfo.createTime,
+        storeImage: normalizeAssetUrl(shop.data.storeImage || ''),
         address: address || defaultShopInfo.address,
         startTime: formatTime(startTime),
         endTime: formatTime(endTime),
@@ -423,7 +453,10 @@ const fetchAllData = async () => {
     
     // 更新商家信息
     if (merchant) {
-      merchantInfo.value = { ...defaultMerchantInfo, ...merchant };
+      merchantInfo.value = { ...defaultMerchantInfo, ...merchant } as any;
+      if ((merchantInfo.value as any).avatar) {
+        (merchantInfo.value as any).avatar = normalizeAssetUrl((merchantInfo.value as any).avatar);
+      }
     }
     
   } catch (error) {
@@ -465,10 +498,52 @@ const toggleBusinessStatus = async (value: string | number | boolean) => {
   }
 };
 
+// ---------- 店铺图片上传/更新 ----------
+const onStoreImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement;
+  img.src = `${API_CONFIG.BASE_URL}/images/store-placeholder.png`;
+};
+
+const beforeImageUpload = (file: File) => {
+  const isAllowedType = file.type === 'image/jpeg' || file.type === 'image/png';
+  const isLt2M = file.size / 1024 / 1024 < 2;
+  if (!isAllowedType) {
+    ElMessage.error('图片格式仅支持 JPG/PNG');
+  }
+  if (!isLt2M) {
+    ElMessage.error('图片大小不能超过 2MB');
+  }
+  return isAllowedType && isLt2M;
+};
+
+const uploadStoreImage = async (options: any) => {
+  try {
+    const file: File = options.file as File;
+    const formData = new FormData();
+    formData.append('imageFile', file);
+    const resp = await apiClient.put('/shop/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    const newUrl = resp?.data?.image;
+    if (!newUrl) throw new Error('上传成功但未返回图片地址');
+    shopInfo.value.storeImage = normalizeAssetUrl(newUrl);
+    ElMessage.success('店铺图片已更新');
+  } catch (error) {
+    ElMessage.error('店铺图片上传失败，请重试');
+  }
+};
+
 // 组件挂载时获取数据
 onMounted(() => {
   fetchAllData();
 });
+
+function normalizeAssetUrl(u?: string): string {
+  if (!u) return '';
+  if (u.startsWith('http://') || u.startsWith('https://')) return u;
+  if (u.startsWith('/')) return `${API_CONFIG.BASE_URL}${u}`;
+  return `${API_CONFIG.BASE_URL}/${u}`;
+}
 
 async function handleLogout() {
   try {
@@ -506,3 +581,4 @@ async function handleLogout() {
   }
 }
 </script>
+

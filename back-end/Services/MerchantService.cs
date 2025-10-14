@@ -3,6 +3,8 @@ using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 
 namespace BackEnd.Services
 {
@@ -12,14 +14,17 @@ namespace BackEnd.Services
     public class MerchantService : IMerchantService
     {
         private readonly IMerchantRepository _merchantRepository;
+        private readonly string _storeImageFolder;
 
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="merchantRepository">商家仓储</param>
-        public MerchantService(IMerchantRepository merchantRepository)
+        public MerchantService(IMerchantRepository merchantRepository, IWebHostEnvironment env)
         {
             _merchantRepository = merchantRepository;
+            _storeImageFolder = Path.Combine(env.WebRootPath ?? env.ContentRootPath, "images", "stores");
+            Directory.CreateDirectory(_storeImageFolder);
         }
 
         /// <summary>
@@ -119,29 +124,8 @@ namespace BackEnd.Services
                 StartTime = store?.OpenTime.ToString(@"hh\:mm") ?? string.Empty,
                 EndTime = store?.CloseTime.ToString(@"hh\:mm") ?? string.Empty,
                 Feature = store?.StoreFeatures ?? string.Empty,
-                CreditScore = seller?.ReputationPoints ?? 0
-            };
-
-            Console.WriteLine($"返回结果: {System.Text.Json.JsonSerializer.Serialize(result)}");
-            return result;
-        }
-
-        /// <summary>
-        /// 获取商家信息
-        /// </summary>
-        /// <param name="sellerId">商家ID</param>
-        /// <returns>商家信息</returns>
-        public async Task<MerchantInfoResponseDto?> GetMerchantInfoAsync(int sellerId)
-        {
-            Console.WriteLine($"=== Service层: 获取商家信息，商家ID: {sellerId} ===");
-
-            var user = await _merchantRepository.GetUserBySellerIdAsync(sellerId);
-            Console.WriteLine($"用户信息: Username={user!.Username}");
-
-            var result = new MerchantInfoResponseDto
-            {
-                Username = user.Username,
-                SellerId = sellerId
+                CreditScore = seller?.ReputationPoints ?? 0,
+                StoreImage = store?.StoreImage
             };
 
             Console.WriteLine($"返回结果: {System.Text.Json.JsonSerializer.Serialize(result)}");
@@ -239,16 +223,15 @@ namespace BackEnd.Services
 
                 Console.WriteLine($"商家状态正常，BanStatus={seller?.BanStatus}");
 
-                switch (request.Field)
+                var fieldKey = (request.Field ?? string.Empty).Trim().ToLowerInvariant();
+                switch (fieldKey)
                 {
-                    case "Address":
                     case "address":
                         store.StoreAddress = request.Value;
                         Console.WriteLine($"更新地址为: {request.Value}");
                         break;
-                    case "OpenTime":
-                    case "openTime":
-                    case "startTime":
+                    case "opentime":
+                    case "starttime":
                         if (TimeSpan.TryParse(request.Value, out var openTime))
                         {
                             store.OpenTime = openTime;
@@ -260,9 +243,8 @@ namespace BackEnd.Services
                             return new CommonResponseDto { Success = false };
                         }
                         break;
-                    case "CloseTime":
-                    case "closeTime":
-                    case "endTime":
+                    case "closetime":
+                    case "endtime":
                         if (TimeSpan.TryParse(request.Value, out var closeTime))
                         {
                             store.CloseTime = closeTime;
@@ -274,7 +256,6 @@ namespace BackEnd.Services
                             return new CommonResponseDto { Success = false };
                         }
                         break;
-                    case "Feature":
                     case "feature":
                         store.StoreFeatures = request.Value;
                         Console.WriteLine($"更新特色为: {request.Value}");
@@ -295,6 +276,38 @@ namespace BackEnd.Services
                 Console.WriteLine($"异常堆栈: {ex.StackTrace}");
                 return new CommonResponseDto { Success = false };
             }
+        }
+
+        /// <summary>
+        /// 上传并更新店铺图片
+        /// </summary>
+        public async Task<(bool Success, string? Message, string? ImageUrl)> UploadStoreImageAsync(int sellerId, IFormFile imageFile)
+        {
+            if (imageFile == null || imageFile.Length <= 0)
+            {
+                return (false, "文件不能为空", null);
+            }
+
+            var store = await _merchantRepository.GetStoreBySellerIdAsync(sellerId);
+            if (store == null)
+            {
+                return (false, "店铺不存在", null);
+            }
+
+            var ext = Path.GetExtension(imageFile.FileName);
+            var fileName = $"store_{store.StoreID}_{Guid.NewGuid()}{ext}";
+            var filePath = Path.Combine(_storeImageFolder, fileName);
+
+            Directory.CreateDirectory(_storeImageFolder);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(stream);
+            }
+
+            var url = $"/images/stores/{fileName}";
+            store.StoreImage = url;
+            var success = await _merchantRepository.UpdateStoreAsync(store);
+            return success ? (true, null, url) : (false, "保存失败", null);
         }
     }
 }

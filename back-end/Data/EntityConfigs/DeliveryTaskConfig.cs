@@ -44,8 +44,6 @@ namespace BackEnd.Data.EntityConfigs
                 .HasDefaultValue(0.00m);
 
             // 外键配置
-            builder.Property(dt => dt.CustomerID).HasColumnName("CUSTOMERID").IsRequired();
-            builder.Property(dt => dt.StoreID).HasColumnName("STOREID").IsRequired();
             builder.Property(dt => dt.CourierID).HasColumnName("COURIERID").IsRequired(false);
             builder.Property(dt => dt.OrderID).HasColumnName("ORDERID").IsRequired();
 
@@ -59,18 +57,6 @@ namespace BackEnd.Data.EntityConfigs
         /// <param name="builder">实体类型构建器</param>
         private static void ConfigureRelationships(EntityTypeBuilder<DeliveryTask> builder)
         {
-            // 配置与Customer的多对一关系
-            builder.HasOne(dt => dt.Customer)
-                .WithMany(c => c.DeliveryTasks)
-                .HasForeignKey(dt => dt.CustomerID)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // 配置与Store的多对一关系
-            builder.HasOne(dt => dt.Store)
-                .WithMany(s => s.DeliveryTasks)
-                .HasForeignKey(dt => dt.StoreID)
-                .OnDelete(DeleteBehavior.Restrict);
-
             // 配置与Courier的多对一关系
             builder.HasOne(dt => dt.Courier)
                 .WithMany(c => c.DeliveryTasks)

@@ -66,8 +66,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import type { AllStore, SearchStore, showStore } from '@/api/user_home';
-import { getSearchStore, getAllStore } from '@/api/user_home';
+import type { AllStore, SearchStore, showStore } from '@/api/user';
+import { getSearchStore, getAllStore } from '@/api/user';
 
 import SieveStore from '@/components/user/HomePage/Home/SieveStore.vue';
 

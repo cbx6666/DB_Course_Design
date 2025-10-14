@@ -14,5 +14,10 @@ namespace BackEnd.DTOs.Merchant
         /// 商家用户ID
         /// </summary>
         public int SellerId { get; set; }
+
+		/// <summary>
+		/// 商家头像
+		/// </summary>
+		public string? Avatar { get; set; }
     }
 }

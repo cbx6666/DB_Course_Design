@@ -30,8 +30,8 @@
 import { ref, defineProps, defineEmits } from "vue";
 import { useUserStore } from "@/stores/user";
 
-import { postAfterSaleApplication } from "@/api/user_home";
-import type { OrderInfo } from "@/api/user_home";
+import { postAfterSaleApplication } from "@/api/user";
+import type { OrderInfo } from "@/api/user";
 
 const userStore = useUserStore();
 const userId = userStore.getUserID();

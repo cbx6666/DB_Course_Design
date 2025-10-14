@@ -1,5 +1,4 @@
-import { getData } from '@/api/multiuse_function'
-import { postData } from '@/api/multiuse_function'
+import { getData, postData } from '@/api/multiuse_function'
 
 export interface showStore {
     id: number
@@ -78,3 +77,5 @@ export async function postAfterSaleApplication(orderId: number, description: str
         description
     })
 }
+
+

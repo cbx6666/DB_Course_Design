@@ -5,6 +5,7 @@ using BackEnd.Services.Interfaces;
 using BackEnd.Data;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace BackEnd.Controllers
 {
@@ -17,11 +18,13 @@ namespace BackEnd.Controllers
     public class MerchantController : ControllerBase
     {
         private readonly IMerchantService _merchantService;
+        private readonly IMerchantInformationService _merchantInformationService;
         private readonly AppDbContext _context;
 
-        public MerchantController(IMerchantService merchantService, AppDbContext context)
+        public MerchantController(IMerchantService merchantService, IMerchantInformationService merchantInformationService, AppDbContext context)
         {
             _merchantService = merchantService;
+            _merchantInformationService = merchantInformationService;
             _context = context;
         }
 
@@ -73,8 +76,21 @@ namespace BackEnd.Controllers
             try
             {
                 var sellerId = GetCurrentSellerId();
-                var result = await _merchantService.GetMerchantInfoAsync(sellerId);
-                return Ok(new { data = result });
+                // 统一由 MerchantInformationService 提供商家个人信息，避免与店铺服务重复职责
+                var profile = await _merchantInformationService.GetMerchantInfoAsync(sellerId);
+                if (!profile.Success || profile.Data == null)
+                {
+                    return StatusCode(500, new { error = profile.Message ?? "获取商家信息失败" });
+                }
+
+                var dto = new MerchantInfoResponseDto
+                {
+                    Username = profile.Data.Username,
+                    SellerId = sellerId,
+                    Avatar = profile.Data.Avatar
+                };
+
+                return Ok(new { data = dto });
             }
             catch (Exception ex)
             {
@@ -125,6 +141,26 @@ namespace BackEnd.Controllers
                 var sellerId = GetCurrentSellerId();
                 var result = await _merchantService.UpdateShopFieldAsync(sellerId, request);
                 return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message, details = ex.StackTrace });
+            }
+        }
+
+        /// <summary>
+        /// 上传并更新店铺图片
+        /// </summary>
+        [HttpPut("/api/shop/image")]
+        public async Task<IActionResult> UploadStoreImage([FromForm] IFormFile imageFile)
+        {
+            try
+            {
+                var sellerId = GetCurrentSellerId();
+                var result = await _merchantService.UploadStoreImageAsync(sellerId, imageFile);
+                return result.Success
+                    ? Ok(new { code = 200, success = true, image = result.ImageUrl })
+                    : BadRequest(new { code = 400, success = false, message = result.Message });
             }
             catch (Exception ex)
             {

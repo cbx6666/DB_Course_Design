@@ -58,7 +58,7 @@ const mapUrl = ref('')
 const loading = ref(true)
 const lastUpdated = ref('')
 
-let locationUpdateTimer: number | null = null
+let locationUpdateTimer: ReturnType<typeof setInterval> | null = null
 
 async function updateLocation() {
   console.log('开始更新位置...')

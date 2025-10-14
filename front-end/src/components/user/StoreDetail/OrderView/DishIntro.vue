@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue'
-import type { MenuItem, ShoppingCart } from '@/api/user_checkout';
+import type { MenuItem, ShoppingCart } from '@/api/user';
 
 const props = defineProps<{
     cart: ShoppingCart;

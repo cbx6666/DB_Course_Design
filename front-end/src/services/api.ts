@@ -28,7 +28,6 @@ interface StoreInfo {
   establishmentDate: string;
   businessLicense: File | null; // 假设是文件对象或 null
   category: string;
-
 }
 
 interface RegistrationData {

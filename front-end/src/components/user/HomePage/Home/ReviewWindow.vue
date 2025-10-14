@@ -67,8 +67,8 @@
 import { ref, defineProps, defineEmits } from "vue";
 import { useUserStore } from "@/stores/user";
 
-import type { OrderInfo } from "@/api/user_home";
-import { postRiderComment, postStoreComment } from "@/api/user_comment";
+import type { OrderInfo } from "@/api/user";
+import { postRiderComment, postStoreComment } from "@/api/user";
 
 const userStore = useUserStore();
 const userId = userStore.getUserID();

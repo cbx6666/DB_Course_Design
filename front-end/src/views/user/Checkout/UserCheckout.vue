@@ -60,13 +60,8 @@ import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 
-import type { Address } from '@/api/user_address';
-import type { MenuItem, ShoppingCart } from '@/api/user_checkout';
-import type { CouponInfo } from '@/api/user_coupon';
-import { getAddress } from '@/api/user_address';
-import { getMenuItem, getShoppingCart, addOrUpdateCartItem, removeCartItem } from '@/api/user_checkout';
-import { submitOrder, useCoupon } from '@/api/user_checkout';
-import { getDeliveryTasks } from '@/api/user_store_info';
+import type { Address, MenuItem, ShoppingCart, CouponInfo } from '@/api/user';
+import { getAddress, getMenuItem, getShoppingCart, addOrUpdateCartItem, removeCartItem, submitOrder, useCoupon, getDeliveryTasks } from '@/api/user';
 
 import DishCard from '@/components/user/Checkout/DishCard.vue';
 import AddressSelector from '@/components/user/Checkout/AddressSelector.vue';

@@ -59,64 +59,6 @@ namespace BackEnd.Controllers
             }
         }
 
-        /// <summary>
-        /// 更新账户信息
-        /// </summary>
-        /// <param name="dto">更新账户请求</param>
-        /// <returns>更新结果</returns>
-        [HttpPut("account/update")]
-        [ProducesResponseType(typeof(ResponseDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ResponseDto>> UpdateAccountInfo([FromForm] UpdateAccountDto dto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            try
-            {
-                var response = await _orderService.UpdateAccountAsync(dto);
-                return Ok(response);
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(new ResponseDto { Success = false, Message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "更新账户信息时发生错误");
-                return StatusCode(500, new ResponseDto { Success = false, Message = "服务器内部错误，更新账户信息失败" });
-            }
-        }
-
-        /// <summary>
-        /// 新增或更新收货地址
-        /// </summary>
-        /// <param name="dto">保存地址请求</param>
-        /// <returns>保存结果</returns>
-        [HttpPut("account/address/save")]
-        [ProducesResponseType(typeof(ResponseDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ResponseDto>> SaveOrUpdateAddress([FromBody][Required] SaveAddressDto dto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            try
-            {
-                var response = await _orderService.SaveOrUpdateAddressAsync(dto);
-                return Ok(response);
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(new ResponseDto { Success = false, Message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "保存或更新收货地址时发生错误");
-                return StatusCode(500, new ResponseDto { Success = false, Message = "服务器内部错误，保存或更新收货地址失败" });
-            }
-        }
+        // 账户更新与地址保存已迁移到 UserProfileController
     }
 }

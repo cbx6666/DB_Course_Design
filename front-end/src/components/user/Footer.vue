@@ -18,7 +18,7 @@
       <div>
         <h3 class="text-lg font-semibold mb-4">关注我们</h3>
         <div class="flex space-x-4 justify-center">
-          <a v-for="(icon, index) in icons" :href="icon.url"
+          <a v-for="(icon, index) in icons" :key="icon.name" :href="icon.url"
             class="flex flex-col items-center hover:text-orange-500" 
             @mouseenter="hoverIndex = index"
             @mouseleave="hoverIndex = -1">

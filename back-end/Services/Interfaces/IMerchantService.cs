@@ -21,12 +21,7 @@ namespace BackEnd.Services.Interfaces
         /// <returns>店铺详细信息</returns>
         Task<ShopInfoResponseDto?> GetShopInfoAsync(int sellerId);
 
-        /// <summary>
-        /// 获取商家信息
-        /// </summary>
-        /// <param name="sellerId">商家ID</param>
-        /// <returns>商家信息</returns>
-        Task<MerchantInfoResponseDto?> GetMerchantInfoAsync(int sellerId);
+        
 
         /// <summary>
         /// 切换营业状态
@@ -43,5 +38,13 @@ namespace BackEnd.Services.Interfaces
         /// <param name="request">更新字段请求</param>
         /// <returns>更新结果</returns>
         Task<CommonResponseDto> UpdateShopFieldAsync(int sellerId, UpdateShopFieldRequestDto request);
+
+		/// <summary>
+		/// 上传并更新店铺图片
+		/// </summary>
+		/// <param name="sellerId">商家ID</param>
+		/// <param name="imageFile">图片文件</param>
+		/// <returns>新图片URL</returns>
+		Task<(bool Success, string? Message, string? ImageUrl)> UploadStoreImageAsync(int sellerId, IFormFile imageFile);
     }
 } 

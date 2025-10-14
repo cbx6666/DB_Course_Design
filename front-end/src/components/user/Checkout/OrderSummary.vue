@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { computed, defineProps, defineEmits } from 'vue';
 
-import type { CouponInfo } from '@/api/user_coupon';
+import type { CouponInfo } from '@/api/user';
 
 const props = defineProps<{
   subtotal: number;

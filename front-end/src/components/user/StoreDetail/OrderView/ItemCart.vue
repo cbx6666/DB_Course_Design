@@ -68,7 +68,7 @@
 import { ref, computed, defineProps, defineEmits } from 'vue'
 import { useRouter } from 'vue-router'
 
-import type { MenuItem, ShoppingCart } from '@/api/user_checkout'
+import type { MenuItem, ShoppingCart } from '@/api/user'
 
 const router = useRouter();
 const props = defineProps<{

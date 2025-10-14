@@ -26,10 +26,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
-import type { StoreInfo } from '@/api/user_store_info'
-import type { MenuItem, ShoppingCart, ShoppingCartItem } from '@/api/user_checkout'
-import { getStoreInfo } from '@/api/user_store_info'
-import { getMenuItem, getShoppingCart, addOrUpdateCartItem, removeCartItem } from '@/api/user_checkout'
+import type { StoreInfo, MenuItem, ShoppingCart, ShoppingCartItem } from '@/api/user'
+import { getStoreInfo, getMenuItem, getShoppingCart, addOrUpdateCartItem, removeCartItem } from '@/api/user'
 
 import DishIntro from '@/components/user/StoreDetail/OrderView/DishIntro.vue'
 import ItemCart from '@/components/user/StoreDetail/OrderView/ItemCart.vue'

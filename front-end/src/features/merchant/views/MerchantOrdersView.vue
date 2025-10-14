@@ -1,5 +1,5 @@
 <template>
-  <MerchantLayout>
+  <Layout>
     <!-- 订单中心 -->
     <div>
       <h2 class="text-2xl font-bold text-gray-800 mb-6">订单中心</h2>
@@ -190,7 +190,7 @@
         </div>
       </div>
     </div>
-  </MerchantLayout>
+  </Layout>
 </template>
 
 <script setup lang="ts">
@@ -205,7 +205,7 @@ import {
   Loading 
 } from '@element-plus/icons-vue';
 
-import MerchantLayout from '@/components/merchant/MerchantLayout.vue';
+import Layout from '@/features/merchant/components/Layout.vue';
 import {
   getOrders,
   acceptOrder as acceptOrderApi,
@@ -213,7 +213,7 @@ import {
   getMerchantInfo,
   type FoodOrder,
   type MerchantInfo
-} from '@/api/merchant_api';
+} from '@/api/merchant';
 import { devLog } from '@/utils/logger';
 
 // 响应式数据
@@ -437,3 +437,4 @@ onMounted(async () => {
   await loadOrders();
 });
 </script>
+

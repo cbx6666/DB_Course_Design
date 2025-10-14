@@ -27,10 +27,12 @@ namespace BackEnd.Repositories
         /// <returns>配送任务列表</returns>
         public async Task<IEnumerable<DeliveryTask>> GetAllAsync()
         {
-            // 预加载关联的 Customer 和 Store 数据
+            // 预加载关联的 Order、Customer 和 Store 数据
             return await _context.DeliveryTasks
-                                 .Include(dt => dt.Customer)
-                                 .Include(dt => dt.Store)
+                                 .Include(dt => dt.Order)
+                                 .ThenInclude(o => o.Customer)
+                                 .Include(dt => dt.Order)
+                                 .ThenInclude(o => o.Store)
                                  .Include(dt => dt.Courier)
                                  .Include(dt => dt.DeliveryComplaints)
                                  .ToListAsync();
@@ -45,8 +47,10 @@ namespace BackEnd.Repositories
         {
             // 对于单个查询，同样建议预加载关联数据
             return await _context.DeliveryTasks
-                                 .Include(dt => dt.Customer)
-                                 .Include(dt => dt.Store)
+                                 .Include(dt => dt.Order)
+                                 .ThenInclude(o => o.Customer)
+                                 .Include(dt => dt.Order)
+                                 .ThenInclude(o => o.Store)
                                  .Include(dt => dt.Courier)
                                  .Include(dt => dt.DeliveryComplaints)
                                  .FirstOrDefaultAsync(dt => dt.TaskID == id);
@@ -60,8 +64,10 @@ namespace BackEnd.Repositories
         public async Task<DeliveryTask?> GetByOrderIdAsync(int orderId)
         {
             return await _context.DeliveryTasks
-                                 .Include(dt => dt.Customer)
-                                 .Include(dt => dt.Store)
+                                 .Include(dt => dt.Order)
+                                 .ThenInclude(o => o.Customer)
+                                 .Include(dt => dt.Order)
+                                 .ThenInclude(o => o.Store)
                                  .Include(dt => dt.Courier)
                                  .Include(dt => dt.DeliveryComplaints)
                                  .FirstOrDefaultAsync(dt => dt.OrderID == orderId);

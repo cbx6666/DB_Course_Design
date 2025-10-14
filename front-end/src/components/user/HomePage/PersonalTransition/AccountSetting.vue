@@ -64,10 +64,10 @@
 <script setup lang="ts">
 import { reactive, defineProps, defineEmits, ref, watch, onMounted } from 'vue'
 
-import type { AccountInfo, AccountUpdateData } from '@/api/user_account';
-import { saveAccountInfo } from '@/api/user_account';
+import type { AccountInfo, AccountUpdateData } from '@/api/user';
+import { saveAccountInfo } from '@/api/user';
 import { useUserStore } from '@/stores/user';
-import { getAccountInfo } from '@/api/user_account';
+import { getAccountInfo } from '@/api/user';
 import { handleImageError } from '@/utils/errorHandler';
 
 const userStore = useUserStore();

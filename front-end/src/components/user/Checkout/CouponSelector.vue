@@ -111,7 +111,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, defineProps, defineEmits } from 'vue';
 
-import { CouponInfo, getCouponInfo } from '@/api/user_coupon';
+import { CouponInfo, getCouponInfo } from '@/api/user';
 import { useUserStore } from '@/stores/user';
 
 const showSelector = ref(false);

@@ -150,8 +150,8 @@
 import { ref, onMounted, computed } from "vue";
 import { useUserStore } from "@/stores/user";
 
-import type { OrderInfo } from "@/api/user_home";
-import { getOrderInfo } from "@/api/user_home";
+import type { OrderInfo } from "@/api/user";
+import { getOrderInfo } from "@/api/user";
 
 import ReportWindow from "@/components/user/HomePage/Home/ReportWindow.vue";
 import ReviewWindow from "@/components/user/HomePage/Home/ReviewWindow.vue";

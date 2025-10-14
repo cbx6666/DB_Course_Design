@@ -7,6 +7,12 @@ namespace BackEnd.DTOs.MerchantInfo
     /// </summary>
     public class UpdateMerchantProfileDto
     {
+        /// <summary>
+        /// 用户名（可修改）
+        /// </summary>
+        [Required]
+        public string Name { get; set; } = null!;
+
         [Required]
         [Phone]
         /// <summary>

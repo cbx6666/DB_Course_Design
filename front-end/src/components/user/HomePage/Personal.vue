@@ -77,7 +77,7 @@
 import { onMounted, reactive, ref } from "vue";
 
 import { useUserStore } from "@/stores/user";
-import { getUserInfo } from "@/api/user_home";
+import { getUserInfo } from "@/api/user";
 import { restoreUserState, getCurrentUserId } from "@/utils/auth";
 import { handleImageError } from "@/utils/errorHandler";
 import { devLog } from "@/utils/logger";
@@ -145,7 +145,7 @@ const showExitForm = ref(false);
 
 // 用户菜单
 const userMenus = [
-  { icon: "fas fa-map-marker-alt", label: "默认地址管理", action: ()=>openForm(showAddressForm) },
+  { icon: "fas fa-map-marker-alt", label: "收货地址管理", action: ()=>openForm(showAddressForm) },
   { icon: "fas fa-ticket-alt", label: "我的优惠券", action: ()=>openForm(showCouponForm) },
   { icon: "fas fa-cog", label: "账户设置", action: ()=>openForm(showAccountForm) }
 ];

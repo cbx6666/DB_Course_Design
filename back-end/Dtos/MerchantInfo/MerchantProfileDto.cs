@@ -5,14 +5,18 @@ namespace BackEnd.DTOs.MerchantInfo
     /// </summary>
     public class MerchantProfileDto
     {
-        /// <summary>
-        /// 商家ID
-        /// </summary>
-        public string Id { get; set; } = null!;
-        /// <summary>
-        /// 商家名称
-        /// </summary>
-        public string Name { get; set; } = null!;
+		/// <summary>
+		/// 商家ID（前端可不展示）
+		/// </summary>
+		public string Id { get; set; } = null!;
+		/// <summary>
+		/// 用户名（可修改）
+		/// </summary>
+		public string Username { get; set; } = null!;
+		/// <summary>
+		/// 真实姓名
+		/// </summary>
+		public string? FullName { get; set; }
         /// <summary>
         /// 手机号
         /// </summary>
@@ -29,5 +33,9 @@ namespace BackEnd.DTOs.MerchantInfo
         /// 状态
         /// </summary>
         public string Status { get; set; } = null!;
+		/// <summary>
+		/// 头像URL
+		/// </summary>
+		public string? Avatar { get; set; }
     }
 }

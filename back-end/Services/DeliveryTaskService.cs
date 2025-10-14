@@ -57,8 +57,6 @@ namespace BackEnd.Services
                 OrderID = dto.OrderId,
                 EstimatedArrivalTime = DateTime.Parse(dto.EstimatedArrivalTime),
                 EstimatedDeliveryTime = DateTime.Parse(dto.EstimatedDeliveryTime),
-                CustomerID = order.CustomerID,
-                StoreID = order.StoreID,
                 Status = DeliveryStatus.To_Be_Taken,
                 DeliveryFee = order.DeliveryFee
             };
@@ -79,8 +77,8 @@ namespace BackEnd.Services
                 TaskId = task.TaskID,
                 EstimatedArrivalTime = task.EstimatedArrivalTime.ToString("o"),
                 EstimatedDeliveryTime = task.EstimatedDeliveryTime.ToString("o"),
-                CustomerId = task.CustomerID,
-                StoreId = task.StoreID
+                CustomerId = order.CustomerID,
+                StoreId = order.StoreID
             }, publish);
         }
 
@@ -100,7 +98,7 @@ namespace BackEnd.Services
                 return new OrderDeliveryInfoDto();
             }
 
-            Console.WriteLine($"[DEBUG] 找到配送任务，任务ID: {task.TaskID}, 客户ID: {task.CustomerID}, 商店ID: {task.StoreID}");
+            Console.WriteLine($"[DEBUG] 找到配送任务，任务ID: {task.TaskID}, 客户ID: {task.Order.CustomerID}, 商店ID: {task.Order.StoreID}");
 
             var courier = task.CourierID.HasValue
                               ? await _courierRepo.GetByIdAsync(task.CourierID.Value)
@@ -114,12 +112,12 @@ namespace BackEnd.Services
                     TaskId = task.TaskID,
                     EstimatedArrivalTime = task.EstimatedArrivalTime.ToString("o"),
                     EstimatedDeliveryTime = task.EstimatedDeliveryTime.ToString("o"),
-                    CustomerId = task.CustomerID,
-                    StoreId = task.StoreID
+                    CustomerId = task.Order.CustomerID,
+                    StoreId = task.Order.StoreID
                 },
                 Publish = new PublishTaskDto
                 {
-                    SellerId = task.Store.SellerID,
+                    SellerId = task.Order.Store.SellerID,
                     DeliveryTaskId = task.TaskID,
                     PublishTime = task.PublishTime.ToString("o")
                 },

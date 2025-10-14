@@ -23,9 +23,11 @@ export async function saveAccountInfo(data: AccountUpdateData) {
     formData.append('Name', data.name);
     formData.append('AvatarFile', data.avatarFile);
 
-    return API.put('/account/update', formData, {
+    return API.put('/user/profile/account/update', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
     });
 }
+
+

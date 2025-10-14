@@ -26,8 +26,7 @@
   <script setup lang="ts">
   import { defineProps,computed} from 'vue'
 
-  import type { CommentStatus } from '@/api/user_store_info'
-  import type { StoreInfo } from '@/api/user_store_info'
+  import type { CommentStatus, StoreInfo } from '@/api/user'
 
   const props = defineProps<{
       commentStatus: CommentStatus;

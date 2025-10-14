@@ -136,9 +136,10 @@ namespace BackEnd.Services
 
             var tasksQuery = _deliveryTaskRepository.GetQueryable()
                 .Where(t => t.CourierID == courierId && t.Status == targetStatus)
-                .Include(t => t.Store)
                 .Include(t => t.Order)
-                .Include(t => t.Customer);
+                .ThenInclude(o => o.Store)
+                .Include(t => t.Order)
+                .ThenInclude(o => o.Customer);
 
             var tasks = await tasksQuery
                 .OrderByDescending(t => t.PublishTime)
@@ -148,8 +149,8 @@ namespace BackEnd.Services
             {
                 Id = task.TaskID.ToString(),
                 Status = task.Status.ToString().ToLower(),
-                Restaurant = task.Store?.StoreName ?? "未知商家",
-                Address = task.Customer?.DeliveryInfos.FirstOrDefault(di => di.IsDefault == 1)?.Address ?? "未知地址",
+                Restaurant = task.Order.Store?.StoreName ?? "未知商家",
+                Address = task.Order.Customer?.DeliveryInfos.FirstOrDefault(di => di.IsDefault == 1)?.Address ?? "未知地址",
                 Fee = task.DeliveryFee.ToString("F2"),
                 StatusText = GetStatusText(task.Status),
                 IsReadyForPickup = task.Order != null && task.Order.FoodOrderState == FoodOrderState.Completed
@@ -185,9 +186,11 @@ namespace BackEnd.Services
         {
             var taskId = notificationId;
             var task = await _deliveryTaskRepository.GetQueryable()
-                .Include(t => t.Store)
-                .Include(t => t.Customer)
-                    .ThenInclude(c => c.User)
+                .Include(t => t.Order)
+                .ThenInclude(o => o.Store)
+                .Include(t => t.Order)
+                .ThenInclude(o => o.Customer)
+                .ThenInclude(c => c.User)
                 .FirstOrDefaultAsync(t => t.TaskID == taskId);
 
             if (task == null)
@@ -198,10 +201,10 @@ namespace BackEnd.Services
             var orderDetailsDto = new NewOrderDetailsDto
             {
                 Id = task.TaskID.ToString(),
-                RestaurantName = task.Store?.StoreName ?? "未知商家",
-                RestaurantAddress = task.Store?.StoreAddress ?? "未知商家地址",
-                CustomerName = task.Customer?.User?.Username ?? "未知顾客",
-                CustomerAddress = task.Customer?.DeliveryInfos.FirstOrDefault(di => di.IsDefault == 1)?.Address ?? "未知顾客地址",
+                RestaurantName = task.Order.Store?.StoreName ?? "未知商家",
+                RestaurantAddress = task.Order.Store?.StoreAddress ?? "未知商家地址",
+                CustomerName = task.Order.Customer?.User?.Username ?? "未知顾客",
+                CustomerAddress = task.Order.Customer?.DeliveryInfos.FirstOrDefault(di => di.IsDefault == 1)?.Address ?? "未知顾客地址",
                 Fee = task.DeliveryFee,
                 Distance = "约 2.5 公里",
                 MapImageUrl = "https://example.com/static-map.png"
@@ -381,7 +384,8 @@ namespace BackEnd.Services
         {
             var tasksQuery = _context.DeliveryTasks
                 .Where(task => task.Status == DeliveryStatus.To_Be_Taken)
-                .Include(task => task.Store)
+                .Include(task => task.Order)
+                .ThenInclude(order => order.Store)
                 .Include(task => task.Order)
                     .ThenInclude(order => order.Customer)
                         .ThenInclude(customer => customer.User);
@@ -391,11 +395,11 @@ namespace BackEnd.Services
             var nearbyTasks = new List<DeliveryTask>();
             foreach (var task in allTasks)
             {
-                if (task.Store?.Latitude.HasValue == true && task.Store?.Longitude.HasValue == true)
+                if (task.Order.Store?.Latitude.HasValue == true && task.Order.Store?.Longitude.HasValue == true)
                 {
                     var distanceToStore = _geoHelper.CalculateDistance(
                         latitude, longitude,
-                        task.Store.Latitude.Value, task.Store.Longitude.Value
+                        task.Order.Store.Latitude.Value, task.Order.Store.Longitude.Value
                     );
 
                     if (distanceToStore <= (double)maxDistance)
@@ -409,8 +413,8 @@ namespace BackEnd.Services
             {
                 Id = task.TaskID.ToString(),
                 Status = "to_be_taken",
-                Restaurant = task.Store.StoreName,
-                PickupAddress = task.Store.StoreAddress,
+                Restaurant = task.Order.Store.StoreName,
+                PickupAddress = task.Order.Store.StoreAddress,
                 Customer = task.Order.Customer.User.Username,
                 Fee = task.DeliveryFee.ToString("F2"),
                 DeliveryAddress = "接单后可见详细地址",

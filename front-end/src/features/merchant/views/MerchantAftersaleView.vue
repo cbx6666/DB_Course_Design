@@ -2,7 +2,7 @@
 <!-- The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work. -->
 
 <template>
-  <MerchantLayout>
+  <Layout>
     <!-- 订单售后 -->
     <div>
           <h2 class="text-2xl font-bold text-gray-800 mb-6">订单售后</h2>
@@ -248,7 +248,7 @@
 
           </div>
     </div>
-  </MerchantLayout>
+  </Layout>
 </template>
 
 <script lang="ts" setup>
@@ -256,14 +256,14 @@ import { ref, reactive, onMounted, nextTick } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 // API 导入
-import { replyReview, getReviewList, getPenaltyList, getPenaltyDetail, appealPenalty, type Review } from '@/api/merchant_api';
-import type { AfterSaleApplication, AfterSaleListParams } from '@/api/merchant_api';
-import { getAfterSaleList, getAfterSaleDetail, decideAfterSale } from '@/api/merchant_api';
-import { type PenaltyRecord } from '@/api/merchant_api';
-import { getMerchantInfo, type MerchantInfo } from '@/api/merchant_api';
+import { replyReview, getReviewList, getPenaltyList, getPenaltyDetail, appealPenalty, type Review } from '@/api/merchant';
+import type { AfterSaleApplication, AfterSaleListParams } from '@/api/merchant';
+import { getAfterSaleList, getAfterSaleDetail, decideAfterSale } from '@/api/merchant';
+import { type PenaltyRecord } from '@/api/merchant';
+import { getMerchantInfo, type MerchantInfo } from '@/api/merchant';
 
 // 布局组件
-import MerchantLayout from '@/components/merchant/MerchantLayout.vue';
+import Layout from '@/features/merchant/components/Layout.vue';
 
 // 本地聊天消息类型
 interface LocalChatMessage {
@@ -511,7 +511,8 @@ async function loadAfterSales(page = 1) {
   const params: AfterSaleListParams = {
     page: asPage.value,
     pageSize: asPageSize.value,
-    keyword: asFilters.keyword || undefined
+    keyword: asFilters.keyword || undefined,
+    sellerId: merchantInfo.value.sellerId || 0
   };
   try {
     const res = await getAfterSaleList(params);
@@ -723,3 +724,4 @@ input[type="number"] {
   appearance: textfield;
 }
 </style>
+

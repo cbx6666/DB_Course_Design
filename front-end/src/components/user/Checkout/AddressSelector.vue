@@ -72,8 +72,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, defineEmits } from 'vue'
 
-import type { Address } from '@/api/user_address'
-import { getAddress } from '@/api/user_address'
+import type { Address } from '@/api/user'
+import { getAddress } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore();

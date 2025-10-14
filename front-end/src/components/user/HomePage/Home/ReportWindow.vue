@@ -56,8 +56,8 @@
 import { ref, defineProps, defineEmits } from "vue";
 import { useUserStore } from "@/stores/user";
 
-import type { OrderInfo } from "@/api/user_home";
-import { postStoreReport, postRiderReport } from "@/api/user_report";
+import type { OrderInfo } from "@/api/user";
+import { postStoreReport, postRiderReport } from "@/api/user";
 
 const userStore = useUserStore();
 const userId = userStore.getUserID();

@@ -66,7 +66,7 @@
 
 <script setup lang="ts">
 import { defineProps } from 'vue'
-import type { StoreInfo } from '@/api/user_store_info'
+import type { StoreInfo } from '@/api/user'
 
 const props = defineProps<{
   storeInfo: StoreInfo

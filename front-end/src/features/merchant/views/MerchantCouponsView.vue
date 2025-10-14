@@ -1,5 +1,5 @@
 <template>
-  <MerchantLayout>
+  <Layout>
     <!-- 配券中心 -->
     <div>
       <div class="flex justify-between items-center mb-6">
@@ -13,7 +13,7 @@
 
       <!-- 统计卡片 -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-[#F9771C]">
+        <div class="bg白e rounded-lg shadow-sm p-6 border-l-4 border-[#F9771C]">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm text-gray-500">总优惠券</p>
@@ -26,7 +26,7 @@
         </div>
 
         <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500">
-          <div class="flex items-center justify-between">
+          <div class="flex items中心 justify-between">
             <div>
               <p class="text-sm text-gray-500">有效优惠券</p>
               <p class="text-2xl font-bold">{{ stats.active || 0 }}</p>
@@ -90,19 +90,19 @@
 
           <!-- 优惠券列表 -->
           <div v-if="!loading && coupons.length > 0" class="space-y-4">
-            <div 
-              v-for="coupon in filteredCoupons" 
-              :key="coupon.couponId"
+            <div
+              v-for="coupon in filteredCoupons"
+              :key="coupon.id"
               class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
             >
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-4">
                   <div class="bg-[#F9771C] text-white px-4 py-2 rounded-lg">
-                    <p class="text-lg font-bold">¥{{ coupon.discountAmount }}</p>
-                    <p class="text-xs">{{ coupon.discountType === 'percentage' ? '折扣券' : '满减券' }}</p>
+                    <p class="text-lg font-bold">¥{{ coupon.value }}</p>
+                    <p class="text-xs">{{ coupon.type === 'discount' ? '折扣券' : '满减券' }}</p>
                   </div>
                   <div>
-                    <h4 class="font-semibold text-gray-800">{{ coupon.title }}</h4>
+                    <h4 class="font-semibold text-gray-800">{{ coupon.name }}</h4>
                     <p class="text-sm text-gray-500">{{ coupon.description }}</p>
                   </div>
                 </div>
@@ -110,7 +110,7 @@
                   <el-tag :type="getStatusType(coupon.status)" size="small">
                     {{ getStatusText(coupon.status) }}
                   </el-tag>
-                  <p class="text-sm text-gray-500 mt-1">{{ formatTime(coupon.createTime) }}</p>
+                  <p class="text-sm text-gray-500 mt-1">{{ formatTime(coupon.startTime) }}</p>
                 </div>
               </div>
 
@@ -118,7 +118,7 @@
               <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <p class="text-sm text-gray-600">使用条件</p>
-                  <p class="font-medium">满¥{{ coupon.minOrderAmount }}可用</p>
+                  <p class="font-medium">满¥{{ coupon.minAmount || 0 }}可用</p>
                 </div>
                 <div>
                   <p class="text-sm text-gray-600">有效期</p>
@@ -146,7 +146,7 @@
               <div class="flex items-center justify-end space-x-2">
                 <el-button 
                   v-if="coupon.status === 'upcoming'"
-                  @click="activateCoupon(coupon.couponId)"
+                  @click="activateCoupon(coupon.id)"
                   type="primary"
                   size="small"
                 >
@@ -154,7 +154,7 @@
                 </el-button>
                 <el-button 
                   v-if="coupon.status === 'active'"
-                  @click="deactivateCoupon(coupon.couponId)"
+                  @click="deactivateCoupon(coupon.id)"
                   type="warning"
                   size="small"
                 >
@@ -163,7 +163,7 @@
                 <el-button @click="editCoupon(coupon)" size="small">
                   编辑
                 </el-button>
-                <el-button @click="deleteCoupon(coupon.couponId)" type="danger" size="small">
+                <el-button @click="deleteCouponItem(coupon.id)" type="danger" size="small">
                   删除
                 </el-button>
               </div>
@@ -198,8 +198,8 @@
       @close="closeCreateForm"
     >
       <el-form :model="couponForm" :rules="couponRules" ref="couponFormRef" label-width="100px">
-        <el-form-item label="优惠券标题" prop="title">
-          <el-input v-model="couponForm.title" placeholder="请输入优惠券标题" />
+        <el-form-item label="优惠券名称" prop="name">
+          <el-input v-model="couponForm.name" placeholder="请输入优惠券名称" />
         </el-form-item>
         
         <el-form-item label="优惠券描述" prop="description">
@@ -211,8 +211,8 @@
           />
         </el-form-item>
 
-        <el-form-item label="优惠类型" prop="discountType">
-          <el-radio-group v-model="couponForm.discountType">
+        <el-form-item label="优惠类型" prop="couponType">
+          <el-radio-group v-model="couponForm.couponType">
             <el-radio value="fixed">满减券</el-radio>
             <el-radio value="percentage">折扣券</el-radio>
           </el-radio-group>
@@ -222,15 +222,15 @@
           <el-input-number 
             v-model="couponForm.discountAmount" 
             :min="1" 
-            :max="couponForm.discountType === 'percentage' ? 100 : 9999"
-            :precision="couponForm.discountType === 'percentage' ? 0 : 2"
-            :suffix="couponForm.discountType === 'percentage' ? '%' : '元'"
+            :max="couponForm.couponType === 'percentage' ? 100 : 9999"
+            :precision="couponForm.couponType === 'percentage' ? 0 : 2"
+            :suffix="couponForm.couponType === 'percentage' ? '%' : '元'"
           />
         </el-form-item>
 
-        <el-form-item label="最低消费" prop="minOrderAmount">
+        <el-form-item label="最低消费" prop="minimumSpend">
           <el-input-number 
-            v-model="couponForm.minOrderAmount" 
+            v-model="couponForm.minimumSpend" 
             :min="0" 
             :precision="2"
             suffix="元"
@@ -267,7 +267,7 @@
         </div>
       </template>
     </el-dialog>
-  </MerchantLayout>
+  </Layout>
 </template>
 
 <script setup lang="ts">
@@ -283,51 +283,36 @@ import {
   Loading 
 } from '@element-plus/icons-vue';
 
-import MerchantLayout from '@/components/merchant/MerchantLayout.vue';
-import { devLog } from '@/utils/logger'; // Updated logger with error method
-
-// 定义优惠券类型
-interface Coupon {
-  couponId: string;
-  title: string;
-  description: string;
-  discountType: 'fixed' | 'percentage';
-  discountAmount: number;
-  minOrderAmount: number;
-  totalQuantity: number;
-  usedQuantity: number;
-  startTime: string;
-  endTime: string;
-  createTime: string;
-  status: 'active' | 'upcoming' | 'expired' | 'inactive';
-}
+import Layout from '@/features/merchant/components/Layout.vue';
+import { devLog } from '@/utils/logger';
+import { getCoupons, createCoupon, updateCoupon, deleteCoupon, getCouponStats, type CouponInfo, type CreateCouponRequest } from '@/api/merchant';
 
 // 响应式数据
-const coupons = ref<Coupon[]>([]);
+const coupons = ref<CouponInfo[]>([]);
 const selectedStatus = ref('all');
 const loading = ref(false);
 const saving = ref(false);
 const errorMessage = ref('');
 const showCreateForm = ref(false);
-const editingCoupon = ref<Coupon | null>(null);
+const editingCoupon = ref<CouponInfo | null>(null);
 
 // 优惠券表单
 const couponForm = ref({
-  title: '',
+  name: '',
   description: '',
-  discountType: 'fixed' as 'fixed' | 'percentage',
+  couponType: 'fixed' as 'fixed' | 'percentage',
   discountAmount: 0,
-  minOrderAmount: 0,
+  minimumSpend: 0,
   totalQuantity: 100,
   dateRange: [] as string[]
 });
 
 // 表单验证规则
 const couponRules = {
-  title: [{ required: true, message: '请输入优惠券标题', trigger: 'blur' }],
+  name: [{ required: true, message: '请输入优惠券名称', trigger: 'blur' }],
   description: [{ required: true, message: '请输入优惠券描述', trigger: 'blur' }],
   discountAmount: [{ required: true, message: '请输入优惠金额', trigger: 'blur' }],
-  minOrderAmount: [{ required: true, message: '请输入最低消费', trigger: 'blur' }],
+  minimumSpend: [{ required: true, message: '请输入最低消费', trigger: 'blur' }],
   totalQuantity: [{ required: true, message: '请输入发放数量', trigger: 'blur' }],
   dateRange: [{ required: true, message: '请选择有效期', trigger: 'change' }]
 };
@@ -345,7 +330,9 @@ const filteredCoupons = computed(() => {
   if (selectedStatus.value === 'all') {
     return coupons.value;
   }
-  return coupons.value.filter(coupon => coupon.status === selectedStatus.value);
+  return coupons.value.filter(coupon => {
+    return coupon.status === selectedStatus.value;
+  });
 });
 
 // 加载优惠券数据
@@ -354,40 +341,19 @@ const loadCoupons = async () => {
     loading.value = true;
     errorMessage.value = '';
     
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const response = await getCoupons(1, 100);
+    console.log('API响应:', response);
     
-    // 模拟数据
-    coupons.value = [
-      {
-        couponId: '1',
-        title: '新用户专享',
-        description: '新用户首次下单立减10元',
-        discountType: 'fixed',
-        discountAmount: 10,
-        minOrderAmount: 30,
-        totalQuantity: 1000,
-        usedQuantity: 150,
-        startTime: '2024-01-01 00:00:00',
-        endTime: '2024-12-31 23:59:59',
-        createTime: '2024-01-01 00:00:00',
-        status: 'active'
-      },
-      {
-        couponId: '2',
-        title: '满减优惠',
-        description: '满50减5元',
-        discountType: 'fixed',
-        discountAmount: 5,
-        minOrderAmount: 50,
-        totalQuantity: 500,
-        usedQuantity: 80,
-        startTime: '2024-01-01 00:00:00',
-        endTime: '2024-12-31 23:59:59',
-        createTime: '2024-01-01 00:00:00',
-        status: 'active'
-      }
-    ];
+    // 确保响应结构正确
+    if (response && Array.isArray(response.list)) {
+      coupons.value = response.list;
+    } else if (Array.isArray(response)) {
+      // 如果API直接返回数组
+      coupons.value = response;
+    } else {
+      console.warn('API响应格式不正确:', response);
+      coupons.value = [];
+    }
     
     calculateStats();
     devLog.component('MerchantCoupons', '优惠券数据加载成功');
@@ -395,6 +361,7 @@ const loadCoupons = async () => {
     devLog.error('加载优惠券失败:', error);
     errorMessage.value = '加载优惠券失败，请重试';
     coupons.value = [];
+    calculateStats(); // 确保统计信息被重置
   } finally {
     loading.value = false;
   }
@@ -402,11 +369,13 @@ const loadCoupons = async () => {
 
 // 计算统计信息
 const calculateStats = () => {
+  const couponsList = coupons.value || [];
+  
   stats.value = {
-    total: coupons.value.length,
-    active: coupons.value.filter(c => c.status === 'active').length,
-    upcoming: coupons.value.filter(c => c.status === 'upcoming').length,
-    expired: coupons.value.filter(c => c.status === 'expired').length
+    total: couponsList.length,
+    active: couponsList.filter(coupon => coupon.status === 'active').length,
+    upcoming: couponsList.filter(coupon => coupon.status === 'upcoming').length,
+    expired: couponsList.filter(coupon => coupon.status === 'expired').length
   };
 };
 
@@ -430,11 +399,11 @@ const retryLoad = async () => {
 const openCreateForm = () => {
   editingCoupon.value = null;
   couponForm.value = {
-    title: '',
+    name: '',
     description: '',
-    discountType: 'fixed',
+    couponType: 'fixed',
     discountAmount: 0,
-    minOrderAmount: 0,
+    minimumSpend: 0,
     totalQuantity: 100,
     dateRange: []
   };
@@ -448,14 +417,14 @@ const closeCreateForm = () => {
 };
 
 // 编辑优惠券
-const editCoupon = (coupon: Coupon) => {
+const editCoupon = (coupon: CouponInfo) => {
   editingCoupon.value = coupon;
   couponForm.value = {
-    title: coupon.title,
-    description: coupon.description,
-    discountType: coupon.discountType,
-    discountAmount: coupon.discountAmount,
-    minOrderAmount: coupon.minOrderAmount,
+    name: coupon.name,
+    description: coupon.description || '',
+    couponType: coupon.type === 'discount' ? 'percentage' : 'fixed',
+    discountAmount: coupon.value,
+    minimumSpend: coupon.minAmount || 0,
     totalQuantity: coupon.totalQuantity,
     dateRange: [coupon.startTime, coupon.endTime]
   };
@@ -467,12 +436,22 @@ const saveCoupon = async () => {
   try {
     saving.value = true;
     
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const couponData: CreateCouponRequest = {
+      name: couponForm.value.name,
+      description: couponForm.value.description,
+      couponType: couponForm.value.couponType,
+      minimumSpend: couponForm.value.minimumSpend,
+      discountAmount: couponForm.value.discountAmount,
+      totalQuantity: couponForm.value.totalQuantity,
+      validFrom: couponForm.value.dateRange[0],
+      validTo: couponForm.value.dateRange[1]
+    };
     
     if (editingCoupon.value) {
+      await updateCoupon(editingCoupon.value.id, couponData);
       ElMessage.success('优惠券更新成功');
     } else {
+      await createCoupon(couponData);
       ElMessage.success('优惠券创建成功');
     }
     
@@ -486,7 +465,7 @@ const saveCoupon = async () => {
 };
 
 // 启用优惠券
-const activateCoupon = async (couponId: string) => {
+const activateCoupon = async (couponId: number) => {
   try {
     await ElMessageBox.confirm('确定要启用这个优惠券吗？', '确认启用', {
       confirmButtonText: '确定',
@@ -494,7 +473,7 @@ const activateCoupon = async (couponId: string) => {
       type: 'warning'
     });
 
-    // 模拟API调用
+    // TODO: 调用真实API启用优惠券
     ElMessage.success('优惠券已启用');
     await loadCoupons();
   } catch (error) {
@@ -505,7 +484,7 @@ const activateCoupon = async (couponId: string) => {
 };
 
 // 停用优惠券
-const deactivateCoupon = async (couponId: string) => {
+const deactivateCoupon = async (couponId: number) => {
   try {
     await ElMessageBox.confirm('确定要停用这个优惠券吗？', '确认停用', {
       confirmButtonText: '确定',
@@ -513,7 +492,7 @@ const deactivateCoupon = async (couponId: string) => {
       type: 'warning'
     });
 
-    // 模拟API调用
+    // TODO: 调用真实API停用优惠券
     ElMessage.success('优惠券已停用');
     await loadCoupons();
   } catch (error) {
@@ -524,7 +503,7 @@ const deactivateCoupon = async (couponId: string) => {
 };
 
 // 删除优惠券
-const deleteCoupon = async (couponId: string) => {
+const deleteCouponItem = async (couponId: number) => {
   try {
     await ElMessageBox.confirm('确定要删除这个优惠券吗？删除后不可恢复！', '确认删除', {
       confirmButtonText: '确定',
@@ -532,7 +511,7 @@ const deleteCoupon = async (couponId: string) => {
       type: 'warning'
     });
 
-    // 模拟API调用
+    await deleteCoupon(couponId);
     ElMessage.success('优惠券已删除');
     await loadCoupons();
   } catch (error) {
@@ -581,3 +560,4 @@ onMounted(() => {
   loadCoupons();
 });
 </script>
+

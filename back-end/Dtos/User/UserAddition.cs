@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BackEnd.DTOs.User
 {
     /// <summary>
@@ -40,5 +42,33 @@ namespace BackEnd.DTOs.User
         /// 收货地址
         /// </summary>
         public string Address { get; set; } = null!;
+    }
+
+    /// <summary>
+    /// 用户收货地址列表项
+    /// </summary>
+    public class UserDeliveryInfoDto
+    {
+        public int DeliveryInfoID { get; set; }
+        public string Address { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string? Gender { get; set; }
+        public bool IsDefault { get; set; }
+    }
+
+    /// <summary>
+    /// 新建收货地址请求
+    /// </summary>
+    public class CreateAddressDto
+    {
+        [Required]
+        public string Address { get; set; } = string.Empty;
+        [Required]
+        public long PhoneNumber { get; set; }
+        [Required]
+        public string Name { get; set; } = string.Empty;
+        public string? Gender { get; set; }
+        public bool IsDefault { get; set; } = false;
     }
 }

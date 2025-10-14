@@ -59,30 +59,6 @@ namespace BackEnd.Models
         public decimal DeliveryFee { get; set; } = 0.00m;
 
         /// <summary>
-        /// 消费者ID（外键）
-        /// </summary>
-        [Required]
-        public int CustomerID { get; set; }
-
-        /// <summary>
-        /// 关联的消费者
-        /// </summary>
-        [ForeignKey("CustomerID")]
-        public Customer Customer { get; set; } = null!;
-
-        /// <summary>
-        /// 店铺ID（外键）
-        /// </summary>
-        [Required]
-        public int StoreID { get; set; }
-
-        /// <summary>
-        /// 关联的店铺
-        /// </summary>
-        [ForeignKey("StoreID")]
-        public Store Store { get; set; } = null!;
-
-        /// <summary>
         /// 配送员ID（外键）
         /// </summary>
         public int? CourierID { get; set; }

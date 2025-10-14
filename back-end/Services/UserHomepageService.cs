@@ -158,7 +158,7 @@ namespace BackEnd.Services
                     DefaultAddress = string.Empty // 暂时返回空字符串
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw; // 重新抛出异常
             }

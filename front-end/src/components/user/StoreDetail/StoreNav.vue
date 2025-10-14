@@ -81,7 +81,7 @@
 import { computed, defineProps } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import type { DeliveryTask, StoreInfo } from '@/api/user_store_info'
+import type { DeliveryTask, StoreInfo } from '@/api/user'
 
 const route = useRoute();
 const router = useRouter();

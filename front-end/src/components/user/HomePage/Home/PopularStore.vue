@@ -38,8 +38,8 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router'
 
-import type { RecomStore } from '@/api/user_home';
-import { getRecomStore } from '@/api/user_home';
+import type { RecomStore } from '@/api/user';
+import { getRecomStore } from '@/api/user';
 
 const router = useRouter();
 

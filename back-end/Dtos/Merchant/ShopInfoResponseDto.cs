@@ -44,5 +44,10 @@ namespace BackEnd.DTOs.Merchant
         /// 信誉积分
         /// </summary>
         public int? CreditScore { get; set; }
+
+        /// <summary>
+        /// 店铺图片URL
+        /// </summary>
+        public string? StoreImage { get; set; }
     }
 }

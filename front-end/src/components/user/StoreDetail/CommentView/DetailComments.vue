@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 import { ref, computed, defineProps, watch } from 'vue'
-import type { CommentList } from '@/api/user_store_info'
+import type { CommentList } from '@/api/user'
 
 const props = defineProps<{
   commentList: CommentList
