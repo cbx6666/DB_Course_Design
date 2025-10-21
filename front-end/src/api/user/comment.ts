@@ -14,11 +14,11 @@ export interface RiderComment {
 }
 
 export async function postStoreComment(userId: number, storeId: number, rating: number, content: string) {
-    return postData<StoreComment>(`/api/user/comment`, { userId, storeId, rating, content })
+    return postData<StoreComment>(`/user/comment`, { userId, storeId, rating, content })
 }
 
 export async function postRiderComment(userId: number, orderId: number, content: string) {
-    return postData<RiderComment>(`/api/user/courier/comment`, { userId, orderId, content })
+    return postData<RiderComment>(`/user/courier/comment`, { userId, orderId, content })
 }
 
 

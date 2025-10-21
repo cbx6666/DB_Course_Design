@@ -28,8 +28,8 @@
                     <!-- 顶部商家信息 -->
                     <div class="flex justify-between items-start mb-4">
                         <div class="flex items-center space-x-4">
-                            <img :src="order.storeImage" :alt="order.storeName"
-                                class="w-16 h-16 rounded-lg object-cover object-top" />
+                            <img :src="normalizeImageUrl(order.storeImage)" :alt="order.storeName"
+                                class="w-16 h-16 rounded-lg object-cover object-top" @error="handleImageError" />
                             <div>
                                 <h3 class="font-bold text-lg">{{ order.storeName }}</h3>
                                 <p class="text-gray-600 text-sm">订单号：{{ order.orderID }}</p>
@@ -149,6 +149,7 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed } from "vue";
 import { useUserStore } from "@/stores/user";
+import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils'
 
 import type { OrderInfo } from "@/api/user";
 import { getOrderInfo } from "@/api/user";

@@ -91,6 +91,7 @@ const paymentMethod = ref('wechat');
 
 // 计算已选菜品
 const cartItems = computed(() => {
+  if (!cart.value || !cart.value.items) return [];
   return cart.value.items
     .map(ci => {
       const dish = menuItems.value.find(d => d.id === ci.dishId);

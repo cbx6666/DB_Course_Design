@@ -11,7 +11,7 @@ export async function getUserID(account: string | number) {
         throw new Error('account 必须是手机号或邮箱')
     }
 
-    return getData<number>('/api/user/account', { params })
+    return getData<number>('/user/account', { params })
 }
 
 

@@ -75,11 +75,11 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils'
 
 import { useUserStore } from "@/stores/user";
 import { getUserInfo } from "@/api/user";
 import { restoreUserState, getCurrentUserId } from "@/utils/auth";
-import { handleImageError } from "@/utils/errorHandler";
 import { devLog } from "@/utils/logger";
 
 import AddrSetting from "./PersonalTransition/AddrSetting.vue";
@@ -117,10 +117,8 @@ async function loadUserInfo() {
   try {
     const result = await getUserInfo();
     if (result) {
-      // 确保头像URL是完整的URL
-      if (result.image && !result.image.startsWith('http') && !result.image.startsWith('data:')) {
-        result.image = `http://localhost:5250${result.image}`;
-      }
+      // 使用工具函数规范化头像URL
+      result.image = normalizeImageUrl(result.image);
       userInfo.value = result;
     }
   } catch (error) {

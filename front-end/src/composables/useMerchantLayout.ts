@@ -1,5 +1,5 @@
 // src/composables/useMerchantLayout.ts
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { API_CONFIG } from '@/config';
 import { getMerchantInfo, type MerchantInfo } from '@/api/merchant';
 import { devLog } from '@/utils/logger';
@@ -14,14 +14,21 @@ export function useMerchantLayout() {
         (useMerchantLayout as any)._state = {
             merchantInfo: ref<MerchantInfo | null>(null),
             isLoading: ref(true),
-            error: ref<string>('')
+            error: ref<string>(''),
+            refCount: 0
         };
     }
-    const { merchantInfo, isLoading, error } = (useMerchantLayout as any)._state as {
+    const state = (useMerchantLayout as any)._state as {
         merchantInfo: ReturnType<typeof ref<MerchantInfo | null>>,
         isLoading: ReturnType<typeof ref<boolean>>,
-        error: ReturnType<typeof ref<string>>
+        error: ReturnType<typeof ref<string>>,
+        refCount: number
     };
+
+    const { merchantInfo, isLoading, error } = state;
+
+    // 增加引用计数
+    state.refCount++;
 
     /**
      * 获取商家信息
@@ -55,6 +62,20 @@ export function useMerchantLayout() {
     onMounted(() => {
         if (!merchantInfo.value) {
             fetchMerchantInfo();
+        }
+    });
+
+    /**
+     * 清理
+     */
+    onUnmounted(() => {
+        state.refCount--;
+        // 当没有组件引用时，清理状态
+        if (state.refCount <= 0) {
+            merchantInfo.value = null;
+            isLoading.value = true;
+            error.value = '';
+            state.refCount = 0;
         }
     });
 

@@ -159,6 +159,14 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/avatars"
 });
 
+// 配置店铺图片文件服务
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "images", "stores")),
+    RequestPath = "/images/stores"
+});
+
 // 启用 CORS
 app.UseCors("AllowAll");
 

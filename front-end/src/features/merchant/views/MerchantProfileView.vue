@@ -23,10 +23,10 @@
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">真实姓名</label>
-                <p class="text-gray-900 py-2">{{ merchantInfo.fullName || '未填写' }}</p>
+                <p class="text-gray-900 py-2">{{ merchantInfo.fullName }}</p>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">昵称</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">用户昵称</label>
                 <div class="flex items-center">
                   <input v-model="merchantInfo.username" :disabled="!isEditingUsername" :class="{
                       'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#F9771C] text-sm': true,
@@ -118,7 +118,7 @@ const isEditingEmail = ref(false);
 
 const merchantInfo = ref({
   username: '加载中...',
-  fullName: '',
+  fullName: '加载中...',
   phone: '加载中...',
   email: '加载中...',
   registerTime: '加载中...',
@@ -152,16 +152,7 @@ const toggleEdit = (field: 'username' | 'phone' | 'email') => {
 const fetchMerchantInfo = async () => {
   try {
     const response = await apiClient.get('/merchant/profile');
-    const data = response.data.data || {};
-    merchantInfo.value = {
-      username: data.username || '',
-      fullName: data.fullName || '',
-      phone: data.phone || '',
-      email: data.email || '',
-      registerTime: data.registerTime || '',
-      status: data.status || '正常营业',
-      avatar: data.avatar || ''
-    } as any;
+    merchantInfo.value = response.data.data;
     // 规范化头像 URL（将后端返回的相对路径转换为可访问的绝对地址）
     if (merchantInfo.value && (merchantInfo.value as any).avatar) {
       const u = (merchantInfo.value as any).avatar as string;
@@ -179,9 +170,9 @@ const saveShopInfo = async () => {
   isSaving.value = true;
   
   try {
-    const { username, phone, email } = merchantInfo.value as any;
+    const { username, phone, email } = merchantInfo.value;
     const response = await apiClient.put('/merchant/profile', {
-      name: username,
+      name: username,  // 后端期望的字段名是 name，对应 Username
       phone,
       email
     });

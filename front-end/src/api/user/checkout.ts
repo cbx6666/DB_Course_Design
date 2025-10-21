@@ -33,10 +33,10 @@ export interface MenuItem {
     isSoldOut: number;
 }
 
-export const getMenuItem = (StoreID: string) => getData<MenuItem[]>("/api/store/dish", { params: { storeId: StoreID } });
-export const getShoppingCart = (StoreID: string, userId?: number) => getData<ShoppingCart>("/api/store/shoppingcart", { params: { storeId: StoreID } });
-export const addOrUpdateCartItem = (cartId: number, dishId: number, quantity: number) => postData<ShoppingCartItem>('/api/store/cart/change', { cartId, dishId, quantity });
-export const removeCartItem = (cartId: number, dishId: number) => deleteData<ShoppingCartItem>('/api/store/cart/remove', { cartId, dishId });
+export const getMenuItem = (StoreID: string) => getData<MenuItem[]>("/store/dish", { params: { storeId: StoreID } });
+export const getShoppingCart = (StoreID: string, userId?: number) => getData<ShoppingCart>("/store/shoppingcart", { params: { storeId: StoreID } });
+export const addOrUpdateCartItem = (cartId: number, dishId: number, quantity: number) => postData<ShoppingCartItem>('/store/cart/change', { cartId, dishId, quantity });
+export const removeCartItem = (cartId: number, dishId: number) => deleteData<ShoppingCartItem>('/store/cart/remove', { cartId, dishId });
 
 export interface Order {
     paymentTime: Date;
@@ -49,12 +49,12 @@ export interface Order {
 export const submitOrder = (customerId: number, cartId: number, storeId: number, deliveryFee: number) => {
     const paymentTimeString = new Date().toISOString();
     const requestBody = { PaymentTime: paymentTimeString, CustomerId: customerId, CartId: cartId, StoreId: storeId, DeliveryFee: deliveryFee };
-    return postData<Order>('/api/store/checkout', requestBody);
+    return postData<Order>('/store/checkout', requestBody);
 }
 
 export const useCoupon = (couponId: number | null) => {
     if (couponId == null) return Promise.resolve();
-    return postData(`/api/user/checkout/coupon`, { couponId });
+    return postData(`/user/checkout/coupon`, { couponId });
 }
 
 

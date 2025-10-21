@@ -23,7 +23,7 @@
         <div class="max-w-7xl mx-auto px-4 py-8 relative">
             <div class="flex items-center space-x-8">
                 <div class="relative">
-                    <img :src="storeInfo.image" alt="商家头像" class="w-28 h-28 rounded-2xl object-cover shadow-lg" />
+                    <img :src="normalizeImageUrl(storeInfo.image)" alt="商家头像" class="w-28 h-28 rounded-2xl object-cover shadow-lg" @error="handleImageError" />
                 </div>
                 <div class="flex-1">
                     <div class="flex items-center space-x-4 mb-3">
@@ -80,6 +80,7 @@
 <script setup lang="ts">
 import { computed, defineProps } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils'
 
 import type { DeliveryTask, StoreInfo } from '@/api/user'
 

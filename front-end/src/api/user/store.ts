@@ -37,7 +37,7 @@ export interface CommentStatus {
 }
 
 export async function getStoreInfo(StoreId: string): Promise<StoreInfo> {
-    return getData<StoreInfo>(`/api/user/store/storeInfo`, {
+    return getData<StoreInfo>(`/user/store/storeInfo`, {
         params: {
             storeId: StoreId
         }
@@ -56,7 +56,7 @@ export function getDeliveryTasks() {
 }
 
 export async function getCommentList(StoreId: string) {
-    return getData<CommentList>("/api/user/store/commentList", {
+    return getData<CommentList>("/user/store/commentList", {
         params: {
             storeId: StoreId
         }
@@ -64,7 +64,7 @@ export async function getCommentList(StoreId: string) {
 }
 
 export async function getCommentStatus(StoreId: string): Promise<CommentStatus> {
-    return getData<CommentStatus>("/api/user/store/commentStatus", {
+    return getData<CommentStatus>("/user/store/commentStatus", {
         params: {
             storeId: StoreId
         }

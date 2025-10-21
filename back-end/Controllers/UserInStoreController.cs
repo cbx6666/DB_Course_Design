@@ -12,7 +12,6 @@ namespace BackEnd.Controllers
     /// </summary>
     [ApiController]
     [Route("api")]
-    [Authorize] // 添加认证要求
     public class UserInStoreController : ControllerBase
     {
         private readonly IUserInStoreService _userInStoreService;
@@ -107,6 +106,7 @@ namespace BackEnd.Controllers
         /// <param name="dto">创建评论请求</param>
         /// <returns>提交结果</returns>
         [HttpPost("user/comment")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -147,6 +147,7 @@ namespace BackEnd.Controllers
         /// <param name="dto">用户店铺举报请求</param>
         /// <returns>提交结果</returns>
         [HttpPost("user/store/report")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

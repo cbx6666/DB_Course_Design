@@ -11,7 +11,7 @@
     <div v-else class="grid grid-cols-4 gap-6">
       <div v-for="(restaurant, index) in popularRestaurants?.recomStore" :key="index"
         class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer text-left">
-        <img :src="restaurant.image" :alt="restaurant.name" class="w-full h-40 object-cover object-top" />
+        <img :src="normalizeImageUrl(restaurant.image)" :alt="restaurant.name" class="w-full h-40 object-cover object-top" @error="handleImageError" />
         <div class="p-4 flex justify-between items-center">
           <div>
             <h3 class="font-bold text-lg mb-2">{{ restaurant.name }}</h3>
@@ -37,6 +37,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router'
+import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils'
 
 import type { RecomStore } from '@/api/user';
 import { getRecomStore } from '@/api/user';

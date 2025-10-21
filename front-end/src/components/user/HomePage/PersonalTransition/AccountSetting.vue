@@ -112,7 +112,7 @@ onMounted(async () => {
 watch(
     () => props.showAccountForm,
     (visible) => {
-        if (visible) {
+        if (visible && accountInfo.value) {
             formData.name = accountInfo.value.name;
             // 确保头像URL是完整的URL
             formData.image = accountInfo.value.image && !accountInfo.value.image.startsWith('http') && !accountInfo.value.image.startsWith('data:')

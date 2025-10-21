@@ -25,6 +25,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { ElMessage } from 'element-plus'
 
 import type { StoreInfo, MenuItem, ShoppingCart, ShoppingCartItem } from '@/api/user'
 import { getStoreInfo, getMenuItem, getShoppingCart, addOrUpdateCartItem, removeCartItem } from '@/api/user'
@@ -49,6 +50,15 @@ const cart = ref<ShoppingCart>({
 
 // 增加数量
 async function increaseQuantity(dish: MenuItem) {
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    // 用户未登录，提示登录
+    ElMessage.warning('请先登录后再添加商品到购物车');
+    return;
+  }
+  
+  if (!cart.value) return;
+  
   const item = cart.value.items.find(i => i.dishId === dish.id)
   const newQty = (item?.quantity ?? 0) + 1
 
@@ -58,6 +68,14 @@ async function increaseQuantity(dish: MenuItem) {
 
 // 减少数量
 async function decreaseQuantity(dish: MenuItem) {
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    ElMessage.warning('请先登录后再操作购物车');
+    return;
+  }
+  
+  if (!cart.value) return;
+  
   const item = cart.value.items.find(i => i.dishId === dish.id)
   if (!item) return
 
@@ -72,8 +90,22 @@ async function decreaseQuantity(dish: MenuItem) {
 
 // 读取购物车
 async function loadCart() {
-  const data = await getShoppingCart(storeID.value)
-  cart.value = data ?? { cartId: 0, totalPrice: 0, items: [] }
+  try {
+    // 检查用户是否已登录
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      // 用户未登录，使用空的购物车
+      cart.value = { cartId: 0, totalPrice: 0, items: [] };
+      return;
+    }
+    
+    const data = await getShoppingCart(storeID.value);
+    cart.value = data ?? { cartId: 0, totalPrice: 0, items: [] };
+  } catch (error) {
+    console.warn('加载购物车失败，可能是用户未登录:', error);
+    // 购物车加载失败时使用空购物车
+    cart.value = { cartId: 0, totalPrice: 0, items: [] };
+  }
 }
 
 // 获取数据

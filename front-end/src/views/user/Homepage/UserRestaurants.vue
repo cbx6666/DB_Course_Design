@@ -19,7 +19,7 @@
       <!-- 商家列表 -->
       <div v-else class="grid grid-cols-2 gap-6">
         <div v-for="restaurant in pagedRestaurants" :key="restaurant.id" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-          <img :src="restaurant.image" :alt="restaurant.name" class="w-full h-48 object-cover object-top" />
+          <img :src="normalizeImageUrl(restaurant.image)" :alt="restaurant.name" class="w-full h-48 object-cover object-top" @error="handleImageError" />
           <div class="p-4">
             <div class="flex justify-between items-start mb-3">
               <h3 class="font-bold text-xl">{{ restaurant.name }}</h3>
@@ -65,6 +65,7 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils'
 
 import type { AllStore, SearchStore, showStore } from '@/api/user';
 import { getSearchStore, getAllStore } from '@/api/user';

@@ -13,11 +13,11 @@ export interface RiderReport {
 }
 
 export async function postStoreReport(userId: number, storeId: number, content: string) {
-    return postData<StoreReport>(`/api/user/store/report`, { userId, storeId, content })
+    return postData<StoreReport>(`/user/store/report`, { userId, storeId, content })
 }
 
 export async function postRiderReport(orderId: number, content: string) {
-    return postData(`/api/user/complaints/create`, {
+    return postData(`/user/complaints/create`, {
         orderId,
         complaintReason: content
     })
