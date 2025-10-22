@@ -15,12 +15,16 @@ namespace BackEnd.DTOs.Merchant
         /// <returns>优惠券DTO</returns>
         public static CouponDto ToDto(this CouponManager coupon)
         {
+            // 折扣券：数据库存储0-1，返回时转换为0-10
+            // 满减券：直接使用原值
+            var value = coupon.CouponType == CouponType.Discount ? coupon.Value * 10 : coupon.Value;
+            
             return new CouponDto
             {
                 id = coupon.CouponManagerID,
                 name = coupon.CouponName,
                 type = coupon.CouponType == CouponType.Fixed ? "fixed" : "discount",
-                value = coupon.CouponType == CouponType.Fixed ? coupon.DiscountAmount : (coupon.DiscountRate ?? 0),
+                value = value,
                 minAmount = coupon.MinimumSpend,
                 startTime = coupon.ValidFrom.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 endTime = coupon.ValidTo.ToString("yyyy-MM-ddTHH:mm:ssZ"),
@@ -41,6 +45,10 @@ namespace BackEnd.DTOs.Merchant
         public static CouponManager ToModel(this CreateCouponRequestDto dto, int sellerId, int storeId)
         {
             var couponType = dto.type == "fixed" ? CouponType.Fixed : CouponType.Discount;
+            
+            // 折扣券：前端发送0-10，转换为0-1存储
+            // 满减券：直接使用原值
+            var value = couponType == CouponType.Discount ? dto.value / 10 : dto.value;
 
             return new CouponManager
             {
@@ -50,8 +58,7 @@ namespace BackEnd.DTOs.Merchant
                 CouponName = dto.name,
                 CouponType = couponType,
                 MinimumSpend = dto.minAmount ?? 0,
-                DiscountAmount = dto.discountAmount ?? 0,
-                DiscountRate = couponType == CouponType.Discount ? dto.value : null,
+                Value = value,
                 TotalQuantity = dto.totalQuantity,
                 UsedQuantity = 0,
                 ValidFrom = DateTime.Parse(dto.startTime),
@@ -72,20 +79,19 @@ namespace BackEnd.DTOs.Merchant
         public static void UpdateModel(this CouponManager model, CreateCouponRequestDto dto)
         {
             var couponType = dto.type == "fixed" ? CouponType.Fixed : CouponType.Discount;
+            
+            // 折扣券：前端发送0-10，转换为0-1存储
+            // 满减券：直接使用原值
+            var value = couponType == CouponType.Discount ? dto.value / 10 : dto.value;
 
             model.CouponName = dto.name;
             model.CouponType = couponType;
             model.MinimumSpend = dto.minAmount ?? 0;
-            model.DiscountAmount = dto.discountAmount ?? 0;
-            model.DiscountRate = couponType == CouponType.Discount ? dto.value : null;
+            model.Value = value;
             model.TotalQuantity = dto.totalQuantity;
             model.ValidFrom = DateTime.Parse(dto.startTime);
             model.ValidTo = DateTime.Parse(dto.endTime);
             model.Description = dto.description;
-            /// <summary>
-            /// 更新时不改变店铺ID，保持原有的店铺关联
-            /// </summary>
-            // model.StoreID = dto.storeId;
         }
 
         /// <summary>

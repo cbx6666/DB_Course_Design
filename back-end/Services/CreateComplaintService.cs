@@ -145,7 +145,6 @@ namespace BackEnd.Services
         /// <returns>失败结果</returns>
         private CreateComplaintResult Fail(string message)
         {
-            Console.WriteLine($"[CreateComplaintService] {message}");
             return new CreateComplaintResult
             {
                 Success = false,

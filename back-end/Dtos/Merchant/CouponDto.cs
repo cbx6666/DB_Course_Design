@@ -123,22 +123,15 @@ namespace BackEnd.DTOs.Merchant
         public string type { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "优惠值不能为空")]
-        [Range(0.01, 999999.99, ErrorMessage = "优惠值必须在0.01-999999.99之间")]
         /// <summary>
-        /// 优惠值
+        /// 优惠值（满减券为优惠金额，折扣券为折扣比例）
         /// </summary>
         public decimal value { get; set; }
 
-        [Range(0.01, 999999.99, ErrorMessage = "最低消费金额必须在0.01-999999.99之间")]
         /// <summary>
-        /// 最低消费金额
+        /// 最低消费金额（可选）
         /// </summary>
         public decimal? minAmount { get; set; }
-
-        /// <summary>
-        /// 优惠金额（由后端根据类型自动计算）
-        /// </summary>
-        public decimal? discountAmount { get; set; }
 
         /// <summary>
         /// 店铺ID（由后端自动获取）

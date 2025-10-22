@@ -20,7 +20,6 @@ export interface CreateCouponRequest {
     couponType: 'fixed' | 'percentage';
     minimumSpend: number;
     discountAmount: number;
-    discountRate?: number;
     totalQuantity: number;
     validFrom: string;
     validTo: string;
@@ -35,16 +34,39 @@ export interface CouponListResponse {
 
 export const getCoupons = async (page = 1, pageSize = 10): Promise<CouponListResponse> => {
     const response = await apiClient.get('/merchant/coupons', { params: { page, pageSize } });
-    return response.data;
+    return response.data.data || response.data;
 };
 
 export const createCoupon = async (couponData: CreateCouponRequest) => {
-    const response = await apiClient.post('/merchant/coupons', couponData);
+    const backendData = {
+        name: couponData.name,
+        description: couponData.description || '',
+        type: couponData.couponType === 'percentage' ? 'discount' : 'fixed',
+        value: couponData.discountAmount,  // 前端直接发送0-10的值，后端自动转换
+        minAmount: couponData.minimumSpend || undefined,
+        totalQuantity: couponData.totalQuantity,
+        startTime: couponData.validFrom,
+        endTime: couponData.validTo
+    };
+
+    const response = await apiClient.post('/merchant/coupons', backendData);
     return response.data;
 };
 
 export const updateCoupon = async (couponId: number, couponData: CreateCouponRequest) => {
-    await apiClient.put(`/merchant/coupons/${couponId}`, couponData);
+    const backendData = {
+        id: couponId,
+        name: couponData.name,
+        description: couponData.description || '',
+        type: couponData.couponType === 'percentage' ? 'discount' : 'fixed',
+        value: couponData.discountAmount,  // 前端直接发送0-10的值，后端自动转换
+        minAmount: couponData.minimumSpend || undefined,
+        totalQuantity: couponData.totalQuantity,
+        startTime: couponData.validFrom,
+        endTime: couponData.validTo
+    };
+
+    await apiClient.put(`/merchant/coupons/${couponId}`, backendData);
 };
 
 export const deleteCoupon = async (couponId: number) => {

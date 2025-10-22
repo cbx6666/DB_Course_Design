@@ -61,7 +61,6 @@ namespace BackEnd.Services
                 DeliveryFee = order.DeliveryFee
             };
 
-            Console.WriteLine("Status before saving: " + task.Status);
             await _deliveryRepo.AddAsync(task);
 
             // 创建发布记录
@@ -89,16 +88,13 @@ namespace BackEnd.Services
         /// <returns>订单配送信息</returns>
         public async Task<OrderDeliveryInfoDto> GetOrderDeliveryInfoAsync(int orderId)
         {
-            Console.WriteLine($"[DEBUG] 获取订单配送信息，订单ID: {orderId}");
 
             var task = await _deliveryRepo.GetByOrderIdAsync(orderId);
             if (task == null)
             {
-                Console.WriteLine($"[DEBUG] 未找到订单的配送任务，订单ID: {orderId}");
                 return new OrderDeliveryInfoDto();
             }
 
-            Console.WriteLine($"[DEBUG] 找到配送任务，任务ID: {task.TaskID}, 客户ID: {task.Order.CustomerID}, 商店ID: {task.Order.StoreID}");
 
             var courier = task.CourierID.HasValue
                               ? await _courierRepo.GetByIdAsync(task.CourierID.Value)
@@ -144,8 +140,6 @@ namespace BackEnd.Services
                 }
             };
 
-            Console.WriteLine("[DEBUG] 配送任务信息构建完成");
-            Console.WriteLine($"[DEBUG] 配送任务ID: {result.DeliveryTask?.TaskId}, 发布任务ID: {result.Publish?.DeliveryTaskId}");
 
             return result;
         }

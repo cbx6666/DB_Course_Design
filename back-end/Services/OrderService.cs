@@ -192,9 +192,9 @@ namespace BackEnd.Services
             {
                 CouponId = c.CouponID,
                 CouponName = $"优惠券{c.CouponID}",
-                Description = $"满{c.CouponManager.MinimumSpend}减{c.CouponManager.DiscountAmount}元",
+                Description = $"满{c.CouponManager.MinimumSpend}减{c.CouponManager.Value}元",
                 DiscountType = "fixed",
-                DiscountValue = c.CouponManager.DiscountAmount,
+                DiscountValue = c.CouponManager.Value,
                 ValidFrom = c.CouponManager.ValidFrom.ToString("o"),
                 ValidTo = c.CouponManager.ValidTo.ToString("o"),
                 IsUsed = true

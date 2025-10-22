@@ -7,6 +7,7 @@ export interface Dish {
     description: string;
     isSoldOut: number;
     categoryId: number;
+    image?: string;
 }
 
 export interface NewDishData {
@@ -15,11 +16,12 @@ export interface NewDishData {
     description: string;
     isSoldOut?: number;
     categoryId: number;
+    image?: string;
 }
 
-export const getDishes = async (sellerId: number) => {
+export const getDishes = async (categoryId: number) => {
     const response = await apiClient.get('/dishes', {
-        params: { sellerId: sellerId.toString() }
+        params: { categoryId: categoryId.toString() }
     });
     const list = (response.data || []).map((d: any) => ({
         dishId: d.DishID ?? d.dishId,
@@ -28,6 +30,7 @@ export const getDishes = async (sellerId: number) => {
         description: d.Description ?? d.description,
         isSoldOut: d.IsSoldOut ?? d.isSoldOut,
         categoryId: d.CategoryID ?? d.categoryId ?? 1,
+        image: d.DishImage ?? d.dishImage ?? d.image,
     })) as Dish[];
     return list;
 };
@@ -38,8 +41,10 @@ export const createDish = async (dishData: NewDishData, sellerId: number) => {
         Price: Number(dishData.price),
         Description: dishData.description,
         IsSoldOut: dishData.isSoldOut ?? 2,
-        SellerID: sellerId
+        CategoryID: dishData.categoryId,
+        DishImage: dishData.image
     };
+
     const response = await apiClient.post('/dishes', payload);
     const d = response.data;
     const mapped: Dish = {
@@ -87,4 +92,19 @@ export const deleteDish = async (dishId: number): Promise<void> => {
     await apiClient.delete(`/dishes/${dishId}`);
 };
 
+export const uploadDishImage = async (imageFile: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('imageFile', imageFile);
 
+    const response = await apiClient.post('/dishes/upload-image', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+
+    if (response.data.success && response.data.imageUrl) {
+        return response.data.imageUrl;
+    } else {
+        throw new Error(response.data.message || '图片上传失败');
+    }
+};

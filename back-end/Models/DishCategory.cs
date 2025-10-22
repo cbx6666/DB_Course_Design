@@ -22,7 +22,6 @@ namespace BackEnd.Models
         [StringLength(50)]
         public string CategoryName { get; set; } = null!;
 
-
         /// <summary>
         /// 菜品集合（一对多关系）
         /// </summary>

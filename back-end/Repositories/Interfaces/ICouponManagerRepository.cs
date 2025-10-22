@@ -61,7 +61,7 @@ namespace BackEnd.Repositories.Interfaces
         /// </summary>
         /// <param name="storeId">店铺ID</param>
         /// <returns>统计数据</returns>
-        Task<(int total, int active, int expired, int upcoming, int totalUsed, decimal totalDiscountAmount)> GetStatsByStoreIdAsync(int storeId);
+        Task<(int total, int active, int expired, int upcoming, int totalUsed, decimal totalValue)> GetStatsByStoreIdAsync(int storeId);
 
         /// <summary>
         /// 根据店铺和优惠券ID获取优惠券

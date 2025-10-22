@@ -37,17 +37,11 @@ namespace BackEnd.Models
         public decimal MinimumSpend { get; set; }
 
         /// <summary>
-        /// 折扣金额
+        /// 优惠值（满减券为优惠金额，折扣券为折扣比例0-1之间的小数）
         /// </summary>
         [Required]
         [Column(TypeName = "decimal(10,2)")]
-        public decimal DiscountAmount { get; set; }
-
-        /// <summary>
-        /// 折扣率
-        /// </summary>
-        [Column(TypeName = "decimal(3,2)")]
-        public decimal? DiscountRate { get; set; }
+        public decimal Value { get; set; }
 
         /// <summary>
         /// 总数量

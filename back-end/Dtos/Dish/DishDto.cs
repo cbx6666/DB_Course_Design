@@ -25,6 +25,14 @@ namespace BackEnd.DTOs.Dish
         /// 是否售罄
         /// </summary>
         public int IsSoldOut { get; set; }
+        /// <summary>
+        /// 菜品种类ID
+        /// </summary>
+        public int CategoryID { get; set; }
+        /// <summary>
+        /// 菜品图片
+        /// </summary>
+        public string? DishImage { get; set; }
     }
 
     /// <summary>
@@ -48,6 +56,14 @@ namespace BackEnd.DTOs.Dish
         /// 是否售罄
         /// </summary>
         public int IsSoldOut { get; set; } = 0;
+        /// <summary>
+        /// 菜品种类ID
+        /// </summary>
+        public int CategoryID { get; set; }
+        /// <summary>
+        /// 菜品图片
+        /// </summary>
+        public string? DishImage { get; set; }
     }
 
     /// <summary>

@@ -22,8 +22,10 @@ namespace BackEnd.Data.EntityConfigs
             builder.Property(m => m.MenuID).HasColumnName("MENUID").ValueGeneratedOnAdd();
 
             // 基础属性配置
-            builder.Property(m => m.Version).HasColumnName("VERSION").IsRequired().HasMaxLength(50);
-            builder.Property(m => m.ActivePeriod).HasColumnName("ACTIVEPERIOD").IsRequired();
+            builder.Property(m => m.Name).HasColumnName("NAME").IsRequired().HasMaxLength(100);
+            builder.Property(m => m.Description).HasColumnName("DESCRIPTION").IsRequired().HasMaxLength(500);
+            builder.Property(m => m.IsActive).HasColumnName("ISACTIVE").IsRequired().HasConversion<int>();
+            builder.Property(m => m.CreatedAt).HasColumnName("CREATEDAT").IsRequired();
 
             // 外键配置
             builder.Property(m => m.StoreID).HasColumnName("STOREID").IsRequired();

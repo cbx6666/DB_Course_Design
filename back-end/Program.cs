@@ -13,10 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var configuration = builder.Configuration; // 应用程序所有配置信息的集合
 
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(5250); // 修改为前端期望的端口
-});
+// Kestrel配置已移除，使用默认配置
 
 // 数据库上下文注册
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -96,6 +93,7 @@ builder.Services.AddScoped<IFavoriteItemRepository, FavoriteItemRepository>();
 builder.Services.AddScoped<IFavoritesFolderRepository, FavoritesFolderRepository>();
 builder.Services.AddScoped<IFoodOrderRepository, FoodOrderRepository>();
 builder.Services.AddScoped<IMenuRepository, MenuRepository>();
+builder.Services.AddScoped<IDishCategoryRepository, DishCategoryRepository>();
 builder.Services.AddScoped<IReview_CommentRepository, Review_CommentRepository>();
 builder.Services.AddScoped<ISellerRepository, SellerRepository>();
 builder.Services.AddScoped<IShoppingCartItemRepository, ShoppingCartItemRepository>();
@@ -134,6 +132,8 @@ builder.Services.AddScoped<IAfterSaleService, AfterSaleService>();
 builder.Services.AddScoped<ICreateApplicationService, CreateApplicationService>();
 builder.Services.AddScoped<ICreateComplaintService, CreateComplaintService>();
 builder.Services.AddScoped<IGeoHelper, GeoHelper>();
+builder.Services.AddScoped<IMenuService, MenuService>();
+builder.Services.AddScoped<IDishCategoryService, DishCategoryService>();
 var app = builder.Build();
 
 // 如果是开发环境，启用 Swagger UI 来浏览 API 接口文档
@@ -151,6 +151,8 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = ""
 });
 
+// wwwroot/images/random.png 会被映射成一个浏览器可访问的 URL http://localhost:8080/images/random.png
+// 这样就可以在浏览器中访问 wwwroot/images/random.png 这个文件了
 // 配置头像文件服务
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -165,6 +167,19 @@ app.UseStaticFiles(new StaticFileOptions
     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
         Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "images", "stores")),
     RequestPath = "/images/stores"
+});
+
+// 配置菜品图片文件服务
+var dishesImagesPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "images", "dishes");
+if (!Directory.Exists(dishesImagesPath))
+{
+    Directory.CreateDirectory(dishesImagesPath);
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(dishesImagesPath),
+    RequestPath = "/images/dishes"
 });
 
 // 启用 CORS

@@ -75,7 +75,7 @@ namespace BackEnd.Services
                 OrderID = c.OrderID,
                 CouponManagerID = c.CouponManagerID,
                 MinimumSpend = c.CouponManager.MinimumSpend,
-                DiscountAmount = c.CouponManager.DiscountAmount,
+                Value = c.CouponManager.Value,
                 ValidTo = c.CouponManager.ValidTo.ToString("yyyy-MM-ddTHH:mm:ss")
             }).ToList();
         }

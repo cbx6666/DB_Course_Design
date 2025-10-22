@@ -28,8 +28,8 @@ namespace BackEnd.Data.EntityConfigs
                 .HasColumnName("MINIMUMSPEND")
                 .IsRequired()
                 .HasColumnType("decimal(10,2)");
-            builder.Property(cm => cm.DiscountAmount)
-                .HasColumnName("DISCOUNTAMOUNT")
+            builder.Property(cm => cm.Value)
+                .HasColumnName("VALUE")
                 .IsRequired()
                 .HasColumnType("decimal(10,2)");
             builder.Property(cm => cm.ValidFrom).HasColumnName("VALIDFROM").IsRequired();
@@ -42,9 +42,6 @@ namespace BackEnd.Data.EntityConfigs
                 .HasColumnName("COUPONTYPE")
                 .HasConversion<string>()
                 .HasMaxLength(100);
-            builder.Property(cm => cm.DiscountRate)
-                .HasColumnName("DISCOUNTRATE")
-                .HasColumnType("decimal(3,2)");
             builder.Property(cm => cm.TotalQuantity).HasColumnName("TOTALQUANTITY");
             builder.Property(cm => cm.UsedQuantity).HasColumnName("USEDQUANTITY");
             builder.Property(cm => cm.Description).HasColumnName("DESCRIPTION").HasMaxLength(500);

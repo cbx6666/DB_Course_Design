@@ -4,7 +4,6 @@ export interface MenuInfo {
     id: number;
     name: string;
     description: string;
-    version: string;
     isActive: boolean;
     createdAt: string;
     dishCount?: number;
@@ -13,7 +12,6 @@ export interface MenuInfo {
 export interface CreateMenuRequest {
     name: string;
     description: string;
-    version: string;
 }
 
 export interface MenuListResponse {
@@ -40,8 +38,8 @@ export const deleteMenu = async (menuId: number): Promise<void> => {
     await apiClient.delete(`/menus/${menuId}`);
 };
 
-export const setActiveMenu = async (menuId: number): Promise<void> => {
-    await apiClient.put(`/menus/${menuId}/set-active`);
+export const setActiveMenu = async (menuId: number, sellerId: number): Promise<void> => {
+    await apiClient.put(`/menus/${menuId}/set-active`, null, { params: { sellerId } });
 };
 
 

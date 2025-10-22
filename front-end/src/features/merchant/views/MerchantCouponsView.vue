@@ -98,7 +98,9 @@
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-4">
                   <div class="bg-[#F9771C] text-white px-4 py-2 rounded-lg">
-                    <p class="text-lg font-bold">¥{{ coupon.value }}</p>
+                    <p class="text-lg font-bold">
+                      {{ coupon.type === 'discount' ? `${coupon.value.toFixed(1)}折` : `¥${coupon.value}` }}
+                    </p>
                     <p class="text-xs">{{ coupon.type === 'discount' ? '折扣券' : '满减券' }}</p>
                   </div>
                   <div>
@@ -218,13 +220,13 @@
           </el-radio-group>
         </el-form-item>
 
-        <el-form-item label="优惠金额" prop="discountAmount">
+        <el-form-item :label="couponForm.couponType === 'percentage' ? '优惠折扣' : '优惠金额'" prop="discountAmount">
           <el-input-number 
             v-model="couponForm.discountAmount" 
-            :min="1" 
-            :max="couponForm.couponType === 'percentage' ? 100 : 9999"
-            :precision="couponForm.couponType === 'percentage' ? 0 : 2"
-            :suffix="couponForm.couponType === 'percentage' ? '%' : '元'"
+            :min="couponForm.couponType === 'percentage' ? 0.1 : 1" 
+            :max="couponForm.couponType === 'percentage' ? 10 : 9999"
+            :precision="couponForm.couponType === 'percentage' ? 1 : 2"
+            :suffix="couponForm.couponType === 'percentage' ? '折' : '元'"
           />
         </el-form-item>
 
@@ -246,15 +248,26 @@
         </el-form-item>
 
         <el-form-item label="有效期" prop="dateRange">
-          <el-date-picker
-            v-model="couponForm.dateRange"
-            type="datetimerange"
-            range-separator="至"
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-            format="YYYY-MM-DD HH:mm"
-            value-format="YYYY-MM-DD HH:mm:ss"
-          />
+          <div class="date-range-container">
+            <el-date-picker
+              v-model="startDate"
+              type="datetime"
+              placeholder="开始时间"
+              format="YYYY-MM-DD HH:mm"
+              value-format="YYYY-MM-DD HH:mm:ss"
+              :disabled-date="disabledDate"
+              style="width: 48%; margin-right: 4%"
+            />
+            <el-date-picker
+              v-model="endDate"
+              type="datetime"
+              placeholder="结束时间"
+              format="YYYY-MM-DD HH:mm"
+              value-format="YYYY-MM-DD HH:mm:ss"
+              :disabled-date="disabledEndDate"
+              style="width: 48%"
+            />
+          </div>
         </el-form-item>
       </el-form>
 
@@ -271,7 +284,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { 
   Plus, 
@@ -296,6 +309,10 @@ const errorMessage = ref('');
 const showCreateForm = ref(false);
 const editingCoupon = ref<CouponInfo | null>(null);
 
+// 分离的日期选择器
+const startDate = ref('');
+const endDate = ref('');
+
 // 优惠券表单
 const couponForm = ref({
   name: '',
@@ -311,7 +328,11 @@ const couponForm = ref({
 const couponRules = {
   name: [{ required: true, message: '请输入优惠券名称', trigger: 'blur' }],
   description: [{ required: true, message: '请输入优惠券描述', trigger: 'blur' }],
-  discountAmount: [{ required: true, message: '请输入优惠金额', trigger: 'blur' }],
+  discountAmount: [{ 
+    required: true, 
+    message: computed(() => couponForm.value.couponType === 'percentage' ? '请输入优惠折扣' : '请输入优惠金额'), 
+    trigger: 'blur' 
+  }],
   minimumSpend: [{ required: true, message: '请输入最低消费', trigger: 'blur' }],
   totalQuantity: [{ required: true, message: '请输入发放数量', trigger: 'blur' }],
   dateRange: [{ required: true, message: '请选择有效期', trigger: 'change' }]
@@ -407,6 +428,9 @@ const openCreateForm = () => {
     totalQuantity: 100,
     dateRange: []
   };
+  // 清空日期选择器
+  startDate.value = '';
+  endDate.value = '';
   showCreateForm.value = true;
 };
 
@@ -416,9 +440,34 @@ const closeCreateForm = () => {
   editingCoupon.value = null;
 };
 
+
+// 禁用日期（允许选择任何日期）
+const disabledDate = (time: Date) => {
+  return false; // 不禁用任何日期
+};
+
+// 禁用结束日期（不能早于开始日期）
+const disabledEndDate = (time: Date) => {
+  if (startDate.value) {
+    const start = new Date(startDate.value);
+    return time.getTime() < start.getTime();
+  }
+  return false; // 如果没有开始日期，不禁用任何日期
+};
+
+// 监听日期变化，同步到表单
+watch([startDate, endDate], ([newStart, newEnd]) => {
+  if (newStart && newEnd) {
+    couponForm.value.dateRange = [newStart, newEnd];
+  } else {
+    couponForm.value.dateRange = [];
+  }
+});
+
 // 编辑优惠券
 const editCoupon = (coupon: CouponInfo) => {
   editingCoupon.value = coupon;
+  
   couponForm.value = {
     name: coupon.name,
     description: coupon.description || '',
@@ -428,6 +477,11 @@ const editCoupon = (coupon: CouponInfo) => {
     totalQuantity: coupon.totalQuantity,
     dateRange: [coupon.startTime, coupon.endTime]
   };
+  
+  // 设置日期选择器的值
+  startDate.value = coupon.startTime;
+  endDate.value = coupon.endTime;
+  
   showCreateForm.value = true;
 };
 
@@ -446,6 +500,7 @@ const saveCoupon = async () => {
       validFrom: couponForm.value.dateRange[0],
       validTo: couponForm.value.dateRange[1]
     };
+    
     
     if (editingCoupon.value) {
       await updateCoupon(editingCoupon.value.id, couponData);
@@ -560,4 +615,29 @@ onMounted(() => {
   loadCoupons();
 });
 </script>
+
+<style scoped>
+/* 日期范围容器样式 */
+.date-range-container {
+  display: flex;
+  width: 100%;
+  gap: 4%;
+}
+
+/* 确保日期选择器面板在弹窗中正确显示 */
+:deep(.el-picker-panel) {
+  z-index: 9999 !important;
+}
+
+/* 确保日期选择器面板的确定按钮可以正常点击 */
+:deep(.el-picker-panel__footer) {
+  z-index: 10000 !important;
+}
+
+/* 确保日期选择器面板的按钮区域可以正常点击 */
+:deep(.el-picker-panel__footer .el-button) {
+  z-index: 10001 !important;
+  position: relative;
+}
+</style>
 

@@ -276,11 +276,11 @@ namespace BackEnd.DTOs.User
         public decimal MinimumSpend { get; set; }
 
         /// <summary>
-        /// 折扣金额
+        /// 优惠值（满减券为优惠金额，折扣券为折扣比例）
         /// </summary>
         [Required]
         [Column(TypeName = "decimal(10,2)")]
-        public decimal DiscountAmount { get; set; }
+        public decimal Value { get; set; }
 
         /// <summary>
         /// 有效期至

@@ -22,16 +22,16 @@ namespace BackEnd.Controllers
         /// <summary>
         /// 获取菜品列表
         /// </summary>
-        /// <param name="sellerId">商家ID</param>
+        /// <param name="categoryId">菜品种类ID</param>
         /// <returns>菜品列表</returns>
         [HttpGet]
-        public async Task<IActionResult> GetDishes([FromQuery] int? sellerId)
+        public async Task<IActionResult> GetDishes([FromQuery] int? categoryId)
         {
             try
             {
-                if (sellerId.HasValue && sellerId == 3)
+                if (categoryId.HasValue)
                 {
-                    var dishes = await _dishService.GetAllDishesAsync();
+                    var dishes = await _dishService.GetDishesByCategoryIdAsync(categoryId.Value);
                     var dishDtos = dishes ?? new List<DishDto>();
                     return Ok(dishDtos);
                 }
@@ -125,6 +125,68 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
+        /// 上传菜品图片
+        /// </summary>
+        /// <param name="imageFile">图片文件</param>
+        /// <returns>上传结果</returns>
+        [HttpPost("upload-image")]
+        public async Task<IActionResult> UploadDishImage([FromForm] IFormFile imageFile)
+        {
+            try
+            {
+                if (imageFile == null || imageFile.Length == 0)
+                {
+                    return BadRequest(new { code = 400, message = "请选择要上传的图片" });
+                }
+
+                // 验证文件类型
+                var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png" };
+                if (!allowedTypes.Contains(imageFile.ContentType))
+                {
+                    return BadRequest(new { code = 400, message = "只支持 JPG、JPEG、PNG 格式的图片" });
+                }
+
+                // 验证文件大小 (2MB)
+                if (imageFile.Length > 2 * 1024 * 1024)
+                {
+                    return BadRequest(new { code = 400, message = "图片大小不能超过 2MB" });
+                }
+
+                var result = await _dishService.UploadDishImageAsync(imageFile);
+                return result.Success
+                    ? Ok(new { code = 200, success = true, imageUrl = result.ImageUrl })
+                    : BadRequest(new { code = 400, success = false, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { code = 500, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 删除菜品
+        /// </summary>
+        /// <param name="id">菜品ID</param>
+        /// <returns>删除结果</returns>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteDish(int id)
+        {
+            try
+            {
+                var result = await _dishService.DeleteDishAsync(id);
+                if (!result)
+                {
+                    return NotFound(new { code = 404, message = "菜品不存在" });
+                }
+                return Ok(new { code = 200, message = "菜品删除成功" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { code = 400, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// 将菜品实体映射为DTO
         /// </summary>
         /// <param name="dish">菜品实体</param>
@@ -138,6 +200,8 @@ namespace BackEnd.Controllers
                 Price = dish.Price,
                 Description = dish.Description,
                 IsSoldOut = (int)dish.IsSoldOut,
+                CategoryID = dish.CategoryID,
+                DishImage = dish.DishImage,
             };
         }
     }

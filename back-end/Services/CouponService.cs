@@ -82,7 +82,7 @@ namespace BackEnd.Services
                 }
                 int storeId = storeIdNullable.Value;
 
-                var (total, active, expired, upcoming, totalUsed, totalDiscountAmount) =
+                var (total, active, expired, upcoming, totalUsed, totalValue) =
                     await _couponRepository.GetStatsByStoreIdAsync(storeId);
 
                 return new CouponStatsDto
@@ -92,7 +92,7 @@ namespace BackEnd.Services
                     expired = expired,
                     upcoming = upcoming,
                     totalUsed = totalUsed,
-                    totalDiscountAmount = totalDiscountAmount
+                    totalDiscountAmount = totalValue
                 };
             }
             catch (Exception ex)
@@ -330,8 +330,8 @@ namespace BackEnd.Services
             if (request.value <= 0)
                 throw new ArgumentException("优惠值必须大于0");
 
-            if (request.type == "discount" && (request.value <= 0 || request.value >= 1))
-                throw new ArgumentException("折扣券的折扣比例必须在0-1之间");
+            if (request.type == "discount" && (request.value <= 0 || request.value > 10))
+                throw new ArgumentException("折扣券的折扣值必须在0-10之间");
 
             if (request.type == "fixed" && request.minAmount.HasValue && request.minAmount <= request.value)
                 throw new ArgumentException("满减券的最低消费必须大于优惠金额");

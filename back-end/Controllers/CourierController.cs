@@ -422,9 +422,8 @@ namespace BackEnd.Controllers
             {
                 return Unauthorized();
             }
-            catch (DbUpdateException ex)
+            catch (DbUpdateException)
             {
-                Console.WriteLine(ex.InnerException?.Message);
                 return StatusCode(500, new { success = false, message = "数据库更新失败，请检查提交的数据是否符合约束。" });
             }
             catch (Exception ex)

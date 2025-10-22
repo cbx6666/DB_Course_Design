@@ -89,5 +89,79 @@ namespace BackEnd.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        /// <summary>
+        /// 根据商家ID获取菜单列表
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>菜单列表</returns>
+        public async Task<IEnumerable<Menu>> GetBySellerIdAsync(int sellerId)
+        {
+            // 首先通过sellerId找到对应的StoreID
+            var store = await _context.Stores
+                .Where(s => s.SellerID == sellerId)
+                .FirstOrDefaultAsync();
+
+            if (store == null)
+                return new List<Menu>();
+
+            return await GetByStoreIdAsync(store.StoreID);
+        }
+
+        /// <summary>
+        /// 根据店铺ID获取菜单列表
+        /// </summary>
+        /// <param name="inputStoreId">店铺ID</param>
+        /// <returns>菜单列表</returns>
+        public async Task<IEnumerable<Menu>> GetByStoreIdAsync(int inputStoreId)
+        {
+            return await _context.Menus
+                .Where(m => m.StoreID == inputStoreId)
+                .Include(m => m.Store)
+                .Include(m => m.MenuDishCategories)
+                    .ThenInclude(mdc => mdc.DishCategory)
+                        .ThenInclude(dc => dc.Dishes)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 设置菜单为活跃状态
+        /// </summary>
+        /// <param name="menuId">菜单ID</param>
+        /// <param name="isActive">是否活跃</param>
+        /// <returns>任务</returns>
+        public async Task SetActiveAsync(int menuId, bool isActive)
+        {
+            var menu = await _context.Menus.FirstOrDefaultAsync(m => m.MenuID == menuId);
+            if (menu != null)
+            {
+                menu.IsActive = isActive;
+                _context.Menus.Update(menu);
+                await SaveAsync();
+            }
+        }
+
+        /// <summary>
+        /// 将商家的所有菜单设为非活跃状态
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>任务</returns>
+        public async Task SetAllInactiveByStoreIdAsync(int storeId)
+        {
+            var menus = await _context.Menus
+                .Where(m => m.StoreID == storeId)
+                .ToListAsync();
+
+            foreach (var menu in menus)
+            {
+                menu.IsActive = false;
+            }
+
+            if (menus.Any())
+            {
+                _context.Menus.UpdateRange(menus);
+                await SaveAsync();
+            }
+        }
     }
 }

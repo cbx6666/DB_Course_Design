@@ -14,6 +14,13 @@ namespace BackEnd.Repositories.Interfaces
         Task<IEnumerable<Dish>> GetAllAsync();
 
         /// <summary>
+        /// 根据菜品种类ID获取菜品列表
+        /// </summary>
+        /// <param name="categoryId">菜品种类ID</param>
+        /// <returns>菜品列表</returns>
+        Task<IEnumerable<Dish>> GetByCategoryIdAsync(int categoryId);
+
+        /// <summary>
         /// 根据ID获取菜品
         /// </summary>
         /// <param name="id">菜品ID</param>

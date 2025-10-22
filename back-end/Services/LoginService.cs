@@ -198,7 +198,6 @@ namespace BackEnd.Services
             // 目前，基于JWT的无状态登出，后端无需特殊处理。
             // Token的失效由前端删除Token来完成。
             // 此处可以添加登出日志记录等操作。
-            Console.WriteLine($"用户 {userId} 在 {DateTime.UtcNow} 登出。");
             await Task.CompletedTask; // 表示一个已完成的异步操作
         }
     }

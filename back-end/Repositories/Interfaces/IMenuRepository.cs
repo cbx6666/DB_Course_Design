@@ -46,5 +46,34 @@ namespace BackEnd.Repositories.Interfaces
         /// </summary>
         /// <returns>任务</returns>
         Task SaveAsync();
+
+        /// <summary>
+        /// 根据商家ID获取菜单列表
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>菜单列表</returns>
+        Task<IEnumerable<Menu>> GetBySellerIdAsync(int sellerId);
+
+        /// <summary>
+        /// 根据店铺ID获取菜单列表
+        /// </summary>
+        /// <param name="inputStoreId">店铺ID</param>
+        /// <returns>菜单列表</returns>
+        Task<IEnumerable<Menu>> GetByStoreIdAsync(int inputStoreId);
+
+        /// <summary>
+        /// 设置菜单为活跃状态
+        /// </summary>
+        /// <param name="menuId">菜单ID</param>
+        /// <param name="isActive">是否活跃</param>
+        /// <returns>任务</returns>
+        Task SetActiveAsync(int menuId, bool isActive);
+
+        /// <summary>
+        /// 将商家的所有菜单设为非活跃状态
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>任务</returns>
+        Task SetAllInactiveByStoreIdAsync(int storeId);
     }
 }

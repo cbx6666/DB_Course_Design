@@ -34,6 +34,20 @@ namespace BackEnd.Repositories
         }
 
         /// <summary>
+        /// 根据菜品种类ID获取菜品列表
+        /// </summary>
+        /// <param name="categoryId">菜品种类ID</param>
+        /// <returns>菜品列表</returns>
+        public async Task<IEnumerable<Dish>> GetByCategoryIdAsync(int categoryId)
+        {
+            return await _context.Dishes
+                                 .Include(d => d.ShoppingCartItems) // 一对多：购物车项
+                                 .Include(d => d.DishCategory)      // 多对一：菜品种类
+                                 .Where(d => d.CategoryID == categoryId)
+                                 .ToListAsync();
+        }
+
+        /// <summary>
         /// 根据ID获取菜品
         /// </summary>
         /// <param name="id">菜品ID</param>

@@ -16,17 +16,30 @@ namespace BackEnd.Models
         public int MenuID { get; set; }
 
         /// <summary>
-        /// 菜单版本
+        /// 菜单名称
         /// </summary>
         [Required]
-        [StringLength(50)]
-        public string Version { get; set; } = null!;
+        [StringLength(100)]
+        public string Name { get; set; } = null!;
 
         /// <summary>
-        /// 活跃期间
+        /// 菜单描述
         /// </summary>
         [Required]
-        public DateTime ActivePeriod { get; set; }
+        [StringLength(500)]
+        public string Description { get; set; } = null!;
+
+        /// <summary>
+        /// 是否为当前活跃菜单
+        /// </summary>
+        [Required]
+        public bool IsActive { get; set; } = false;
+
+        /// <summary>
+        /// 创建时间
+        /// </summary>
+        [Required]
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         /// <summary>
         /// 店铺ID（外键）
@@ -56,5 +69,11 @@ namespace BackEnd.Models
         /// </summary>
         [NotMapped]
         public IEnumerable<Dish> Dishes => MenuDishCategories.SelectMany(mdc => mdc.DishCategory.Dishes);
+
+        /// <summary>
+        /// 菜品数量（计算属性）
+        /// </summary>
+        [NotMapped]
+        public int DishCount => Dishes.Count();
     }
 }

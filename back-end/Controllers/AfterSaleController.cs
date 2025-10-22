@@ -11,7 +11,7 @@ namespace BackEnd.Controllers
     /// 售后服务管理控制器
     /// </summary>
     [ApiController]
-    [Route("api/aftersale")]
+    [Route("api/merchant/after-sales")]
     public class AfterSalesController : ControllerBase
     {
         private readonly IAfterSaleService _afterSaleService;

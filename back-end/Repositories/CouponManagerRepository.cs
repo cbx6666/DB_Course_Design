@@ -55,28 +55,11 @@ namespace BackEnd.Repositories
         {
             try
             {
-                // 记录要插入的数据
-                Console.WriteLine($"准备插入优惠券数据:");
-                Console.WriteLine($"- CouponManagerID: {couponManager.CouponManagerID} (类型: {couponManager.CouponManagerID.GetType()})");
-                Console.WriteLine($"- CouponName: '{couponManager.CouponName}' (类型: {couponManager.CouponName?.GetType()}, 是否NULL: {couponManager.CouponName == null})");
-                Console.WriteLine($"- CouponType: {couponManager.CouponType} (类型: {couponManager.CouponType.GetType()})");
-                Console.WriteLine($"- MinimumSpend: {couponManager.MinimumSpend} (类型: {couponManager.MinimumSpend.GetType()})");
-                Console.WriteLine($"- DiscountAmount: {couponManager.DiscountAmount} (类型: {couponManager.DiscountAmount.GetType()})");
-                Console.WriteLine($"- DiscountRate: {couponManager.DiscountRate} (类型: {couponManager.DiscountRate?.GetType()}, 是否NULL: {couponManager.DiscountRate == null})");
-                Console.WriteLine($"- TotalQuantity: {couponManager.TotalQuantity} (类型: {couponManager.TotalQuantity.GetType()})");
-                Console.WriteLine($"- UsedQuantity: {couponManager.UsedQuantity} (类型: {couponManager.UsedQuantity.GetType()})");
-                Console.WriteLine($"- ValidFrom: {couponManager.ValidFrom} (类型: {couponManager.ValidFrom.GetType()})");
-                Console.WriteLine($"- ValidTo: {couponManager.ValidTo} (类型: {couponManager.ValidTo.GetType()})");
-                Console.WriteLine($"- Description: '{couponManager.Description}' (类型: {couponManager.Description?.GetType()}, 是否NULL: {couponManager.Description == null})");
-                Console.WriteLine($"- StoreID: {couponManager.StoreID} (类型: {couponManager.StoreID.GetType()})");
-
                 await _context.CouponManagers.AddAsync(couponManager);
                 await SaveAsync();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"插入优惠券数据时发生错误: {ex.Message}");
-                Console.WriteLine($"错误详情: {ex}");
                 throw;
             }
         }
@@ -139,7 +122,7 @@ namespace BackEnd.Repositories
         /// </summary>
         /// <param name="storeId">店铺ID</param>
         /// <returns>统计信息</returns>
-        public async Task<(int total, int active, int expired, int upcoming, int totalUsed, decimal totalDiscountAmount)> GetStatsByStoreIdAsync(int storeId)
+        public async Task<(int total, int active, int expired, int upcoming, int totalUsed, decimal totalValue)> GetStatsByStoreIdAsync(int storeId)
         {
             var coupons = await _context.CouponManagers
                 .Where(cm => cm.StoreID == storeId)
@@ -152,9 +135,9 @@ namespace BackEnd.Repositories
             var expired = coupons.Count(c => c.ValidTo < now);
             var upcoming = coupons.Count(c => c.ValidFrom > now);
             var totalUsed = coupons.Sum(c => c.UsedQuantity);
-            var totalDiscountAmount = coupons.Sum(c => c.DiscountAmount * c.UsedQuantity);
+            var totalValue = coupons.Sum(c => c.Value * c.UsedQuantity);
 
-            return (total, active, expired, upcoming, totalUsed, totalDiscountAmount);
+            return (total, active, expired, upcoming, totalUsed, totalValue);
         }
 
         /// <summary>

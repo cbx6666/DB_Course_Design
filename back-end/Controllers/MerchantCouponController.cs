@@ -145,8 +145,8 @@ namespace BackEnd.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<CouponListResponseDto>>> GetCoupons(
-            [FromQuery, Required] int page = 1,
-            [FromQuery, Required] int pageSize = 10)
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -173,7 +173,7 @@ namespace BackEnd.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "获取优惠券列表失败");
+                _logger.LogError(ex, "获取优惠券列表失败: {Message}", ex.Message);
                 return StatusCode(500, new ApiResponse<CouponListResponseDto>
                 {
                     code = 500,
@@ -239,6 +239,32 @@ namespace BackEnd.Controllers
                         code = 400,
                         message = $"请求数据验证失败: {string.Join(", ", errors)}"
                     });
+                }
+
+                // 自定义验证：根据优惠券类型验证value字段
+                if (request.type == "fixed")
+                {
+                    // 满减券：优惠金额必须在0.01-999999.99之间
+                    if (request.value < 0.01m || request.value > 999999.99m)
+                    {
+                        return BadRequest(new ApiResponse<CreateCouponResponseDto>
+                        {
+                            code = 400,
+                            message = "满减券的优惠金额必须在0.01-999999.99之间"
+                        });
+                    }
+                }
+                else if (request.type == "discount")
+                {
+                    // 折扣券：折扣比例必须在0.01-1之间
+                    if (request.value < 0.01m || request.value > 1m)
+                    {
+                        return BadRequest(new ApiResponse<CreateCouponResponseDto>
+                        {
+                            code = 400,
+                            message = "折扣券的折扣比例必须在0.01-1之间"
+                        });
+                    }
                 }
 
                 var sellerId = GetCurrentSellerId();
@@ -342,7 +368,6 @@ namespace BackEnd.Controllers
                     type = request.type,
                     value = request.value,
                     minAmount = request.minAmount,
-                    discountAmount = request.discountAmount,
                     storeId = request.storeId,
                     totalQuantity = request.totalQuantity,
                     startTime = request.startTime,

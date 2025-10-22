@@ -3,6 +3,7 @@ using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
 
 namespace BackEnd.Services
 {
@@ -36,6 +37,28 @@ namespace BackEnd.Services
                 Price = d.Price,
                 Description = d.Description,
                 IsSoldOut = (int)d.IsSoldOut,
+                CategoryID = d.CategoryID,
+                DishImage = d.DishImage,
+            });
+        }
+
+        /// <summary>
+        /// 根据菜品种类ID获取菜品列表
+        /// </summary>
+        /// <param name="categoryId">菜品种类ID</param>
+        /// <returns>菜品列表</returns>
+        public async Task<IEnumerable<DishDto>> GetDishesByCategoryIdAsync(int categoryId)
+        {
+            var dishes = await _dishRepo.GetByCategoryIdAsync(categoryId);
+            return dishes.Select(d => new DishDto
+            {
+                DishId = d.DishID,
+                DishName = d.DishName,
+                Price = d.Price,
+                Description = d.Description,
+                IsSoldOut = (int)d.IsSoldOut,
+                CategoryID = d.CategoryID,
+                DishImage = d.DishImage,
             });
         }
 
@@ -52,6 +75,8 @@ namespace BackEnd.Services
                 Price = dto.Price,
                 Description = dto.Description,
                 IsSoldOut = (DishIsSoldOut)dto.IsSoldOut,
+                CategoryID = dto.CategoryID,
+                DishImage = dto.DishImage,
             };
 
             await _dishRepo.AddAsync(dish);
@@ -62,6 +87,8 @@ namespace BackEnd.Services
                 Price = dish.Price,
                 Description = dish.Description,
                 IsSoldOut = (int)dish.IsSoldOut,
+                CategoryID = dish.CategoryID,
+                DishImage = dish.DishImage,
             };
         }
 
@@ -136,6 +163,86 @@ namespace BackEnd.Services
                 Description = dish.Description,
                 IsSoldOut = (int)dish.IsSoldOut,
             };
+        }
+
+        /// <summary>
+        /// 上传菜品图片
+        /// </summary>
+        /// <param name="imageFile">图片文件</param>
+        /// <returns>上传结果</returns>
+        public async Task<UploadImageResultDto> UploadDishImageAsync(IFormFile imageFile)
+        {
+            try
+            {
+                if (imageFile == null || imageFile.Length == 0)
+                {
+                    return new UploadImageResultDto
+                    {
+                        Success = false,
+                        Message = "请选择要上传的图片"
+                    };
+                }
+
+                // 创建菜品图片目录
+                var dishImagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "dishes");
+                if (!Directory.Exists(dishImagesFolder))
+                {
+                    Directory.CreateDirectory(dishImagesFolder);
+                }
+
+                // 生成唯一文件名
+                var fileExtension = Path.GetExtension(imageFile.FileName);
+                var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                var filePath = Path.Combine(dishImagesFolder, fileName);
+
+                // 保存文件
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await imageFile.CopyToAsync(stream);
+                }
+
+                // 返回图片URL
+                var imageUrl = $"/images/dishes/{fileName}";
+
+                return new UploadImageResultDto
+                {
+                    Success = true,
+                    Message = "图片上传成功",
+                    ImageUrl = imageUrl
+                };
+            }
+            catch (Exception ex)
+            {
+                return new UploadImageResultDto
+                {
+                    Success = false,
+                    Message = $"图片上传失败: {ex.Message}"
+                };
+            }
+        }
+
+        /// <summary>
+        /// 删除菜品
+        /// </summary>
+        /// <param name="dishId">菜品ID</param>
+        /// <returns>删除结果</returns>
+        public async Task<bool> DeleteDishAsync(int dishId)
+        {
+            try
+            {
+                var dish = await _dishRepo.GetByIdAsync(dishId);
+                if (dish == null)
+                {
+                    return false;
+                }
+
+                await _dishRepo.DeleteAsync(dish);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
