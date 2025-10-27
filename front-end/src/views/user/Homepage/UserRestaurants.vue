@@ -5,8 +5,11 @@
       class="sticky top-20 w-64"
       :defaultRating="selectedRating"
       :defaultSort="selectedSort"
+      :defaultCategory="selectedCategory"
+      :categoryOptions="categoryOptions"
       @update-sort="onSortChange"
       @update-rating="onRatingChange"
+      @update-category="onCategoryChange"
     />
 
     <!-- 商家列表 -->
@@ -69,12 +72,13 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils'
 
 import type { AllStore, SearchStore, showStore } from '@/api/user';
 import { getSearchStore, getAllStore } from '@/api/user';
+import { getStoreCategoryOptions } from '@/api/merchant';
 
 import SieveStore from '@/components/user/HomePage/Home/SieveStore.vue';
 
@@ -87,6 +91,11 @@ const showLoading = ref(true);
 // 父组件选项
 const selectedSort = ref('综合排序');
 const selectedRating = ref(0);
+// 初始化时就检查URL参数
+const selectedCategory = ref(route.query.category as string || '所有种类');
+
+// 店铺种类选项
+const categoryOptions = ref<Array<{value: number, label: string}>>([]);
 
 // 原始列表
 const restaurantList = computed<showStore[]>(() => {
@@ -101,6 +110,12 @@ const restaurantList = computed<showStore[]>(() => {
 const filteredRestaurants = computed(() => {
   return restaurantList.value
     .filter(r => r.averageRating >= selectedRating.value)
+    .filter(r => {
+      // 如果选择了"所有种类"，则不过滤
+      if (selectedCategory.value === '所有种类') return true;
+      // 否则按店铺种类过滤
+      return r.category === selectedCategory.value;
+    })
     .sort((a, b) => {
       switch (selectedSort.value) {
         case '评分最高': return b.averageRating - a.averageRating;
@@ -139,22 +154,40 @@ function onRatingChange(val: number) {
   currentPage.value = 1; // 切换评分重置到第一页
 }
 
+function onCategoryChange(category: string) {
+  selectedCategory.value = category;
+  currentPage.value = 1; // 切换种类重置到第一页
+}
+
 // 获取数据
 onMounted(async () => {
   try {
-    if (route.query.keyword) {
-      const keyword = route.query.keyword as string;
-      const userID = Number(route.query.userID);
-      const address = route.query.address as string;
-      allRestaurants.value = await getSearchStore(userID, address, keyword);
-    } else {
-      allRestaurants.value = await getAllStore();
+    // 并行获取店铺数据和种类选项
+    const [storeData, categoryData] = await Promise.all([
+      route.query.keyword 
+        ? getSearchStore(Number(route.query.userID), route.query.address as string, route.query.keyword as string)
+        : getAllStore(),
+      getStoreCategoryOptions()
+    ]);
+    
+    allRestaurants.value = storeData;
+    
+    // 设置店铺种类选项
+    if (categoryData?.data) {
+      categoryOptions.value = categoryData.data;
     }
   } catch (err) {
     alert('获取商家失败');
     console.error(err);
   } finally {
     showLoading.value = false;
+  }
+});
+
+// 监听路由参数变化
+watch(() => route.query.category, (newCategory) => {
+  if (newCategory && typeof newCategory === 'string') {
+    selectedCategory.value = newCategory;
   }
 });
 </script>

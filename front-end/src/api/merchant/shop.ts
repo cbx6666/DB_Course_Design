@@ -37,4 +37,18 @@ export const updateShopField = async (field: string, value: string) => {
     return response.data;
 };
 
+// 获取店铺种类选项
+export const getStoreCategoryOptions = async () => {
+    const response = await apiClient.get('/shop/category-options');
+    return response.data;
+};
+
+// 更新店铺种类
+export const updateStoreCategory = async (category: string) => {
+    const response = await apiClient.patch('/shop/category', {
+        category
+    });
+    return response.data;
+};
+
 

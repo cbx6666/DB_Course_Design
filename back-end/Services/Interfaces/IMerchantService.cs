@@ -46,5 +46,13 @@ namespace BackEnd.Services.Interfaces
 		/// <param name="imageFile">图片文件</param>
 		/// <returns>新图片URL</returns>
 		Task<(bool Success, string? Message, string? ImageUrl)> UploadStoreImageAsync(int sellerId, IFormFile imageFile);
+
+        /// <summary>
+        /// 更新店铺种类
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <param name="request">更新店铺种类请求</param>
+        /// <returns>更新结果</returns>
+        Task<CommonResponseDto> UpdateStoreCategoryAsync(int sellerId, UpdateStoreCategoryDto request);
     }
 } 

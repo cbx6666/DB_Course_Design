@@ -112,12 +112,35 @@
             <h3 class="text-lg font-semibold text-gray-800 mb-4">店铺基本信息</h3>
             <div class="grid grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">店铺编号</label>
-                <p class="text-gray-900">{{ shopInfo.id }}</p>
-              </div>
-              <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">店铺名称</label>
                 <p class="text-gray-900">{{ shopInfo.name }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">店铺种类</label>
+                <div class="flex items-center">
+                  <select v-model="shopInfo.category" :disabled="!isEditingCategory" :class="{
+                      'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#F9771C] text-sm': true,
+                      'bg-gray-100 cursor-not-allowed': !isEditingCategory,
+                      'bg-white': isEditingCategory
+                    }">
+                    <option value="" disabled>请选择店铺种类</option>
+                    <option
+                      v-for="option in categoryOptions"
+                      :key="option.value"
+                      :value="option.label">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                  <button @click="toggleEdit('category')"
+                    class="ml-2 text-[#F9771C] hover:text-[#E16A0E] transition-colors">
+                    <el-icon v-if="!isEditingCategory">
+                      <Edit />
+                    </el-icon>
+                    <el-icon v-else>
+                      <Check />
+                    </el-icon>
+                  </button>
+                </div>
               </div>
               <div class="col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-2">店铺图片</label>
@@ -233,7 +256,7 @@
 import { getProjectName } from '@/stores/name';
 
 import { ref, onMounted } from 'vue';
-import { Bell, Star, TrendCharts, Medal, House, List, Ticket, Warning, User, Menu } from '@element-plus/icons-vue';
+import { Bell, Star, TrendCharts, Medal, House, List, Ticket, Warning, User, Menu, Edit, Check } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { API_CONFIG } from '@/config';
 import MerchantAvatar from '@/features/merchant/components/MerchantAvatar.vue';
@@ -246,7 +269,9 @@ import {
   getShopInfo, 
   getMerchantInfo, 
   toggleBusinessStatus as apiToggleBusinessStatus,
-  updateShopField
+  updateShopField,
+  getStoreCategoryOptions,
+  updateStoreCategory
 } from '@/api/merchant';
 
 // 默认空值
@@ -259,6 +284,7 @@ const defaultShopInfo = {
   startTime: '',
   endTime: '',
   feature: '',
+  category: '',
   rating: 0,
   monthlySales: 0,
   creditScore: 0
@@ -301,6 +327,10 @@ const isLoading = ref(true);
 const isEditingAddress = ref(false);
 const isEditingHours = ref(false);
 const isEditingFeature = ref(false);
+const isEditingCategory = ref(false);
+
+// 店铺种类选项
+const categoryOptions = ref<Array<{value: number, label: string}>>([]);
 
 // 保存方法
 const saveField = async (field: string) => {
@@ -336,6 +366,11 @@ const saveField = async (field: string) => {
       case 'feature':
         value = shopInfo.value.feature;
         break;
+      case 'category':
+        // 店铺种类使用专门的API
+        await updateStoreCategory(shopInfo.value.category);
+        ElMessage.success('店铺种类更新成功');
+        return; // 已经提示成功，这里直接返回
     }
 
     // 调用API保存
@@ -355,7 +390,8 @@ const getFieldLabel = (field: string) => {
   const labels: Record<string, string> = {
     address: '店铺地址',
     hours: '营业时间',
-    feature: '店铺特色'
+    feature: '店铺特色',
+    category: '店铺种类'
   };
   return labels[field] || field;
 };
@@ -395,6 +431,17 @@ const toggleEdit = async (field: string) => {
       }
       isEditingFeature.value = !isEditingFeature.value;
       break;
+      
+    case 'category':
+      if (isEditingCategory.value) {
+        try {
+          await saveField('category');
+        } catch {
+          return;
+        }
+      }
+      isEditingCategory.value = !isEditingCategory.value;
+      break;
   }
 };
 
@@ -404,10 +451,11 @@ const fetchAllData = async () => {
     isLoading.value = true;
     
     // 并行请求所有数据
-    const [overview, shop, merchant] = await Promise.all([
+    const [overview, shop, merchant, categoryOptionsResponse] = await Promise.all([
       getShopOverview(),
       getShopInfo(),
-      getMerchantInfo()
+      getMerchantInfo(),
+      getStoreCategoryOptions()
     ]);
     
     // 更新店铺概览数据
@@ -420,7 +468,7 @@ const fetchAllData = async () => {
     
     // 更新店铺信息
     if (shop.data) {
-      const { id, name, createTime, address, startTime, endTime, feature } = shop.data;
+      const { id, name, createTime, address, startTime, endTime, feature, category } = shop.data;
 
       // 处理时间字段 - 确保转换为 HH:mm 格式
       const formatTime = (timeValue: any) => {
@@ -445,7 +493,8 @@ const fetchAllData = async () => {
         address: address || defaultShopInfo.address,
         startTime: formatTime(startTime),
         endTime: formatTime(endTime),
-        feature: feature || defaultShopInfo.feature
+        feature: feature || defaultShopInfo.feature,
+        category: category || defaultShopInfo.category
       };
 
       console.log('更新后的店铺信息:', shopInfo.value);
@@ -457,6 +506,11 @@ const fetchAllData = async () => {
       if ((merchantInfo.value as any).avatar) {
         (merchantInfo.value as any).avatar = normalizeAssetUrl((merchantInfo.value as any).avatar);
       }
+    }
+    
+    // 更新店铺种类选项
+    if (categoryOptionsResponse?.data) {
+      categoryOptions.value = categoryOptionsResponse.data;
     }
     
   } catch (error) {

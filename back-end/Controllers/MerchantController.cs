@@ -213,6 +213,51 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
+        /// 更新店铺种类
+        /// </summary>
+        /// <param name="request">更新店铺种类请求</param>
+        /// <returns>操作结果</returns>
+        [HttpPatch("/api/shop/category")]
+        public async Task<ActionResult<CommonResponseDto>> UpdateStoreCategory([FromBody] UpdateStoreCategoryDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var sellerId = GetCurrentSellerId();
+                var result = await _merchantService.UpdateStoreCategoryAsync(sellerId, request);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message, details = ex.StackTrace });
+            }
+        }
+
+        /// <summary>
+        /// 获取店铺种类选项
+        /// </summary>
+        /// <returns>店铺种类选项</returns>
+        [HttpGet("/api/shop/category-options")]
+        public ActionResult GetStoreCategoryOptions()
+        {
+            try
+            {
+                var options = BackEnd.Models.Helpers.StoreCategoryHelper.GetCategoryOptions()
+                    .Select(kvp => new { value = kvp.Key, label = kvp.Value })
+                    .ToList();
+                return Ok(new { data = options });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message, details = ex.StackTrace });
+            }
+        }
+
+        /// <summary>
         /// 获取当前商家ID
         /// </summary>
         /// <returns>商家ID</returns>

@@ -49,5 +49,10 @@ namespace BackEnd.DTOs.Merchant
         /// 店铺图片URL
         /// </summary>
         public string? StoreImage { get; set; }
+
+        /// <summary>
+        /// 店铺种类
+        /// </summary>
+        public string Category { get; set; } = string.Empty;
     }
 }

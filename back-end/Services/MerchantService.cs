@@ -108,7 +108,8 @@ namespace BackEnd.Services
                 EndTime = store?.CloseTime.ToString(@"hh\:mm") ?? string.Empty,
                 Feature = store?.StoreFeatures ?? string.Empty,
                 CreditScore = seller?.ReputationPoints ?? 0,
-                StoreImage = store?.StoreImage
+                StoreImage = store?.StoreImage,
+                Category = store != null ? BackEnd.Models.Helpers.StoreCategoryHelper.GetDisplayName(store.StoreCategory) : string.Empty
             };
 
             return result;
@@ -264,6 +265,39 @@ namespace BackEnd.Services
             store.StoreImage = url;
             var success = await _merchantRepository.UpdateStoreAsync(store);
             return success ? (true, null, url) : (false, "保存失败", null);
+        }
+
+        /// <summary>
+        /// 更新店铺种类
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <param name="request">更新店铺种类请求</param>
+        /// <returns>更新结果</returns>
+        public async Task<CommonResponseDto> UpdateStoreCategoryAsync(int sellerId, UpdateStoreCategoryDto request)
+        {
+            try
+            {
+                var store = await _merchantRepository.GetStoreBySellerIdAsync(sellerId);
+                if (store == null)
+                {
+                    return new CommonResponseDto { Success = false, Message = "店铺不存在" };
+                }
+
+                // 将显示名称转换为枚举值
+                var category = BackEnd.Models.Helpers.StoreCategoryHelper.FromDisplayName(request.Category);
+                store.StoreCategory = category;
+
+                var success = await _merchantRepository.UpdateStoreAsync(store);
+                return new CommonResponseDto 
+                { 
+                    Success = success, 
+                    Message = success ? "店铺种类更新成功" : "更新失败" 
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonResponseDto { Success = false, Message = $"更新失败: {ex.Message}" };
+            }
         }
     }
 }

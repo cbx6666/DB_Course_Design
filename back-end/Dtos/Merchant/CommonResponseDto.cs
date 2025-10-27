@@ -9,5 +9,10 @@ namespace BackEnd.DTOs.Merchant
         /// 操作是否成功
         /// </summary>
         public bool Success { get; set; }
+
+        /// <summary>
+        /// 响应消息
+        /// </summary>
+        public string? Message { get; set; }
     }
 } 

@@ -21,6 +21,23 @@
       </div>
     </section>
 
+    <!-- 店铺种类 -->
+    <section class="mt-6">
+      <h4 class="font-medium text-gray-800 mb-4 text-left">店铺种类</h4>
+      <div class="space-y-3">
+        <label v-for="category in categoryOptions" :key="category.value" class="flex items-center cursor-pointer select-none">
+          <input
+            type="radio"
+            name="category"
+            class="mr-3 text-orange-500"
+            :value="category.label"
+            v-model="selectedCategory"
+          />
+          <span class="text-sm">{{ category.label }}</span>
+        </label>
+      </div>
+    </section>
+
     <!-- 排序 -->
     <section class="mt-6">
       <h3 class="font-bold text-xl mb-6 border-b pb-2 text-left">排序方式</h3>
@@ -41,14 +58,19 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, defineProps, defineEmits } from 'vue';
+import { ref, watch, defineProps, defineEmits, onMounted } from 'vue';
 
 const props = defineProps({
   defaultSort: String,
-  defaultRating: Number
+  defaultRating: Number,
+  defaultCategory: String,
+  categoryOptions: {
+    type: Array as () => Array<{value: number, label: string}>,
+    default: () => []
+  }
 });
 
-const emit = defineEmits(['update-sort', 'update-rating']);
+const emit = defineEmits(['update-sort', 'update-rating', 'update-category']);
 
 const sortOptions = ["综合排序", "评分最高", "月售最高", "距离最近"];
 const ratingOptions = [
@@ -59,10 +81,33 @@ const ratingOptions = [
   { label: "3.0 分以上", value: 3.0 }
 ];
 
+// 添加"所有种类"选项到店铺种类选项中
+const categoryOptions = ref([
+  { label: "所有种类", value: 0 },
+  ...props.categoryOptions
+]);
+
 const selectedSort = ref(props.defaultSort || "综合排序");
 const selectedRating = ref<number>(props.defaultRating || 0);
+const selectedCategory = ref(props.defaultCategory || "所有种类");
 
 // 监听变化，传给父组件
 watch(selectedSort, val => emit('update-sort', val), { immediate: true });
 watch(selectedRating, val => emit('update-rating', val), { immediate: true });
+watch(selectedCategory, val => emit('update-category', val), { immediate: true });
+
+// 当 props.categoryOptions 变化时更新本地选项
+watch(() => props.categoryOptions, (newOptions) => {
+  categoryOptions.value = [
+    { label: "所有种类", value: 0 },
+    ...newOptions
+  ];
+}, { deep: true });
+
+// 监听 defaultCategory 的变化
+watch(() => props.defaultCategory, (newCategory) => {
+  if (newCategory) {
+    selectedCategory.value = newCategory;
+  }
+});
 </script>
