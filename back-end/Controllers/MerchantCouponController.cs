@@ -229,7 +229,7 @@ namespace BackEnd.Controllers
         {
             try
             {
-                _logger.LogInformation("创建优惠券请求 - 名称: {Name}, 类型: {Type}", request.name, request.type);
+                _logger.LogInformation("创建优惠券请求 - 名称: {Name}, 类型: {Type}", request.Name, request.Type);
 
                 if (!ModelState.IsValid)
                 {
@@ -242,10 +242,10 @@ namespace BackEnd.Controllers
                 }
 
                 // 自定义验证：根据优惠券类型验证value字段
-                if (request.type == "fixed")
+                if (request.Type == "fixed")
                 {
                     // 满减券：优惠金额必须在0.01-999999.99之间
-                    if (request.value < 0.01m || request.value > 999999.99m)
+                    if (request.Value < 0.01m || request.Value > 999999.99m)
                     {
                         return BadRequest(new ApiResponse<CreateCouponResponseDto>
                         {
@@ -254,10 +254,10 @@ namespace BackEnd.Controllers
                         });
                     }
                 }
-                else if (request.type == "discount")
+                else if (request.Type == "discount")
                 {
                     // 折扣券：折扣比例必须在0.01-1之间
-                    if (request.value < 0.01m || request.value > 1m)
+                    if (request.Value < 0.01m || request.Value > 1m)
                     {
                         return BadRequest(new ApiResponse<CreateCouponResponseDto>
                         {
@@ -347,7 +347,7 @@ namespace BackEnd.Controllers
         {
             try
             {
-                _logger.LogInformation("更新优惠券请求 - ID: {Id}, 名称: {Name}", id, request.name);
+                _logger.LogInformation("更新优惠券请求 - ID: {Id}, 名称: {Name}", id, request.Name);
                 _logger.LogInformation("请求数据: {RequestData}", System.Text.Json.JsonSerializer.Serialize(request));
 
                 if (!ModelState.IsValid)
@@ -363,16 +363,16 @@ namespace BackEnd.Controllers
 
                 var updateRequest = new UpdateCouponRequestDto
                 {
-                    id = id,
-                    name = request.name,
-                    type = request.type,
-                    value = request.value,
-                    minAmount = request.minAmount,
-                    storeId = request.storeId,
-                    totalQuantity = request.totalQuantity,
-                    startTime = request.startTime,
-                    endTime = request.endTime,
-                    description = request.description
+                    Id = id,
+                    Name = request.Name,
+                    Type = request.Type,
+                    Value = request.Value,
+                    MinAmount = request.MinAmount,
+                    StoreId = request.StoreId,
+                    TotalQuantity = request.TotalQuantity,
+                    StartTime = request.StartTime,
+                    EndTime = request.EndTime,
+                    Description = request.Description
                 };
 
                 var sellerId = GetCurrentSellerId();
@@ -471,7 +471,7 @@ namespace BackEnd.Controllers
         {
             try
             {
-                _logger.LogInformation("批量删除优惠券请求 - 数量: {Count}", request.ids?.Count ?? 0);
+                _logger.LogInformation("批量删除优惠券请求 - 数量: {Count}", request.Ids?.Count ?? 0);
 
                 if (!ModelState.IsValid)
                 {
@@ -489,7 +489,7 @@ namespace BackEnd.Controllers
                 return Ok(new ApiResponse<BatchDeleteResponseDto>
                 {
                     code = 200,
-                    message = $"成功删除 {result.deletedCount} 张优惠券",
+                    message = $"成功删除 {result.DeletedCount} 张优惠券",
                     data = result
                 });
             }

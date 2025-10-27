@@ -53,8 +53,8 @@ namespace BackEnd.Services
 
                 return new CouponListResponseDto
                 {
-                    list = couponDtos,
-                    total = total
+                    List = couponDtos,
+                    Total = total
                 };
             }
             catch (Exception ex)
@@ -87,12 +87,12 @@ namespace BackEnd.Services
 
                 return new CouponStatsDto
                 {
-                    total = total,
-                    active = active,
-                    expired = expired,
-                    upcoming = upcoming,
-                    totalUsed = totalUsed,
-                    totalDiscountAmount = totalValue
+                    Total = total,
+                    Active = active,
+                    Expired = expired,
+                    Upcoming = upcoming,
+                    TotalUsed = totalUsed,
+                    TotalDiscountAmount = totalValue
                 };
             }
             catch (Exception ex)
@@ -112,7 +112,7 @@ namespace BackEnd.Services
         {
             try
             {
-                _logger.LogInformation("商家 {SellerId} 创建优惠券: {CouponName}", sellerId, request.name);
+                _logger.LogInformation("商家 {SellerId} 创建优惠券: {CouponName}", sellerId, request.Name);
 
                 // 验证请求数据
                 ValidateCouponRequest(request);
@@ -133,12 +133,12 @@ namespace BackEnd.Services
 
                 return new CreateCouponResponseDto
                 {
-                    id = generatedId
+                    Id = generatedId
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "商家 {SellerId} 创建优惠券失败: {CouponName}", sellerId, request.name);
+                _logger.LogError(ex, "商家 {SellerId} 创建优惠券失败: {CouponName}", sellerId, request.Name);
 
                 // 特殊处理Oracle磁盘空间不足错误
                 if (ex.Message.Contains("ORA-01114") && ex.Message.Contains("No space left on device"))
@@ -161,7 +161,7 @@ namespace BackEnd.Services
         {
             try
             {
-                _logger.LogInformation("商家 {SellerId} 更新优惠券: {CouponId}", sellerId, request.id);
+                _logger.LogInformation("商家 {SellerId} 更新优惠券: {CouponId}", sellerId, request.Id);
 
                 // 验证请求数据
                 ValidateCouponRequest(request);
@@ -174,21 +174,21 @@ namespace BackEnd.Services
                 int storeId = storeIdNullable.Value;
 
                 // 获取优惠券
-                var coupon = await _couponRepository.GetByIdAndStoreIdAsync(request.id ?? 0, storeId);
+                var coupon = await _couponRepository.GetByIdAndStoreIdAsync(request.Id ?? 0, storeId);
                 if (coupon == null)
                 {
-                    throw new ArgumentException($"优惠券 {request.id} 不存在或不属于商家 {sellerId}");
+                    throw new ArgumentException($"优惠券 {request.Id} 不存在或不属于商家 {sellerId}");
                 }
 
                 // 更新优惠券
                 coupon.UpdateModel(request);
                 await _couponRepository.UpdateAsync(coupon);
 
-                _logger.LogInformation("优惠券 {CouponId} 更新成功", request.id);
+                _logger.LogInformation("优惠券 {CouponId} 更新成功", request.Id);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "商家 {SellerId} 更新优惠券 {CouponId} 失败", sellerId, request.id);
+                _logger.LogError(ex, "商家 {SellerId} 更新优惠券 {CouponId} 失败", sellerId, request.Id);
                 throw;
             }
         }
@@ -241,7 +241,7 @@ namespace BackEnd.Services
         {
             try
             {
-                _logger.LogInformation("商家 {SellerId} 批量删除优惠券，数量: {Count}", sellerId, request.ids.Count);
+                _logger.LogInformation("商家 {SellerId} 批量删除优惠券，数量: {Count}", sellerId, request.Ids.Count);
 
                 int? storeIdNullable = await _storeRepository.GetStoreIdBySellerIdAsync(sellerId);
                 if (!storeIdNullable.HasValue)
@@ -250,19 +250,19 @@ namespace BackEnd.Services
                 }
                 int storeId = storeIdNullable.Value;
 
-                if (request.ids == null || !request.ids.Any())
+                if (request.Ids == null || !request.Ids.Any())
                 {
                     throw new ArgumentException("优惠券ID列表不能为空");
                 }
 
                 // 批量删除
-                var deletedCount = await _couponRepository.BatchDeleteAsync(request.ids, storeId);
+                var deletedCount = await _couponRepository.BatchDeleteAsync(request.Ids, storeId);
 
                 _logger.LogInformation("批量删除完成，实际删除数量: {DeletedCount}", deletedCount);
 
                 return new BatchDeleteResponseDto
                 {
-                    deletedCount = deletedCount
+                    DeletedCount = deletedCount
                 };
             }
             catch (Exception ex)
@@ -321,28 +321,28 @@ namespace BackEnd.Services
         /// <param name="request">创建优惠券请求</param>
         private void ValidateCouponRequest(CreateCouponRequestDto request)
         {
-            if (string.IsNullOrWhiteSpace(request.name))
+            if (string.IsNullOrWhiteSpace(request.Name))
                 throw new ArgumentException("优惠券名称不能为空");
 
-            if (request.type != "fixed" && request.type != "discount")
+            if (request.Type != "fixed" && request.Type != "discount")
                 throw new ArgumentException("优惠券类型必须是 'fixed' 或 'discount'");
 
-            if (request.value <= 0)
+            if (request.Value <= 0)
                 throw new ArgumentException("优惠值必须大于0");
 
-            if (request.type == "discount" && (request.value <= 0 || request.value > 10))
+            if (request.Type == "discount" && (request.Value <= 0 || request.Value > 10))
                 throw new ArgumentException("折扣券的折扣值必须在0-10之间");
 
-            if (request.type == "fixed" && request.minAmount.HasValue && request.minAmount <= request.value)
+            if (request.Type == "fixed" && request.MinAmount.HasValue && request.MinAmount <= request.Value)
                 throw new ArgumentException("满减券的最低消费必须大于优惠金额");
 
-            if (request.totalQuantity <= 0)
+            if (request.TotalQuantity <= 0)
                 throw new ArgumentException("发放数量必须大于0");
 
-            if (!DateTime.TryParse(request.startTime, out var startTime))
+            if (!DateTime.TryParse(request.StartTime, out var startTime))
                 throw new ArgumentException("开始时间格式不正确");
 
-            if (!DateTime.TryParse(request.endTime, out var endTime))
+            if (!DateTime.TryParse(request.EndTime, out var endTime))
                 throw new ArgumentException("结束时间格式不正确");
 
             if (endTime <= startTime)

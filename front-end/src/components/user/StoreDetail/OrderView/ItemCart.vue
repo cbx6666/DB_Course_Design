@@ -29,7 +29,7 @@
           </div>
           <div v-else class="space-y-4">
             <div v-for="item in cartItems" :key="item.id" class="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg">
-              <img :src="item.image" class="w-12 h-12 object-cover rounded object-top" />
+                             <img :src="normalizeImageUrl(item.image)" class="w-12 h-12 object-contain rounded" />
               <div class="flex-1">
                 <h4 class="font-medium text-gray-900 text-sm">{{ item.name }}</h4>
                 <p class="text-[#F9771C] font-semibold">¥{{ item.price }}</p>
@@ -67,6 +67,7 @@
 <script setup lang="ts">
 import { ref, computed, defineProps, defineEmits } from 'vue'
 import { useRouter } from 'vue-router'
+import { normalizeImageUrl } from '@/utils/imageUtils';
 
 import type { MenuItem, ShoppingCart } from '@/api/user'
 

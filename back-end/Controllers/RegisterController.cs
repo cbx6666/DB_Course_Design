@@ -1,4 +1,6 @@
 using BackEnd.DTOs.AuthRequest;
+using BackEnd.Models.Enums;
+using BackEnd.Models.Helpers;
 using BackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,6 +31,20 @@ namespace BackEnd.Controllers
             var result = await _registerService.RegisterAsync(request);
 
             return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        /// <summary>
+        /// 获取店铺种类选项列表
+        /// </summary>
+        /// <returns>店铺种类选项列表</returns>
+        [HttpGet("store-categories")]
+        public IActionResult GetStoreCategories()
+        {
+            var categories = StoreCategoryHelper.GetCategoryOptions()
+                .Select(kvp => new { value = (int)kvp.Key, label = kvp.Value })
+                .ToList();
+
+            return Ok(categories);
         }
     }
 }

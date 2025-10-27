@@ -31,6 +31,7 @@ export interface MenuItem {
     price: number;
     image: string;
     isSoldOut: number;
+    categoryId?: number;
 }
 
 export const getMenuItem = (StoreID: string) => getData<MenuItem[]>("/store/dish", { params: { storeId: StoreID } });
@@ -46,10 +47,16 @@ export interface Order {
     deliveryFee: number;
 }
 
-export const submitOrder = (customerId: number, cartId: number, storeId: number, deliveryFee: number) => {
-    const paymentTimeString = new Date().toISOString();
-    const requestBody = { PaymentTime: paymentTimeString, CustomerId: customerId, CartId: cartId, StoreId: storeId, DeliveryFee: deliveryFee };
-    return postData<Order>('/store/checkout', requestBody);
+export const submitOrder = (customerId: number, cartId: number, storeId: number, deliveryFee: number, remarks?: string) => {
+    const requestBody = {
+        CartId: cartId,
+        CustomerId: customerId,
+        StoreId: storeId,
+        PaymentTime: new Date().toISOString(),
+        DeliveryFee: deliveryFee,
+        Remarks: remarks || ''
+    };
+    return postData<Order>('/store/order/create', requestBody);
 }
 
 export const useCoupon = (couponId: number | null) => {

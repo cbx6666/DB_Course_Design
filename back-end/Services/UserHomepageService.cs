@@ -92,6 +92,7 @@ namespace BackEnd.Services
 
                 // 获取购物车信息（如果存在）
                 List<string> dishImages = new List<string>();
+                List<OrderDishDto> dishDetails = new List<OrderDishDto>();
                 decimal totalAmount = 0;
 
                 if (order.CartID.HasValue)
@@ -106,6 +107,17 @@ namespace BackEnd.Services
                             .Select(sci => sci.Dish.DishImage)
                             .OfType<string>() // 过滤掉 null 值
                             .Distinct()
+                            .ToList();
+
+                        // 获取菜品详情
+                        dishDetails = cart.ShoppingCartItems
+                            .Where(sci => sci.Dish != null)
+                            .Select(sci => new OrderDishDto
+                            {
+                                DishName = sci.Dish.DishName,
+                                DishImage = sci.Dish.DishImage ?? "",
+                                Quantity = sci.Quantity
+                            })
                             .ToList();
 
                         // 计算总金额
@@ -125,6 +137,7 @@ namespace BackEnd.Services
                     StoreImage = store?.StoreImage ?? "",
                     StoreName = store?.StoreName ?? "",
                     DishImage = dishImages,
+                    DishDetails = dishDetails,
                     TotalAmount = totalAmount,
                     OrderStatus = order.FoodOrderState
                 });

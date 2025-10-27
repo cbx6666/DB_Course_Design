@@ -11,20 +11,27 @@
     <div v-else class="grid grid-cols-4 gap-6">
       <div v-for="(restaurant, index) in popularRestaurants?.recomStore" :key="index"
         class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer text-left">
-        <img :src="normalizeImageUrl(restaurant.image)" :alt="restaurant.name" class="w-full h-40 object-cover object-top" @error="handleImageError" />
-        <div class="p-4 flex justify-between items-center">
-          <div>
+        <div class="w-full h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
+          <img :src="normalizeImageUrl(restaurant.image)" :alt="restaurant.name" class="max-w-full max-h-full w-auto h-auto object-contain" @error="handleImageError" />
+        </div>
+        <div class="p-4">
+          <div class="mb-3">
             <h3 class="font-bold text-lg mb-2">{{ restaurant.name }}</h3>
-            <div class="flex items-center justify-between text-sm text-gray-600">
+            <div class="flex items-center text-sm text-gray-600 mb-2">
               <span class="flex items-center">
                 <i class="fas fa-star text-yellow-400 mr-1"></i>
                 {{ restaurant.averageRating > 0 ? restaurant.averageRating.toFixed(1) : '暂无评分' }}
               </span>
             </div>
+            <!-- 店铺种类和特色 -->
+            <div v-if="restaurant.category || restaurant.description" class="flex flex-wrap gap-2">
+              <span v-if="restaurant.category" class="text-white bg-[#F9771C] px-2 py-1 rounded text-xs">{{ restaurant.category }}</span>
+              <span v-if="restaurant.description" class="text-white bg-[#F9771C] px-2 py-1 rounded text-xs">{{ restaurant.description }}</span>
+            </div>
           </div>
-          <!-- 右侧：按钮 -->
+          <!-- 底部：按钮 -->
           <button
-            class="w-30 h-12 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer whitespace-nowrap"
+            class="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer"
             @click="goToPage(`${restaurant.id}`)">
             进入店铺
           </button>

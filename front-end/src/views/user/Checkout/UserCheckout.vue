@@ -75,7 +75,7 @@ const router = useRouter();
 const userStore = useUserStore();
 const userID = userStore.getUserID();
 const storeID = computed(() => route.params.id as string);
-const deliveryFee = getDeliveryTasks().deliveryFee;
+const deliveryFee = getDeliveryTasks(storeID.value).deliveryFee;
 
 // 数据
 const menuItems = ref<MenuItem[]>([]);
@@ -169,11 +169,15 @@ async function checkout() {
   }
 
   try {
-    await useCoupon(selectedCoupon.value?.couponID ?? null) // 未使用时返回空值
+    // 暂时注释掉 useCoupon，等待后端实现
+    // await useCoupon(selectedCoupon.value?.couponID ?? null)
     await submitOrder(userID, cart.value.cartId, Number(storeID.value), deliveryFee);
-    cart.value.items = [];
+    // 重新加载购物车数据以获取清空后的状态
+    cart.value = await getShoppingCart(storeID.value, userID);
+    alert('下单成功！');
     goBack();
   } catch (error) {
+    console.error('下单失败:', error);
     alert('下单失败，请重试');
   }
 }

@@ -19,7 +19,9 @@
       <!-- 商家列表 -->
       <div v-else class="grid grid-cols-2 gap-6">
         <div v-for="restaurant in pagedRestaurants" :key="restaurant.id" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-          <img :src="normalizeImageUrl(restaurant.image)" :alt="restaurant.name" class="w-full h-48 object-cover object-top" @error="handleImageError" />
+          <div class="w-full h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
+            <img :src="normalizeImageUrl(restaurant.image)" :alt="restaurant.name" class="max-w-full max-h-full w-auto h-auto object-contain" @error="handleImageError" />
+          </div>
           <div class="p-4">
             <div class="flex justify-between items-start mb-3">
               <h3 class="font-bold text-xl">{{ restaurant.name }}</h3>
@@ -30,7 +32,11 @@
                   <i class="fas fa-star text-yellow-400 mr-1"></i>
                   {{ restaurant.averageRating > 0 ? restaurant.averageRating.toFixed(1) : '暂无评分' }}
                 </span>
-                <span class="flex items-center">月售 {{ restaurant.monthlySales }}</span>
+                <span class="flex items-center mb-2">月售 {{ restaurant.monthlySales }}</span>
+                <div v-if="restaurant.category || restaurant.description" class="flex flex-wrap gap-2 mt-1">
+                  <span v-if="restaurant.category" class="text-white bg-[#F9771C] px-3 py-1 rounded text-xs">{{ restaurant.category }}</span>
+                  <span v-if="restaurant.description" class="text-white bg-[#F9771C] px-3 py-1 rounded text-xs">{{ restaurant.description }}</span>
+                </div>
               </div>
               <button
                 class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer whitespace-nowrap"

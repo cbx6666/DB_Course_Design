@@ -2,6 +2,7 @@ using BackEnd.Data;
 using BackEnd.DTOs.User;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
+using BackEnd.Models.Helpers;
 using BackEnd.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -119,9 +120,9 @@ namespace BackEnd.Repositories
         /// <returns>菜品列表</returns>
         public async Task<IEnumerable<Dish>> GetDishesByStoreIdAsync(int storeId)
         {
-            // 高效的投影查询，直接从数据库获取菜品列表
+            // 只获取激活状态的菜单中的菜品
             return await _context.Menus
-                .Where(m => m.StoreID == storeId)
+                .Where(m => m.StoreID == storeId && m.IsActive)
                 .SelectMany(m => m.MenuDishCategories)
                 .SelectMany(mdc => mdc.DishCategory.Dishes)
                 .Distinct()
@@ -174,19 +175,22 @@ namespace BackEnd.Repositories
         /// <returns>推荐店铺列表</returns>
         public async Task<IEnumerable<ShowStoreDto>> GetTopRatedStoresForHomepageAsync(int takeCount)
         {
-            return await _context.Stores
+            var stores = await _context.Stores
                 .AsNoTracking() // 提高只读查询性能
                 .OrderByDescending(s => s.AverageRating)
                 .Take(takeCount)
-                .Select(s => new ShowStoreDto // 直接投影到 DTO
-                {
-                    Id = s.StoreID,
-                    Image = s.StoreImage ?? string.Empty,
-                    Name = s.StoreName,
-                    AverageRating = s.AverageRating,
-                    MonthlySales = s.MonthlySales
-                })
                 .ToListAsync();
+
+            return stores.Select(s => new ShowStoreDto
+            {
+                Id = s.StoreID,
+                Image = s.StoreImage ?? string.Empty,
+                Name = s.StoreName,
+                AverageRating = s.AverageRating,
+                MonthlySales = s.MonthlySales,
+                Description = s.StoreFeatures ?? string.Empty,
+                Category = StoreCategoryHelper.GetDisplayName(s.StoreCategory)
+            });
         }
 
         /// <summary>
@@ -240,18 +244,21 @@ namespace BackEnd.Repositories
         /// <returns>运营中的店铺列表</returns>
         public async Task<IEnumerable<ShowStoreDto>> GetOperationalStoresAsync()
         {
-            return await _context.Stores
+            var stores = await _context.Stores
                 .AsNoTracking()
                 .Where(s => s.StoreState == StoreState.IsOperation) // 在数据库中过滤
-                .Select(s => new ShowStoreDto
-                {
-                    Id = s.StoreID,
-                    Image = s.StoreImage ?? "",
-                    AverageRating = s.AverageRating,
-                    Name = s.StoreName,
-                    MonthlySales = s.MonthlySales
-                })
                 .ToListAsync();
+
+            return stores.Select(s => new ShowStoreDto
+            {
+                Id = s.StoreID,
+                Image = s.StoreImage ?? "",
+                AverageRating = s.AverageRating,
+                Name = s.StoreName,
+                MonthlySales = s.MonthlySales,
+                Description = s.StoreFeatures ?? string.Empty,
+                Category = StoreCategoryHelper.GetDisplayName(s.StoreCategory)
+            });
         }
     }
 }

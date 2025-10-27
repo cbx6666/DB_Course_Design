@@ -15,6 +15,13 @@ namespace BackEnd.Services.Interfaces
         Task<StoreResponseDto?> GetStoreInfoAsync(StoreRequestDto request);
 
         /// <summary>
+        /// 获取店铺的菜品种类列表
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>菜品种类列表</returns>
+        Task<List<CategoryResponseDto>> GetStoreCategoriesAsync(int storeId);
+
+        /// <summary>
         /// 获取菜单
         /// </summary>
         /// <param name="request">菜单请求</param>

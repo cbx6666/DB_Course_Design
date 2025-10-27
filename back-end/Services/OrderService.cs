@@ -5,6 +5,8 @@ using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace BackEnd.Services
 {
@@ -16,6 +18,8 @@ namespace BackEnd.Services
         private readonly IFoodOrderRepository _orderRepo;
         private readonly IShoppingCartItemRepository _cartItemRepo;
         private readonly IStoreRepository _storeRepo;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<OrderService>? _logger;
 
         /// <summary>
         /// 构造函数
@@ -23,13 +27,19 @@ namespace BackEnd.Services
         /// <param name="orderRepo">订单仓储</param>
         /// <param name="cartItemRepo">购物车项仓储</param>
         /// <param name="storeRepo">店铺仓储</param>
+        /// <param name="serviceProvider">服务提供者</param>
+        /// <param name="logger">日志记录器</param>
         public OrderService(IFoodOrderRepository orderRepo,
                            IShoppingCartItemRepository cartItemRepo,
-                           IStoreRepository storeRepo)
+                           IStoreRepository storeRepo,
+                           IServiceProvider serviceProvider,
+                           ILogger<OrderService>? logger = null)
         {
             _orderRepo = orderRepo;
             _cartItemRepo = cartItemRepo;
             _storeRepo = storeRepo;
+            _serviceProvider = serviceProvider;
+            _logger = logger;
         }
 
         /// <summary>
@@ -123,6 +133,21 @@ namespace BackEnd.Services
             // 修改订单状态为已出餐
             order.FoodOrderState = FoodOrderState.Completed;
             await _orderRepo.UpdateAsync(order);
+
+            // 更新店铺月销量
+            try
+            {
+                var merchantRepo = _serviceProvider.GetService<Repositories.Interfaces.IMerchantRepository>();
+                if (merchantRepo != null)
+                {
+                    await merchantRepo.IncrementStoreMonthlySalesAsync(order.StoreID);
+                }
+            }
+            catch (Exception ex)
+            {
+                // 记录日志但不影响主要业务流程
+                _logger?.LogWarning(ex, "更新店铺月销量时发生错误，订单ID: {OrderId}, 店铺ID: {StoreId}", orderId, order.StoreID);
+            }
 
             return new OrderDecisionDto
             {

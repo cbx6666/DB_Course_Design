@@ -87,11 +87,32 @@ namespace BackEnd.DTOs.User
         /// </summary>
         public string Description { get; set; } = string.Empty;
 
+        /// <summary>
+        /// 店铺种类
+        /// </summary>
+        public string Category { get; set; } = string.Empty;
+
         [Required]
         /// <summary>
         /// 创建时间
         /// </summary>
         public DateTime CreateTime { get; set; }
+    }
+
+    /// <summary>
+    /// 菜品种类响应
+    /// </summary>
+    public class CategoryResponseDto
+    {
+        /// <summary>
+        /// 菜品种类ID
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// 菜品种类名称
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -149,6 +170,11 @@ namespace BackEnd.DTOs.User
         /// 是否售罄
         /// </summary>
         public DishIsSoldOut IsSoldOut { get; set; } = DishIsSoldOut.IsSoldOut;
+
+        /// <summary>
+        /// 菜品种类ID
+        /// </summary>
+        public int CategoryId { get; set; }
     }
 
     /// <summary>

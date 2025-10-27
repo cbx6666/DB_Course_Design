@@ -1,6 +1,9 @@
 using BackEnd.Models;
+using BackEnd.Models.Enums;
+using BackEnd.Models.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BackEnd.Data.EntityConfigs
 {
@@ -49,6 +52,7 @@ namespace BackEnd.Data.EntityConfigs
                 .HasDefaultValue(0.00m);
 
             builder.Property(s => s.MonthlySales).HasColumnName("MONTHLYSALES").IsRequired();
+            builder.Property(s => s.MonthlySalesLastUpdated).HasColumnName("MONTHLYSALES_LAST_UPDATED");
             builder.Property(s => s.StoreCreationTime).HasColumnName("STORECREATIONTIME").IsRequired();
 
             // 状态和分类配置
@@ -58,9 +62,15 @@ namespace BackEnd.Data.EntityConfigs
                 .HasConversion<string>()
                 .HasMaxLength(20);
 
+            // 自定义店铺种类转换器
+            var storeCategoryConverter = new ValueConverter<StoreCategory, string>(
+                v => StoreCategoryHelper.GetDisplayName(v),
+                v => StoreCategoryHelper.FromDisplayName(v));
+
             builder.Property(s => s.StoreCategory)
                 .HasColumnName("STORECATEGORY")
                 .IsRequired()
+                .HasConversion(storeCategoryConverter)
                 .HasMaxLength(20);
 
             // 外键配置
@@ -86,5 +96,6 @@ namespace BackEnd.Data.EntityConfigs
                 .HasForeignKey<Store>(s => s.SellerID)
                 .OnDelete(DeleteBehavior.Cascade);
         }
+
     }
 }

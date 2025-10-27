@@ -102,6 +102,52 @@ namespace BackEnd.Models.Enums
     }
 
     /// <summary>
+    /// 店铺种类枚举
+    /// </summary>
+    public enum StoreCategory
+    {
+        /// <summary>
+        /// 中式菜品
+        /// </summary>
+        Chinese = 0,
+
+        /// <summary>
+        /// 西式快餐
+        /// </summary>
+        WesternFastFood = 1,
+
+        /// <summary>
+        /// 日韩料理
+        /// </summary>
+        JapaneseKorean = 2,
+
+        /// <summary>
+        /// 甜品饮品
+        /// </summary>
+        DessertDrink = 3,
+
+        /// <summary>
+        /// 火锅烧烤
+        /// </summary>
+        HotpotBarbecue = 4,
+
+        /// <summary>
+        /// 小食零食
+        /// </summary>
+        Snacks = 5,
+
+        /// <summary>
+        /// 健康轻食
+        /// </summary>
+        HealthyLight = 6,
+
+        /// <summary>
+        /// 地方特色
+        /// </summary>
+        LocalSpecialty = 7
+    }
+
+    /// <summary>
     /// 商家状态枚举
     /// </summary>
     public enum SellerState

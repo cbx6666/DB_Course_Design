@@ -31,7 +31,6 @@ namespace BackEnd.Services
         {
             _cartRepository = cartRepository;
             _foodOrderRepository = foodOrderRepository;
-            // 账户与地址逻辑已迁移到 UserProfileService
         }
 
         /// <summary>
@@ -66,13 +65,16 @@ namespace BackEnd.Services
             await _foodOrderRepository.AddAsync(foodOrder);
             await _foodOrderRepository.SaveAsync();
 
+            // 下单成功后将购物车状态修改为已完成
+            cart.ShoppingCartState = Models.Enums.ShoppingCartState.Done;
+            cart.LastUpdatedTime = DateTime.UtcNow;
+            await _cartRepository.UpdateAsync(cart);
+
             return await Task.FromResult(new ResponseDto
             {
                 Success = true,
                 Message = "订单创建成功"
             });
         }
-
-        // 账户与地址相关方法已迁移至 UserProfileService
     }
 }

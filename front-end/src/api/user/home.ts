@@ -6,6 +6,8 @@ export interface showStore {
     averageRating: number
     name: string
     monthlySales: number
+    description?: string
+    category?: string
 }
 
 export interface RecomStore {
@@ -20,6 +22,12 @@ export interface SearchStore {
     searchStores: showStore[]
 }
 
+export interface OrderDish {
+    dishName: string
+    dishImage: string
+    quantity: number
+}
+
 export interface OrderInfo {
     orderID: number
     paymentTime: string
@@ -28,6 +36,7 @@ export interface OrderInfo {
     storeImage: string
     storeName: string
     dishImage: string[]
+    dishDetails: OrderDish[]
     totalAmount: number
     orderStatus: number
 }

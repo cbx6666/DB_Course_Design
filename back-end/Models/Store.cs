@@ -82,10 +82,15 @@ namespace BackEnd.Models
         public decimal AverageRating { get; set; } = 0.00m;
 
         /// <summary>
-        /// 月销量
+        /// 月销量（缓存值，每月更新）
         /// </summary>
         [Required]
         public int MonthlySales { get; set; }
+
+        /// <summary>
+        /// 月销量最后更新时间
+        /// </summary>
+        public DateTime? MonthlySalesLastUpdated { get; set; }
 
         /// <summary>
         /// 店铺特色
@@ -109,7 +114,7 @@ namespace BackEnd.Models
         /// 店铺种类
         /// </summary>
         [Required]
-        public string StoreCategory { get; set; } = null!;
+        public StoreCategory StoreCategory { get; set; } = StoreCategory.Chinese;
 
         /// <summary>
         /// 店铺图片

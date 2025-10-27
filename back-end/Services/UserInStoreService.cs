@@ -1,6 +1,7 @@
 using BackEnd.DTOs.User;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
+using BackEnd.Models.Helpers;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
 
@@ -70,8 +71,53 @@ namespace BackEnd.Services
                 Rating = store.AverageRating,
                 MonthlySales = store.MonthlySales,
                 Description = store.StoreFeatures ?? string.Empty,
+                Category = GetCategoryDisplayName(store.StoreCategory),
                 CreateTime = store.StoreCreationTime
             };
+        }
+
+        /// <summary>
+        /// 获取店铺种类的显示名称
+        /// </summary>
+        /// <param name="category">店铺种类枚举</param>
+        /// <returns>显示名称</returns>
+        private string GetCategoryDisplayName(StoreCategory category)
+        {
+            return StoreCategoryHelper.GetDisplayName(category);
+        }
+
+        /// <summary>
+        /// 获取店铺的菜品种类列表
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>菜品种类列表</returns>
+        public async Task<List<CategoryResponseDto>> GetStoreCategoriesAsync(int storeId)
+        {
+            var store = await _storeRepository.GetByIdAsync(storeId);
+            if (store == null || store.Menus == null) return new List<CategoryResponseDto>();
+
+            var allCategories = new List<CategoryResponseDto>();
+
+            // 只从激活状态的菜单中获取菜品种类
+            foreach (var menu in store.Menus.Where(m => m.IsActive))
+            {
+                if (menu.MenuDishCategories != null)
+                {
+                    foreach (var mdc in menu.MenuDishCategories)
+                    {
+                        if (!allCategories.Any(c => c.Id == mdc.DishCategory.CategoryID))
+                        {
+                            allCategories.Add(new CategoryResponseDto
+                            {
+                                Id = mdc.DishCategory.CategoryID,
+                                Name = mdc.DishCategory.CategoryName
+                            });
+                        }
+                    }
+                }
+            }
+
+            return allCategories.OrderBy(c => c.Name).ToList();
         }
 
         /// <summary>
@@ -92,7 +138,8 @@ namespace BackEnd.Services
                 Description = d.Description,
                 Price = d.Price,
                 Image = d.DishImage ?? string.Empty,
-                IsSoldOut = d.IsSoldOut
+                IsSoldOut = d.IsSoldOut,
+                CategoryId = d.CategoryID
             }).ToList();
         }
 

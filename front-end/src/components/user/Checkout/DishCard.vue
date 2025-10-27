@@ -2,10 +2,10 @@
   <div v-if="visible">
     <div class="overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg">
       <!-- 图片 -->
-      <div class="">
+      <div class="bg-gray-100 flex items-center justify-center" style="height: 200px;">
         <img
-          :src="item.image"
-          class="w-full h-full object-cover"
+          :src="normalizeImageUrl(item.image)"
+          class="max-w-full max-h-full w-auto h-auto object-contain"
         />
       </div>
 
@@ -48,6 +48,7 @@
 
 <script setup lang="ts">
 import { ref, defineProps, defineEmits } from 'vue'
+import { normalizeImageUrl } from '@/utils/imageUtils';
 import type { MenuItem } from '@/api/user'
 
 interface DishWithQty extends MenuItem {

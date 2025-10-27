@@ -280,17 +280,17 @@
                                         <div class="relative">
                                             <button type="button" @click="showCategoryDropdown = !showCategoryDropdown"
                                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm text-left bg-white cursor-pointer flex items-center justify-between">
-                                                <span :class="{ 'text-gray-400': !storeInfo.category }">
-                                                    {{ storeInfo.category || '请选择经营类别' }}
+                                                <span :class="{ 'text-gray-400': !selectedCategoryLabel }">
+                                                    {{ selectedCategoryLabel || '请选择经营类别' }}
                                                 </span>
                                                 <i class="fas fa-chevron-down text-gray-400"></i>
                                             </button>
                                             <div v-if="showCategoryDropdown"
                                                 class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                                                <div v-for="category in categories" :key="category"
+                                                <div v-for="category in categories" :key="category.value"
                                                     @click="selectCategory(category)"
                                                     class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm">
-                                                    {{ category }}
+                                                    {{ category.label }}
                                                 </div>
                                             </div>
                                         </div>
@@ -395,8 +395,9 @@
 
 
 <script lang="ts" setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import api from '@/api/login_api'; // 导入我们的 API 服务
+import apiClient from '@/api/client'; // 导入 API 客户端
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 
@@ -422,11 +423,8 @@ const roles = [
     { value: 'rider', label: '骑手', icon: 'fas fa-motorcycle' },
     { value: 'customer', label: '消费者', icon: 'fas fa-user' }
 ];
-// 经营类别
-const categories = [
-    '中式快餐', '西式快餐', '日韩料理', '甜品饮品',
-    '火锅烧烤', '地方小吃', '健康轻食', '咖啡茶饮'
-];
+// 经营类别（从后端API获取）
+const categories = ref<Array<{value: number, label: string}>>([]);
 // 登录表单
 const loginForm = reactive({
     account: '',
@@ -462,7 +460,7 @@ const storeInfo = reactive({
     closingTime: '', // <-- 新增
     businessHours: '', // 营业时间
     establishmentDate: '', // 店铺建立时间
-    category: ''// 经营类别
+    category: 0 as number // 经营类别（枚举值，数字）
 });
 
 
@@ -621,12 +619,43 @@ const sendVerificationCode = () => {
     alert('验证码已发送到您的手机');
 };
 
+// 计算已选择的类别标签
+const selectedCategoryLabel = computed(() => {
+    const selected = categories.value.find(cat => cat.value === storeInfo.category);
+    return selected ? selected.label : '';
+});
 
 // 选择经营类别
-const selectCategory = (category: string) => {
-    storeInfo.category = category;
+const selectCategory = (category: {value: number, label: string}) => {
+    storeInfo.category = category.value;
     showCategoryDropdown.value = false;
 };
+
+// 加载店铺种类选项
+const loadStoreCategories = async () => {
+    try {
+        const response = await apiClient.get('/register/store-categories');
+        categories.value = response.data || [];
+    } catch (error) {
+        console.error('加载店铺种类失败:', error);
+        // 如果加载失败，使用默认值
+        categories.value = [
+            { value: 0, label: '中式菜品' },
+            { value: 1, label: '西式快餐' },
+            { value: 2, label: '日韩料理' },
+            { value: 3, label: '甜品饮品' },
+            { value: 4, label: '火锅烧烤' },
+            { value: 5, label: '小食零食' },
+            { value: 6, label: '健康轻食' },
+            { value: 7, label: '地方特色' }
+        ];
+    }
+};
+
+// 组件加载时获取店铺种类
+onMounted(() => {
+    loadStoreCategories();
+});
 
 
 // 处理登录
@@ -839,8 +868,8 @@ const validateRegisterForm = () => {
             alert('请设置店铺建立时间');
             return false;
         }
-        if (!storeInfo.establishmentDate) {
-            alert('请设置店铺建立时间');
+        if (!storeInfo.category && storeInfo.category !== 0) {
+            alert('请选择经营类别');
             return false;
         }
     } else if (selectedRole.value === 'rider') {

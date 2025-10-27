@@ -29,7 +29,7 @@ const storeInfo = ref<StoreInfo>({
     description: '',
     createTime: ''
 });
-const deliveryTask = getDeliveryTasks();
+const deliveryTask = getDeliveryTasks(storeID.value);
 
 onMounted(async () => {
     storeInfo.value = await getStoreInfo(storeID.value);

@@ -22,8 +22,8 @@
         <!--简要介绍-->
         <div class="max-w-7xl mx-auto px-4 py-8 relative">
             <div class="flex items-center space-x-8">
-                <div class="relative">
-                    <img :src="normalizeImageUrl(storeInfo.image)" alt="商家头像" class="w-28 h-28 rounded-2xl object-cover shadow-lg" @error="handleImageError" />
+                <div class="relative w-28 h-28 rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center shadow-lg">
+                    <img :src="normalizeImageUrl(storeInfo.image)" alt="商家头像" class="max-w-full max-h-full w-auto h-auto object-contain" @error="handleImageError" />
                 </div>
                 <div class="flex-1">
                     <div class="flex items-center space-x-4 mb-3">
@@ -35,25 +35,30 @@
                             <span class="text-orange-600 font-medium">优质商家</span>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-6 text-sm mb-3">
-                        <div class="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
-                            <i class="fas fa-star text-yellow-400 mr-2"></i>
-                            <span class="font-medium text-gray-900">{{ storeInfo.rating }}</span>
-                        </div>
-                        <div class="flex items-center">
-                            <i class="fas fa-shopping-bag text-gray-500 mr-2"></i>
-                            <span>月售 {{ storeInfo.monthlySales }} 单</span>
-                        </div>
-                        <div class="flex items-center">
-                            <i class="fas fa-truck text-gray-500 mr-2"></i>
-                            <span>配送费 ¥ {{ deliveryTask.deliveryFee }}</span>
-                        </div>
-                        <div class="flex items-center">
-                            <i class="fas fa-clock text-gray-500 mr-2"></i>
-                            <span>配送时间 {{ deliveryTask.deliveryTime }} 分钟</span>
-                        </div>
-                    </div>
-                    <p class="text-gray-700 max-w-2xl">{{ storeInfo.description }}</p>
+                                                              <div class="flex flex-col space-y-3">
+                         <div class="flex items-center space-x-6 text-sm">
+                             <div class="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
+                                 <i class="fas fa-star text-yellow-400 mr-2"></i>
+                                 <span class="font-medium text-gray-900">{{ storeInfo.rating }}</span>
+                             </div>
+                             <div class="flex items-center">
+                                 <i class="fas fa-shopping-bag text-gray-500 mr-2"></i>
+                                 <span>月售 {{ storeInfo.monthlySales }} 单</span>
+                             </div>
+                             <div class="flex items-center">
+                                 <i class="fas fa-truck text-gray-500 mr-2"></i>
+                                 <span>配送费 ¥ {{ deliveryTask.deliveryFee }}</span>
+                             </div>
+                             <div class="flex items-center">
+                                 <i class="fas fa-clock text-gray-500 mr-2"></i>
+                                 <span>配送时间 {{ deliveryTask.deliveryTime }} 分钟</span>
+                             </div>
+                         </div>
+                         <div class="flex flex-wrap gap-2">
+                             <p class="text-white bg-[#F9771C] px-4 py-2 rounded-lg text-left w-fit">{{ storeInfo.category }}</p>
+                             <p class="text-white bg-[#F9771C] px-4 py-2 rounded-lg text-left w-fit">{{ storeInfo.description }}</p>
+                         </div>
+                     </div>
                 </div>
             </div>
         </div>

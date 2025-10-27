@@ -211,7 +211,7 @@ namespace BackEnd.Services
                 OpenTime = openTime,
                 CloseTime = closeTime,
                 StoreCreationTime = establishmentDate,
-                StoreCategory = storeInfo.Category,
+                StoreCategory = storeInfo.Category, 
                 SellerID = sellerId
             };
 

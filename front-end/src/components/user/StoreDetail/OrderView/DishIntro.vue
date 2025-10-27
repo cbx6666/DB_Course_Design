@@ -3,8 +3,8 @@
         <div v-if="menuItems.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div v-for="item in menuItems" :key="item.id">
                 <div v-if="item" class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md">
-                    <div class="w-full h-56 overflow-hidden">
-                        <img :src="item.image || defaultImage" class="w-full h-84 object-cover object-top" />
+                    <div class="w-full h-56 overflow-hidden bg-gray-100 flex items-center justify-center">
+                        <img :src="normalizeImageUrl(item.image)" class="max-w-full max-h-full w-auto h-auto object-contain" />
                     </div>
                     <div class="p-4">
                         <h4 class="font-semibold text-gray-900 mb-2">{{ item.name }}</h4>
@@ -34,7 +34,7 @@
             </div>
         </div>
         <div v-else class="flex justify-center items-center py-10 text-gray-500">
-            抱歉，该菜单下暂时没有菜品~
+            抱歉，暂时没有菜品~
         </div>
     </div>
 </template>
@@ -42,6 +42,7 @@
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue'
 import type { MenuItem, ShoppingCart } from '@/api/user';
+import { normalizeImageUrl } from '@/utils/imageUtils';
 
 const props = defineProps<{
     cart: ShoppingCart;

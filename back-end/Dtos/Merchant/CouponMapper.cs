@@ -21,17 +21,17 @@ namespace BackEnd.DTOs.Merchant
             
             return new CouponDto
             {
-                id = coupon.CouponManagerID,
-                name = coupon.CouponName,
-                type = coupon.CouponType == CouponType.Fixed ? "fixed" : "discount",
-                value = value,
-                minAmount = coupon.MinimumSpend,
-                startTime = coupon.ValidFrom.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                endTime = coupon.ValidTo.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                totalQuantity = coupon.TotalQuantity,
-                usedQuantity = coupon.UsedQuantity,
-                description = coupon.Description ?? "",
-                status = coupon.Status
+                Id = coupon.CouponManagerID,
+                Name = coupon.CouponName,
+                Type = coupon.CouponType == CouponType.Fixed ? "fixed" : "discount",
+                Value = value,
+                MinAmount = coupon.MinimumSpend,
+                StartTime = coupon.ValidFrom.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                EndTime = coupon.ValidTo.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                TotalQuantity = coupon.TotalQuantity,
+                UsedQuantity = coupon.UsedQuantity,
+                Description = coupon.Description ?? "",
+                Status = coupon.Status
             };
         }
 
@@ -44,26 +44,26 @@ namespace BackEnd.DTOs.Merchant
         /// <returns>优惠券管理器模型</returns>
         public static CouponManager ToModel(this CreateCouponRequestDto dto, int sellerId, int storeId)
         {
-            var couponType = dto.type == "fixed" ? CouponType.Fixed : CouponType.Discount;
+            var couponType = dto.Type == "fixed" ? CouponType.Fixed : CouponType.Discount;
             
             // 折扣券：前端发送0-10，转换为0-1存储
             // 满减券：直接使用原值
-            var value = couponType == CouponType.Discount ? dto.value / 10 : dto.value;
+            var value = couponType == CouponType.Discount ? dto.Value / 10 : dto.Value;
 
             return new CouponManager
             {
                 /// <summary>
                 /// CouponManagerID 将由数据库自动生成
                 /// </summary>
-                CouponName = dto.name,
+                CouponName = dto.Name,
                 CouponType = couponType,
-                MinimumSpend = dto.minAmount ?? 0,
+                MinimumSpend = dto.MinAmount ?? 0,
                 Value = value,
-                TotalQuantity = dto.totalQuantity,
+                TotalQuantity = dto.TotalQuantity,
                 UsedQuantity = 0,
-                ValidFrom = DateTime.Parse(dto.startTime),
-                ValidTo = DateTime.Parse(dto.endTime),
-                Description = dto.description,
+                ValidFrom = DateTime.Parse(dto.StartTime),
+                ValidTo = DateTime.Parse(dto.EndTime),
+                Description = dto.Description,
                 /// <summary>
                 /// 使用传入的storeId参数
                 /// </summary>
@@ -78,20 +78,20 @@ namespace BackEnd.DTOs.Merchant
         /// <param name="dto">创建优惠券请求DTO</param>
         public static void UpdateModel(this CouponManager model, CreateCouponRequestDto dto)
         {
-            var couponType = dto.type == "fixed" ? CouponType.Fixed : CouponType.Discount;
+            var couponType = dto.Type == "fixed" ? CouponType.Fixed : CouponType.Discount;
             
             // 折扣券：前端发送0-10，转换为0-1存储
             // 满减券：直接使用原值
-            var value = couponType == CouponType.Discount ? dto.value / 10 : dto.value;
+            var value = couponType == CouponType.Discount ? dto.Value / 10 : dto.Value;
 
-            model.CouponName = dto.name;
+            model.CouponName = dto.Name;
             model.CouponType = couponType;
-            model.MinimumSpend = dto.minAmount ?? 0;
+            model.MinimumSpend = dto.MinAmount ?? 0;
             model.Value = value;
-            model.TotalQuantity = dto.totalQuantity;
-            model.ValidFrom = DateTime.Parse(dto.startTime);
-            model.ValidTo = DateTime.Parse(dto.endTime);
-            model.Description = dto.description;
+            model.TotalQuantity = dto.TotalQuantity;
+            model.ValidFrom = DateTime.Parse(dto.StartTime);
+            model.ValidTo = DateTime.Parse(dto.EndTime);
+            model.Description = dto.Description;
         }
 
         /// <summary>

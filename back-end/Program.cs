@@ -121,6 +121,7 @@ builder.Services.AddScoped<ISupervise_Service, Supervise_Service>();
 builder.Services.AddScoped<IReview_CommentService, Review_CommentService>();
 builder.Services.AddScoped<IMerchantService, MerchantService>(); ;
 builder.Services.AddHostedService<MonthlyCommissionResetService>();
+builder.Services.AddHostedService<MonthlySalesUpdateService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
 builder.Services.AddScoped<IMerchantInformationService, MerchantInformationService>();
 builder.Services.AddScoped<IOrderService, OrderService>();

@@ -50,6 +50,20 @@ namespace BackEnd.Repositories.Interfaces
         Task<int> GetStoreMonthlySalesAsync(int storeId);
 
         /// <summary>
+        /// 更新店铺月销量
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>更新后的月销量</returns>
+        Task<int> UpdateStoreMonthlySalesAsync(int storeId);
+
+        /// <summary>
+        /// 增加店铺月销量
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>任务</returns>
+        Task IncrementStoreMonthlySalesAsync(int storeId);
+
+        /// <summary>
         /// 保存更改
         /// </summary>
         /// <returns>任务</returns>

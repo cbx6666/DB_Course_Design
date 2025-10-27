@@ -144,6 +144,30 @@ namespace BackEnd.DTOs.User
     }
 
     /// <summary>
+    /// 订单菜品详情数据传输对象
+    /// </summary>
+    public class OrderDishDto
+    {
+        /// <summary>
+        /// 菜品名称
+        /// </summary>
+        [Required]
+        public string DishName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 菜品图片
+        /// </summary>
+        [Required]
+        public string DishImage { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 数量
+        /// </summary>
+        [Required]
+        public int Quantity { get; set; }
+    }
+
+    /// <summary>
     /// 历史订单数据传输对象
     /// </summary>
     public class HistoryOrderDto
@@ -184,11 +208,17 @@ namespace BackEnd.DTOs.User
         [Required]
         public string StoreName { get; set; } = string.Empty;
 
-        /// <summary>
-        /// 菜品图片列表
-        /// </summary>
-        [Required]
-        public List<string> DishImage { get; set; } = new List<string>();
+    /// <summary>
+    /// 菜品图片列表
+    /// </summary>
+    [Required]
+    public List<string> DishImage { get; set; } = new List<string>();
+
+    /// <summary>
+    /// 菜品详情列表
+    /// </summary>
+    [Required]
+    public List<OrderDishDto> DishDetails { get; set; } = new List<OrderDishDto>();
 
         /// <summary>
         /// 总金额
@@ -324,6 +354,16 @@ namespace BackEnd.DTOs.User
         /// </summary>
         [Required]
         public int MonthlySales { get; set; }
+
+        /// <summary>
+        /// 店铺描述（店铺特色）
+        /// </summary>
+        public string? Description { get; set; }
+
+        /// <summary>
+        /// 店铺种类
+        /// </summary>
+        public string? Category { get; set; }
     }
 
     /// <summary>

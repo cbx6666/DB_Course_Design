@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using BackEnd.Models.Enums;
 
 namespace BackEnd.DTOs.AuthRequest
 {
@@ -123,7 +124,7 @@ namespace BackEnd.DTOs.AuthRequest
         /// <summary>
         /// 分类
         /// </summary>
-        public required string Category { get; set; }
+        public required StoreCategory Category { get; set; }
     }
 
     /// <summary>

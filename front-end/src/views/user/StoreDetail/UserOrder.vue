@@ -1,10 +1,29 @@
 <template>
-  <div>
-    <div class="flex">
-      <!-- 菜品展示 -->
+  <div class="flex">
+    <!-- 左侧分类菜单 -->
+    <div class="w-48 bg-white border-r border-gray-200 overflow-y-auto" style="max-height: calc(100vh - 200px);">
+      <div class="p-2">
+        <div 
+          v-for="category in categories" 
+          :key="category.id"
+          @click="selectCategory(category.id)"
+          :class="[
+            'px-4 py-3 mb-2 rounded-lg cursor-pointer transition-all',
+            selectedCategoryId === category.id 
+              ? 'bg-[#F9771C] text-white' 
+              : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+          ]"
+        >
+          <span class="text-sm font-medium">{{ category.name }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧菜品展示 -->
+    <div class="flex-1">
       <DishIntro 
         :cart="cart" 
-        :menuItems="menuItems" 
+        :menuItems="filteredMenuItems" 
         @increase="increaseQuantity"
         @decrease="decreaseQuantity"
       />
@@ -12,6 +31,7 @@
 
     <!-- 购物车 -->
     <ItemCart 
+      v-if="storeID"
       :cart="cart" 
       :storeID="storeID"
       :menuItems="menuItems" 
@@ -27,8 +47,8 @@ import { useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
-import type { StoreInfo, MenuItem, ShoppingCart, ShoppingCartItem } from '@/api/user'
-import { getStoreInfo, getMenuItem, getShoppingCart, addOrUpdateCartItem, removeCartItem } from '@/api/user'
+import type { StoreInfo, MenuItem, ShoppingCart, ShoppingCartItem, Category } from '@/api/user'
+import { getStoreInfo, getMenuItem, getShoppingCart, addOrUpdateCartItem, removeCartItem, getStoreCategories } from '@/api/user'
 
 import DishIntro from '@/components/user/StoreDetail/OrderView/DishIntro.vue'
 import ItemCart from '@/components/user/StoreDetail/OrderView/ItemCart.vue'
@@ -37,16 +57,34 @@ import ItemCart from '@/components/user/StoreDetail/OrderView/ItemCart.vue'
 const route = useRoute()
 const userStore = useUserStore();
 const userID = userStore.getUserID();
-const storeID = computed(() => route.params.id as string)
+const storeID = ref<string>('')
 
 // 数据
 const storeInfo = ref<StoreInfo>()
 const menuItems = ref<MenuItem[]>([])
+const categories = ref<Category[]>([])
+const selectedCategoryId = ref<number | null>(null)
+const allMenuItems = ref<MenuItem[]>([])
+
 const cart = ref<ShoppingCart>({
   cartId: 3,
   totalPrice: 0,
   items: []
 });  // 防止未定义
+
+// 过滤后的菜品列表
+const filteredMenuItems = computed(() => {
+  if (selectedCategoryId.value === null) {
+    return allMenuItems.value
+  }
+  // 根据选中的分类ID过滤菜品
+  return allMenuItems.value.filter(item => item.categoryId === selectedCategoryId.value)
+})
+
+// 选择分类
+function selectCategory(categoryId: number) {
+  selectedCategoryId.value = categoryId
+}
 
 // 增加数量
 async function increaseQuantity(dish: MenuItem) {
@@ -99,6 +137,8 @@ async function loadCart() {
       return;
     }
     
+    if (!storeID.value) return
+    
     const data = await getShoppingCart(storeID.value);
     cart.value = data ?? { cartId: 0, totalPrice: 0, items: [] };
   } catch (error) {
@@ -109,23 +149,36 @@ async function loadCart() {
 }
 
 // 获取数据
-async function loadData(storeID: string) {
-  storeInfo.value = await getStoreInfo(storeID)
-  menuItems.value = await getMenuItem(storeID)
+async function loadData(storeId: string) {
+  storeInfo.value = await getStoreInfo(storeId)
+  allMenuItems.value = await getMenuItem(storeId)
+  menuItems.value = allMenuItems.value
+  categories.value = await getStoreCategories(storeId)
+  
+  // 如果有分类，默认选中第一个
+  if (categories.value.length > 0) {
+    selectedCategoryId.value = categories.value[0].id
+  }
+  
   await loadCart()
 }
 
 // 生命周期
-onMounted(() => loadData(storeID.value))
-watch(
-  storeID, 
-  (newID) => {
-    if (newID) {
-      loadData(newID);
-    }
-  },
-  {
-    immediate: true
+onMounted(() => {
+  const id = route.params.id as string
+  if (id) {
+    storeID.value = id
+    loadData(id)
   }
-);
+})
+
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId && typeof newId === 'string') {
+      storeID.value = newId
+      loadData(newId)
+    }
+  }
+)
 </script>

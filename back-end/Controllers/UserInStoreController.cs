@@ -51,6 +51,21 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
+        /// 获取店铺的菜品种类列表
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>菜品种类列表</returns>
+        [HttpGet("store/categories")]
+        public async Task<ActionResult> GetStoreCategories([FromQuery] int storeId)
+        {
+            if (storeId <= 0)
+                return BadRequest("店铺编号无效");
+
+            var result = await _userInStoreService.GetStoreCategoriesAsync(storeId);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// 获取菜单（平铺菜品）
         /// </summary>
         /// <param name="request">菜单请求</param>

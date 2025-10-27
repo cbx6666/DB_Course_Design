@@ -28,11 +28,12 @@
                     <!-- 顶部商家信息 -->
                     <div class="flex justify-between items-start mb-4">
                         <div class="flex items-center space-x-4">
-                            <img :src="normalizeImageUrl(order.storeImage)" :alt="order.storeName"
-                                class="w-16 h-16 rounded-lg object-cover object-top" @error="handleImageError" />
+                            <div class="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
+                              <img :src="normalizeImageUrl(order.storeImage)" :alt="order.storeName"
+                                  class="max-w-full max-h-full w-auto h-auto object-contain" @error="handleImageError" />
+                            </div>
                             <div>
                                 <h3 class="font-bold text-lg">{{ order.storeName }}</h3>
-                                <p class="text-gray-600 text-sm">订单号：{{ order.orderID }}</p>
                                 <p class="text-gray-600 text-sm">下单时间：{{ order.paymentTime }}</p>
                             </div>
                         </div>
@@ -48,14 +49,22 @@
                     <!-- 菜品展示 + 金额 + 操作按钮 -->
                     <div class="border-t pt-4 flex justify-between items-center">
                         <!-- 左边：菜品 -->
-                        <div class="flex space-x-2 items-center">
-                            <img v-for="(dish, idx) in order.dishImage.slice(0, 8)" :key="idx" :src="dish" alt="菜品"
-                                class="w-12 h-12 rounded-lg object-cover" />
+                        <div class="flex space-x-2 items-start">
+                            <div v-for="(dish, idx) in order.dishDetails.slice(0, 8)" :key="idx" class="flex flex-col items-center">
+                                <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
+                                    <img :src="normalizeImageUrl(dish.dishImage)" :alt="dish.dishName"
+                                        class="max-w-full max-h-full w-auto h-auto object-contain" @error="handleImageError" />
+                                </div>
+                                <div class="w-12 mt-1 text-center">
+                                    <p class="text-xs text-gray-700 truncate" :title="dish.dishName">{{ dish.dishName }}</p>
+                                    <p v-if="dish.quantity > 1" class="text-xs text-gray-500">×{{ dish.quantity }}</p>
+                                </div>
+                            </div>
                             <!-- 超过 8 个时显示省略 -->
-                            <span v-if="order.dishImage.length > 8"
+                            <div v-if="order.dishDetails.length > 8"
                                 class="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 text-sm">
-                                +{{ order.dishImage.length - 8 }}
-                            </span>
+                                +{{ order.dishDetails.length - 8 }}
+                            </div>
                         </div>
 
                         <!-- 右边：金额 + 操作按钮 -->
