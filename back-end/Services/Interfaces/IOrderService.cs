@@ -18,13 +18,6 @@ namespace BackEnd.Services.Interfaces
         Task<IEnumerable<FoodOrderDto>> GetOrdersAsync(int? sellerId, int? storeId);
 
         /// <summary>
-        /// 根据ID获取订单
-        /// </summary>
-        /// <param name="orderId">订单ID</param>
-        /// <returns>订单详情</returns>
-        Task<FoodOrderDto?> GetOrderByIdAsync(int orderId);
-
-        /// <summary>
         /// 接受订单
         /// </summary>
         /// <param name="orderId">订单ID</param>

@@ -87,6 +87,18 @@ namespace BackEnd.Models
         public Store Store { get; set; } = null!;
 
         /// <summary>
+        /// 配送信息ID（外键）
+        /// </summary>
+        [Required]
+        public int DeliveryInfoID { get; set; }
+        
+        /// <summary>
+        /// 关联的配送信息
+        /// </summary>
+        [ForeignKey("DeliveryInfoID")]
+        public DeliveryInfo DeliveryInfo { get; set; } = null!;
+
+        /// <summary>
         /// 优惠券集合
         /// </summary>
         public ICollection<Coupon>? Coupons { get; set; }

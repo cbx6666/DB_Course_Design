@@ -40,6 +40,7 @@ namespace BackEnd.Data.EntityConfigs
             builder.Property(fo => fo.CustomerID).HasColumnName("CUSTOMERID").IsRequired();
             builder.Property(fo => fo.CartID).HasColumnName("CARTID").IsRequired(false);
             builder.Property(fo => fo.StoreID).HasColumnName("STOREID").IsRequired();
+            builder.Property(fo => fo.DeliveryInfoID).HasColumnName("DELIVERYINFOID").IsRequired();
 
             // 索引配置
             builder.HasIndex(fo => fo.CartID).IsUnique();

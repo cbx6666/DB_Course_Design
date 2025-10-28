@@ -44,7 +44,7 @@
       </aside>
 
       <main class="ml-52 flex-1 p-6">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">订单中心</h2>
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">订单中心</h2>
 
         <div v-if="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
           <div class="flex items-center justify-between">
@@ -67,129 +67,189 @@
           </div>
         </div>
 
-        <!-- 订单统计卡片 -->
-        <div class="grid grid-cols-4 gap-6 mb-8">
-          <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-gray-600 text-sm">待处理订单</p>
-                <p class="text-2xl font-bold text-orange-500">{{ orderStats.pending }}</p>
-              </div>
-              <el-icon class="text-orange-500 text-3xl">
-                <Clock />
-              </el-icon>
+      <!-- 订单统计卡片 -->
+      <div class="grid grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm">待处理订单</p>
+              <p class="text-2xl font-bold text-orange-500">{{ orderStats.pending }}</p>
             </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-gray-600 text-sm">今日订单</p>
-                <p class="text-2xl font-bold text-blue-500">{{ orderStats.today }}</p>
-              </div>
-              <el-icon class="text-blue-500 text-3xl">
-                <Document />
-              </el-icon>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-gray-600 text-sm">本月订单</p>
-                <p class="text-2xl font-bold text-green-500">{{ orderStats.monthly }}</p>
-              </div>
-              <el-icon class="text-green-500 text-3xl">
-                <TrendCharts />
-              </el-icon>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-gray-600 text-sm">总收入</p>
-                <p class="text-2xl font-bold text-purple-500">¥{{ orderStats.revenue }}</p>
-              </div>
-              <el-icon class="text-purple-500 text-3xl">
-                <Money />
-              </el-icon>
-            </div>
+            <el-icon class="text-orange-500 text-3xl">
+              <Clock />
+            </el-icon>
           </div>
         </div>
 
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm">今日订单</p>
+              <p class="text-2xl font-bold text-blue-500">{{ orderStats.today }}</p>
+            </div>
+            <el-icon class="text-blue-500 text-3xl">
+              <Document />
+            </el-icon>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm">本月订单</p>
+              <p class="text-2xl font-bold text-green-500">{{ orderStats.monthly }}</p>
+            </div>
+            <el-icon class="text-green-500 text-3xl">
+              <TrendCharts />
+            </el-icon>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm">总收入</p>
+              <p class="text-2xl font-bold text-purple-500">¥{{ orderStats.revenue }}</p>
+            </div>
+            <el-icon class="text-purple-500 text-3xl">
+              <Money />
+            </el-icon>
+          </div>
+        </div>
+      </div>
+
         <div class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/30 overflow-hidden relative z-10 transform transition-all duration-300 hover:shadow-3xl hover:scale-[1.01]">
           <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#F9771C] via-[#FF8C42] to-transparent">
-          </div>
+        </div>
 
           <el-table :data="orders" style="width: 100%" class="custom-table relative z-10" v-loading="loading.orders"
             element-loading-text="加载订单中..." element-loading-spinner="el-icon-loading"
             element-loading-background="rgba(255, 255, 255, 0.8)">
-            <el-table-column prop="orderId" label="订单ID" width="120" align="center" />
-            <el-table-column prop="paymentTime" label="支付时间" width="160">
+             <el-table-column label="菜品信息" min-width="220">
+               <template #default="scope">
+                 <div class="text-sm">
+                   <div v-if="scope.row.items && scope.row.items.length > 0">
+                     <!-- 显示前2个菜品，包含价格信息 -->
+                     <div v-for="(item, index) in scope.row.items.slice(0, 2)" :key="index" class="mb-1">
+                       <div class="flex justify-between items-center">
+                         <div class="flex-1">
+                           <span class="font-medium">{{ item.dish?.dishName || '未知菜品' }}</span>
+                           <span class="text-gray-500 ml-2">×{{ item.quantity }}</span>
+                         </div>
+                         <div class="text-right text-xs">
+                           <div class="text-gray-600">¥{{ item.dish?.price || 0 }}</div>
+                           <div class="font-medium text-orange-600">¥{{ item.totalPrice || 0 }}</div>
+            </div>
+          </div>
+        </div>
+
+                     <!-- 如果菜品超过2个，显示省略信息 -->
+                     <div v-if="scope.row.items.length > 2" class="text-gray-400 text-xs mt-1">
+                       <span>等{{ scope.row.items.length }}种菜品</span>
+                       <el-button 
+                         type="text" 
+                         size="small" 
+                         class="ml-2 text-blue-500 hover:text-blue-700 p-0 text-xs"
+                         @click="showDishDetails(scope.row)">
+                         查看全部
+                       </el-button>
+          </div>
+
+                     <!-- 显示总数量和总金额 -->
+                     <div class="text-gray-500 text-xs mt-2 border-t border-gray-200 pt-1 flex justify-between">
+                       <span>共{{ getTotalQuantity(scope.row.items) }}件商品</span>
+                       <span class="font-medium text-orange-600">
+                         合计：¥{{ getTotalAmount(scope.row.items) }}
+                       </span>
+                     </div>
+                </div>
+                   <div v-else class="text-gray-400 text-center py-2">
+                     <div class="text-xs">暂无菜品信息</div>
+                     <div class="text-xs mt-1">订单ID: {{ scope.row.orderId }}</div>
+                </div>
+              </div>
+               </template>
+             </el-table-column>
+            <el-table-column prop="paymentTime" label="支付时间" min-width="160">
               <template #default="scope">
                 <span>{{ formatDate(scope.row.paymentTime) }}</span>
               </template>
             </el-table-column>
-            <el-table-column prop="customerId" label="客户ID" width="100" align="center" />
-            <el-table-column prop="storeId" label="门店ID" width="100" align="center" />
-            <el-table-column prop="sellerId" label="商家ID" width="100" align="center" />
-            <el-table-column prop="orderState" label="接单状态" width="120" align="center">
+            <el-table-column label="收货人" min-width="160" align="left">
               <template #default="scope">
-                <span
-                  :class="[orderStateMap[scope.row.orderState]?.colorClass, 'px-3 py-1 rounded-full text-xs font-medium']">
-                  {{ orderStateMap[scope.row.orderState]?.label || '未知状态' }}
-                </span>
+                <div class="text-xs space-y-0.5">
+                  <div class="font-medium text-gray-900 truncate">{{ scope.row.deliveryName || '未提供' }}</div>
+                  <div class="text-gray-500 truncate">{{ scope.row.deliveryPhone || '-' }}</div>
+                </div>
               </template>
             </el-table-column>
-            <el-table-column prop="deliveryStatus" label="配送任务状态" width="140" align="center">
+            <el-table-column label="备注" min-width="160">
               <template #default="scope">
-                <span
-                  :class="[deliveryStatusMap[String(scope.row.deliveryStatus ?? -1)]?.colorClass, 'px-3 py-1 rounded-full text-xs font-medium']">
-                  {{ deliveryStatusMap[String(scope.row.deliveryStatus ?? -1)]?.label }}
-                </span>
+                <span class="text-gray-600">{{ scope.row.remarks || '无' }}</span>
               </template>
             </el-table-column>
-            <el-table-column prop="remarks" label="备注" min-width="200" />
-            <el-table-column label="操作" min-width="520">
+            <el-table-column label="订单管理" min-width="160" align="left">
               <template #default="scope">
-                <div class="flex flex-wrap items-center gap-2">
-                  <button @click="showOrderDetails(scope.row)" class="btn-primary btn-small shrink-0">
-                    订单信息
-                  </button>
-
-                  <!-- 接单/出餐 按钮 -->
-                  <button v-if="scope.row.orderState === 0" @click="acceptOrder(scope.row)"
-                    class="btn-success btn-small shrink-0">
-                    接单
-                  </button>
-                  <button v-else-if="scope.row.orderState === 1" @click="markAsReady(scope.row)"
-                    class="btn-warning btn-small shrink-0">
-                    出餐
-                  </button>
-                  <button v-else-if="scope.row.orderState === 2" disabled
-                    class="btn-secondary btn-small shrink-0 opacity-60 cursor-not-allowed">
-                    已出餐
-                  </button>
-                  <!-- 配送任务按钮 -->
-                  <button v-if="!scope.row.deliveryTaskId && scope.row.orderState !== 0"
-                    @click="openPublishDialog(scope.row)" class="btn-info btn-small shrink-0">
-                    发布配送
-                  </button>
-                  <button v-else-if="!scope.row.deliveryTaskId && scope.row.orderState === 0" disabled
-                    class="btn-secondary btn-small shrink-0 opacity-60 cursor-not-allowed">
-                    请先接单
-                  </button>
-                  <button v-else disabled class="btn-secondary btn-small shrink-0 opacity-60 cursor-not-allowed">
-                    已发布配送
-                  </button>
-
-                  <!-- 只要发布了配送任务，显示"查看配送"按钮 -->
-                  <button v-if="scope.row.deliveryTaskId" @click="openDeliveryInfo(scope.row)"
-                    class="btn-small shrink-0"
-                    style="background-color: #f8bbd0 !important; color: white !important; border-radius: 8px !important; padding: 8px 16px !important;">
-                    查看配送
-                  </button>
+                <div class="space-y-1">
+                  <!-- 订单状态 -->
+                  <div>
+                    <span
+                      :class="[orderStateMap[scope.row.orderState]?.colorClass, 'px-2 py-0.5 rounded-full text-xs font-medium']">
+                      {{ orderStateMap[scope.row.orderState]?.label || '未知状态' }}
+                    </span>
+                  </div>
+                  
+                  <!-- 接单/出餐按钮 -->
+                  <div class="flex flex-col">
+                    <button v-if="scope.row.orderState === 0" @click="acceptOrder(scope.row.orderId)"
+                      class="btn-success btn-small shrink-0 w-full py-1.5">
+                      接单
+                    </button>
+                    <button v-else-if="scope.row.orderState === 1" @click="markAsReady(scope.row.orderId)"
+                      class="btn-warning btn-small shrink-0 w-full py-1.5">
+                      出餐
+                    </button>
+                    <button v-else-if="scope.row.orderState === 2" disabled
+                      class="btn-secondary btn-small shrink-0 opacity-60 cursor-not-allowed w-full py-1.5">
+                      已出餐
+                    </button>
+                  </div>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column label="配送管理" min-width="160">
+              <template #default="scope">
+                <div class="space-y-1">
+                  <!-- 简单的发布状态 -->
+                  <div>
+                    <span v-if="scope.row.deliveryTaskId"
+                      class="bg-green-100 text-green-600 px-2 py-0.5 rounded-full text-xs font-medium inline-block">
+                      已发布
+                    </span>
+                    <span v-else
+                      class="bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full text-xs font-medium inline-block">
+                      未发布
+                    </span>
+                  </div>
+                  
+                  <!-- 配送操作按钮 -->
+                  <div class="flex flex-col">
+                    <button v-if="!scope.row.deliveryTaskId && scope.row.orderState !== 0"
+                      @click="openPublishDialog(scope.row)" class="btn-info btn-small shrink-0 w-full py-1.5">
+                      发布配送
+                    </button>
+                    <button v-else-if="!scope.row.deliveryTaskId && scope.row.orderState === 0" disabled
+                      class="btn-secondary btn-small shrink-0 opacity-60 cursor-not-allowed w-full py-1.5">
+                      请先接单
+                    </button>
+                    
+                    <!-- 查看配送按钮 -->
+                    <button v-if="scope.row.deliveryTaskId" @click="openDeliveryInfo(scope.row)"
+                      class="btn-small shrink-0 w-full py-1.5"
+                      style="background-color: #f8bbd0 !important; color: white !important; border-radius: 8px !important;">
+                      查看配送
+                    </button>
+                  </div>
                 </div>
               </template>
             </el-table-column>
@@ -198,49 +258,176 @@
       </main>
     </div>
 
-    <!-- 订单详情对话框 -->
-    <div v-if="showOrderDetailsDialog"
+    <!-- 菜品详情对话框 -->
+    <div v-if="showDishDetailsDialog"
       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
       <div
         class="bg-white rounded-2xl w-[720px] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl border border-gray-100 transform transition-all duration-300 scale-100">
         <div
           class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-yellow-50">
           <div>
-            <div class="text-xl font-bold text-gray-900">订单详细信息</div>
-            <div class="text-sm text-orange-600 font-medium">订单ID: {{ selectedOrder?.orderId }}</div>
+            <div class="text-xl font-bold text-gray-900">菜品详情</div>
+            <div class="text-sm text-orange-600 font-medium">订单ID: {{ selectedDishOrder?.orderId }}</div>
           </div>
-          <button @click="closeOrderDetailsDialog" class="btn-icon text-gray-400 hover:text-gray-600">
+          <button @click="closeDishDetailsDialog" class="btn-icon text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+              </div>
+
+        <div class="flex-1 p-4 overflow-y-auto">
+          <!-- 菜品详情表格 -->
+          <div v-if="selectedDishOrder?.items && selectedDishOrder.items.length > 0">
+            <div class="bg-gray-50 rounded-lg overflow-hidden">
+              <div class="max-h-96 overflow-y-auto">
+                <table class="w-full text-sm">
+                  <thead class="bg-gray-100 sticky top-0">
+                    <tr>
+                      <th class="px-4 py-3 text-left text-gray-700 font-medium">菜品名称</th>
+                      <th class="px-4 py-3 text-center text-gray-700 font-medium">数量</th>
+                      <th class="px-4 py-3 text-right text-gray-700 font-medium">单价</th>
+                      <th class="px-4 py-3 text-right text-gray-700 font-medium">小计</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(item, index) in selectedDishOrder.items" :key="index" 
+                        class="border-t border-gray-200 hover:bg-gray-100 transition-colors">
+                      <td class="px-4 py-3">
+                        <span class="font-medium text-gray-900">{{ item.dish?.dishName || '未知菜品' }}</span>
+                      </td>
+                      <td class="px-4 py-3 text-center text-gray-700">{{ item.quantity }}</td>
+                      <td class="px-4 py-3 text-right text-gray-600">¥{{ item.dish?.price || 0 }}</td>
+                      <td class="px-4 py-3 text-right font-medium text-orange-600">¥{{ item.totalPrice || 0 }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="bg-gray-100 px-4 py-3 border-t border-gray-200">
+                <div class="flex justify-between items-center text-sm font-medium">
+                  <span class="text-gray-700">
+                    共 {{ selectedDishOrder.items.length }} 种菜品，{{ getTotalQuantity(selectedDishOrder.items) }} 件商品
+                  </span>
+                  <span class="text-lg font-bold text-orange-600">
+                    合计：¥{{ getTotalAmount(selectedDishOrder.items) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-center py-8 text-gray-400">
+            <div class="text-lg mb-2">暂无菜品信息</div>
+            <div class="text-sm">订单ID: {{ selectedDishOrder?.orderId }}</div>
+          </div>
+          </div>
+
+        <div class="p-4 border-t border-gray-200 flex justify-end">
+          <button @click="closeDishDetailsDialog" class="btn-outline btn-medium">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 配送信息对话框 -->
+    <div v-if="showDeliveryInfoDialog"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+      <div
+        class="bg-white rounded-2xl w-[600px] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl border border-gray-100 transform transition-all duration-300 scale-100">
+        <div
+          class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+          <div>
+            <div class="text-xl font-bold text-gray-900">配送信息</div>
+            <div class="text-sm text-blue-600 font-medium">订单ID: {{ deliveryInfo?.order?.orderId }}</div>
+          </div>
+          <button @click="closeDeliveryInfoDialog" class="btn-icon text-gray-400 hover:text-gray-600">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
         </div>
 
-        <div class="flex-1 p-4 overflow-y-auto space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <div class="bg-gray-50 rounded-lg p-3">
-              <div class="text-sm text-gray-700">支付时间: {{ selectedOrder?.paymentTime }}</div>
-              <div class="text-sm text-gray-700">备注: {{ selectedOrder?.remarks || '-' }}</div>
+        <div class="flex-1 p-6 overflow-y-auto">
+          <!-- 配送状态 -->
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">配送状态</h3>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <span
+                :class="[deliveryStatusMap[String(deliveryInfo?.deliveryTask?.status ?? -1)]?.colorClass || 'bg-gray-100 text-gray-600', 'px-4 py-2 rounded-full text-sm font-medium']">
+                {{ deliveryStatusMap[String(deliveryInfo?.deliveryTask?.status ?? -1)]?.label || '未知状态' }}
+              </span>
             </div>
-            <div class="bg-gray-50 rounded-lg p-3">
-              <div class="text-sm text-gray-700">客户ID: {{ selectedOrder?.customerId }}</div>
-              <div class="text-sm text-gray-700">门店ID: {{ selectedOrder?.storeId }}，商家ID: {{ selectedOrder?.sellerId }}
+          </div>
+
+          <!-- 收货地址 -->
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">收货信息</h3>
+            <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+              <div class="flex items-center text-gray-700">
+                <span class="font-medium mr-2">收货人：</span>
+                <span class="text-left">{{ deliveryInfo?.order?.deliveryName || '未提供' }}</span>
+              </div>
+              <div class="flex items-center text-gray-700">
+                <span class="font-medium mr-2">联系电话：</span>
+                <span class="text-left">{{ deliveryInfo?.order?.deliveryPhone || '-' }}</span>
+              </div>
+              <div class="flex items-start text-gray-700">
+                <span class="font-medium mr-2">收货地址：</span>
+                <span class="flex-1 text-left">{{ deliveryInfo?.order?.deliveryAddress || '未提供' }}</span>
               </div>
             </div>
           </div>
 
+          <!-- 骑手信息 -->
           <div>
-            <div class="text-sm font-medium text-gray-900 mb-2">订单信息</div>
-            <div class="bg-gray-50 rounded-lg p-3">
-              <div class="text-sm text-gray-700">订单状态: {{ getStatusText(selectedOrder?.orderState || 0) }}</div>
-              <div class="text-sm text-gray-700">总金额: ¥{{ selectedOrder?.totalAmount || 0 }}</div>
-              <div class="text-sm text-gray-700">配送地址: {{ selectedOrder?.deliveryAddress || '-' }}</div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">骑手信息</h3>
+            <div v-if="deliveryInfo?.courier" class="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div class="flex items-center text-gray-700">
+                <span class="font-medium mr-2">姓名：</span>
+                <span>{{ deliveryInfo.courier.fullName || '未知' }}</span>
+              </div>
+              <div class="flex items-center text-gray-700">
+                <span class="font-medium mr-2">电话：</span>
+                <span>{{ deliveryInfo.courier.phoneNumber || '-' }}</span>
+              </div>
+              <div class="flex items-center text-gray-700">
+                <span class="font-medium mr-2">交通工具：</span>
+                <span>{{ deliveryInfo.courier.vehicleType }}</span>
+              </div>
+              <div class="flex items-center text-gray-700">
+                <span class="font-medium mr-2">评分：</span>
+                <span>{{ deliveryInfo.courier.averageRating?.toFixed(1) || '0.0' }} 分</span>
+              </div>
+              
+              <!-- 骑手位置 -->
+              <div class="border-t border-gray-200 pt-3">
+                <div class="flex items-start text-gray-700">
+                  <span class="font-medium mr-2">实时位置：</span>
+                  <div class="flex-1">
+                    <div v-if="deliveryInfo.courier.longitude && deliveryInfo.courier.latitude">
+                      经度：{{ deliveryInfo.courier.longitude }}，纬度：{{ deliveryInfo.courier.latitude }}
+                    </div>
+                    <div v-else class="text-gray-400">
+                      位置信息未提供
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="bg-gray-50 rounded-lg p-4 text-center">
+              <div class="text-gray-500 flex items-center justify-center">
+                <svg class="w-8 h-8 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <div>
+                  <div class="font-medium">暂无骑手接单</div>
+                  <div class="text-sm mt-1">请等待骑手接单</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="p-4 border-t border-gray-200 flex justify-end">
-          <button @click="closeOrderDetailsDialog" class="btn-outline btn-medium">关闭</button>
+          <button @click="closeDeliveryInfoDialog" class="btn-outline btn-medium">关闭</button>
         </div>
       </div>
     </div>
@@ -262,7 +449,11 @@ import {
   getOrders,
   acceptOrder as acceptOrderApi,
   rejectOrder as rejectOrderApi,
-  type FoodOrder
+  markAsReady as markAsReadyApi,
+  publishDeliveryTask,
+  getOrderDeliveryInfo,
+  type FoodOrder,
+  type OrderItem
 } from '@/api/merchant/orders';
 
 import {
@@ -299,9 +490,9 @@ const errorMessage = ref('');
 const orders = ref<(FoodOrder & { localStatus?: string; deliveryStatus?: number | null })[]>([]);
 const merchantInfo = ref<MerchantInfo | null>(null);
 
-// 订单详情对话框
-const showOrderDetailsDialog = ref(false);
-const selectedOrder = ref<FoodOrder | null>(null);
+// 菜品详情对话框
+const showDishDetailsDialog = ref(false);
+const selectedDishOrder = ref<FoodOrder | null>(null);
 
 // 订单统计
 const orderStats = ref({
@@ -380,9 +571,9 @@ const calculateOrderStats = () => {
 
   orderStats.value = {
     pending: orders.value.filter(order => order.orderState === 0).length,
-    today: orders.value.filter(order => order.orderTime ? new Date(order.orderTime) >= today : false).length,
-    monthly: orders.value.filter(order => order.orderTime ? new Date(order.orderTime) >= thisMonth : false).length,
-    revenue: orders.value.reduce((sum, order) => sum + (order.totalAmount || 0), 0)
+    today: orders.value.filter(order => order.paymentTime ? new Date(order.paymentTime) >= today : false).length,
+    monthly: orders.value.filter(order => order.paymentTime ? new Date(order.paymentTime) >= thisMonth : false).length,
+    revenue: orders.value.reduce((sum, order) => sum + (order.items ? getTotalAmount(order.items) : 0), 0)
   };
 };
 
@@ -406,36 +597,92 @@ const retryLoad = async () => {
   await loadOrders();
 };
 
-// 订单详情
-const showOrderDetails = async (order: FoodOrder) => {
-  selectedOrder.value = order;
-  showOrderDetailsDialog.value = true;
+// 显示菜品详情
+const showDishDetails = (order: FoodOrder) => {
+  selectedDishOrder.value = order;
+  showDishDetailsDialog.value = true;
 };
 
-const closeOrderDetailsDialog = () => {
-  showOrderDetailsDialog.value = false;
-  selectedOrder.value = null;
+// 关闭菜品详情对话框
+const closeDishDetailsDialog = () => {
+  showDishDetailsDialog.value = false;
+  selectedDishOrder.value = null;
 };
 
-// 出餐功能 - 暂时简化
-const markAsReady = async (order: any) => {
+// 出餐功能
+const markAsReady = async (orderId: number) => {
   try {
-    // 这里应该调用后端API，暂时只更新前端状态
-    order.orderState = 2; // 已出餐
+    await ElMessageBox.confirm('确定订单已出餐吗？', '确认出餐', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+
+    await markAsReadyApi(orderId);
     ElMessage.success('订单已出餐');
-  } catch (error) {
-    console.error('出餐失败:', error);
-    ElMessage.error('出餐失败，请重试');
+    await loadOrders(); // 重新加载订单列表
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error('出餐失败，请重试');
+      console.error('出餐失败:', error);
+    }
   }
 };
 
-// 配送相关功能暂时移除
-const openPublishDialog = (order: FoodOrder) => {
-  ElMessage.info('配送功能开发中');
+// 发布配送任务
+const openPublishDialog = async (order: FoodOrder) => {
+  try {
+    const estimatedArrivalTime = new Date(Date.now() + 20 * 60 * 1000); // 20分钟后
+    const estimatedDeliveryTime = new Date(Date.now() + 40 * 60 * 1000); // 40分钟后
+    
+    await ElMessageBox.confirm(
+      `确定发布配送任务吗？\n预计到达：${estimatedArrivalTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}\n预计送达：${estimatedDeliveryTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`,
+      '发布配送任务',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'info'
+      }
+    );
+
+    await publishDeliveryTask(
+      order.orderId,
+      estimatedArrivalTime.toISOString(),
+      estimatedDeliveryTime.toISOString()
+    );
+    
+    ElMessage.success('配送任务已发布');
+    await loadOrders(); // 重新加载订单列表
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error('发布配送任务失败：' + (error?.message || '未知错误'));
+    }
+  }
 };
 
-const openDeliveryInfo = (order: FoodOrder) => {
-  ElMessage.info('配送信息功能开发中');
+// 配送信息对话框相关状态
+const showDeliveryInfoDialog = ref(false);
+const deliveryInfo = ref<any>(null);
+
+// 查看配送信息
+const openDeliveryInfo = async (order: FoodOrder) => {
+  try {
+    const info = await getOrderDeliveryInfo(order.orderId);
+    console.log('配送信息：', info);
+    deliveryInfo.value = {
+      ...info,
+      order: order
+    };
+    showDeliveryInfoDialog.value = true;
+  } catch (error: any) {
+    ElMessage.error('获取配送信息失败：' + (error?.message || '未知错误'));
+  }
+};
+
+// 关闭配送信息对话框
+const closeDeliveryInfoDialog = () => {
+  showDeliveryInfoDialog.value = false;
+  deliveryInfo.value = null;
 };
 
 // 接单
@@ -549,6 +796,16 @@ const formatTime = (time: string) => {
   return new Date(time).toLocaleString('zh-CN');
 };
 
+// 计算订单总数量
+const getTotalQuantity = (items: OrderItem[]) => {
+  return items.reduce((total, item) => total + item.quantity, 0);
+};
+
+// 计算订单总金额
+const getTotalAmount = (items: OrderItem[]) => {
+  return items.reduce((total, item) => total + (item.totalPrice || 0), 0);
+};
+
 // 订单状态映射
 const orderStateMap: Record<number, { label: string; colorClass: string }> = {
   0: { label: '未接单', colorClass: 'bg-gray-100 text-gray-600' },
@@ -567,7 +824,16 @@ const deliveryStatusMap: Record<string, { label: string; colorClass: string }> =
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleString();
+  // 使用北京时间格式，精确到分钟
+  return date.toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false // 使用24小时制
+  });
 };
 
 // 登出功能

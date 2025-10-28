@@ -46,6 +46,12 @@ namespace BackEnd.DTOs.User
         /// 订单备注
         /// </summary>
         public string? Remarks { get; set; }
+
+        /// <summary>
+        /// 收货地址ID
+        /// </summary>
+        [Required]
+        public int DeliveryInfoID { get; set; }
     }
 
     /// <summary>

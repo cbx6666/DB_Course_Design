@@ -41,25 +41,6 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
-        /// 根据ID获取订单详情
-        /// </summary>
-        /// <param name="orderId">订单ID</param>
-        /// <returns>订单详情</returns>
-        [HttpGet("{orderId}")]
-        public async Task<IActionResult> GetOrderById(int orderId)
-        {
-            try
-            {
-                var order = await _orderService.GetOrderByIdAsync(orderId);
-                return order == null ? NotFound(new { code = 404, message = "订单不存在" }) : Ok(order);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { code = 400, message = ex.Message });
-            }
-        }
-
-        /// <summary>
         /// 接受订单
         /// </summary>
         /// <param name="orderId">订单ID</param>

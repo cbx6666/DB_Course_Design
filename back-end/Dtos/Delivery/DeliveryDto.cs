@@ -25,6 +25,10 @@ namespace BackEnd.DTOs.Delivery
         /// 店铺ID
         /// </summary>
         public int StoreId { get; set; }
+        /// <summary>
+        /// 配送状态
+        /// </summary>
+        public int Status { get; set; }
     }
 
     /// <summary>
@@ -129,6 +133,14 @@ namespace BackEnd.DTOs.Delivery
         /// 电话号码
         /// </summary>
         public long? PhoneNumber { get; set; }
+        /// <summary>
+        /// 经度
+        /// </summary>
+        public decimal? Longitude { get; set; }
+        /// <summary>
+        /// 纬度
+        /// </summary>
+        public decimal? Latitude { get; set; }
     }
 
     /// <summary>

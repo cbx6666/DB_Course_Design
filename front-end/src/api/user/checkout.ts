@@ -47,11 +47,12 @@ export interface Order {
     deliveryFee: number;
 }
 
-export const submitOrder = (customerId: number, cartId: number, storeId: number, deliveryFee: number, remarks?: string) => {
+export const submitOrder = (customerId: number, cartId: number, storeId: number, deliveryInfoId: number, deliveryFee: number, remarks?: string) => {
     const requestBody = {
         CartId: cartId,
         CustomerId: customerId,
         StoreId: storeId,
+        DeliveryInfoID: deliveryInfoId,
         PaymentTime: new Date().toISOString(),
         DeliveryFee: deliveryFee,
         Remarks: remarks || ''

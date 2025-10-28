@@ -35,7 +35,7 @@
         <div class="space-y-4 w-[45vh]">
           <AddressSelector
             :selectedAddress="selectedAddress"
-            @onAddressChange="selectedAddress = $event"
+            @onAddressChange="onAddressChange"
           />
           <CouponSelector
             :totalAmount="subtotal"
@@ -60,8 +60,8 @@ import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 
-import type { Address, MenuItem, ShoppingCart, CouponInfo } from '@/api/user';
-import { getAddress, getMenuItem, getShoppingCart, addOrUpdateCartItem, removeCartItem, submitOrder, useCoupon, getDeliveryTasks } from '@/api/user';
+import type { UserAddress as Address, MenuItem, ShoppingCart, CouponInfo } from '@/api/user';
+import { getMenuItem, getShoppingCart, addOrUpdateCartItem, removeCartItem, submitOrder, useCoupon, getDeliveryTasks } from '@/api/user';
 
 import DishCard from '@/components/user/Checkout/DishCard.vue';
 import AddressSelector from '@/components/user/Checkout/AddressSelector.vue';
@@ -118,13 +118,11 @@ watch(
 async function loadData(currentStoreID: string) {
   try {
     // 并行加载，速度更快
-    const [addressData, menuItemsData, cartData] = await Promise.all([
-      getAddress(userID),
+    const [menuItemsData, cartData] = await Promise.all([
       getMenuItem(currentStoreID),
       getShoppingCart(currentStoreID, userID)
     ]);
     
-    selectedAddress.value = addressData;
     menuItems.value = menuItemsData;
     cart.value = cartData;
 
@@ -171,7 +169,7 @@ async function checkout() {
   try {
     // 暂时注释掉 useCoupon，等待后端实现
     // await useCoupon(selectedCoupon.value?.couponID ?? null)
-    await submitOrder(userID, cart.value.cartId, Number(storeID.value), deliveryFee);
+    await submitOrder(userID, cart.value.cartId, Number(storeID.value), selectedAddress.value.id, deliveryFee);
     // 重新加载购物车数据以获取清空后的状态
     cart.value = await getShoppingCart(storeID.value, userID);
     alert('下单成功！');
@@ -180,6 +178,11 @@ async function checkout() {
     console.error('下单失败:', error);
     alert('下单失败，请重试');
   }
+}
+
+// 处理地址变更
+function onAddressChange(address: Address) {
+  selectedAddress.value = address;
 }
 
 console.log(deliveryFee);

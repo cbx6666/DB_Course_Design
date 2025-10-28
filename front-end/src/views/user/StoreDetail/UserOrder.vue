@@ -34,7 +34,7 @@
       v-if="storeID"
       :cart="cart" 
       :storeID="storeID"
-      :menuItems="menuItems" 
+      :menuItems="allMenuItems" 
       @increase="increaseQuantity"
       @decrease="decreaseQuantity"
     />
@@ -61,7 +61,6 @@ const storeID = ref<string>('')
 
 // 数据
 const storeInfo = ref<StoreInfo>()
-const menuItems = ref<MenuItem[]>([])
 const categories = ref<Category[]>([])
 const selectedCategoryId = ref<number | null>(null)
 const allMenuItems = ref<MenuItem[]>([])
@@ -71,6 +70,9 @@ const cart = ref<ShoppingCart>({
   totalPrice: 0,
   items: []
 });  // 防止未定义
+
+// 请求锁：防止快速点击导致重复添加
+const pendingRequests = ref<Set<number>>(new Set());
 
 // 过滤后的菜品列表
 const filteredMenuItems = computed(() => {
@@ -97,11 +99,25 @@ async function increaseQuantity(dish: MenuItem) {
   
   if (!cart.value) return;
   
-  const item = cart.value.items.find(i => i.dishId === dish.id)
-  const newQty = (item?.quantity ?? 0) + 1
+  // 检查是否已有该菜品的待处理请求
+  if (pendingRequests.value.has(dish.id)) {
+    console.log('请求正在处理中，请稍候...');
+    return;
+  }
+  
+  try {
+    // 添加到待处理集合
+    pendingRequests.value.add(dish.id);
+    
+    const item = cart.value.items.find(i => i.dishId === dish.id)
+    const newQty = (item?.quantity ?? 0) + 1
 
-  await addOrUpdateCartItem(cart.value.cartId, dish.id, newQty)
-  await loadCart()
+    await addOrUpdateCartItem(cart.value.cartId, dish.id, newQty)
+    await loadCart()
+  } finally {
+    // 请求完成后从待处理集合中移除
+    pendingRequests.value.delete(dish.id);
+  }
 }
 
 // 减少数量
@@ -114,16 +130,30 @@ async function decreaseQuantity(dish: MenuItem) {
   
   if (!cart.value) return;
   
-  const item = cart.value.items.find(i => i.dishId === dish.id)
-  if (!item) return
-
-  const newQty = item.quantity - 1
-  if (newQty > 0) {
-    await addOrUpdateCartItem(cart.value.cartId, dish.id, newQty)
-  } else {
-    await removeCartItem(cart.value.cartId, dish.id)
+  // 检查是否已有该菜品的待处理请求
+  if (pendingRequests.value.has(dish.id)) {
+    console.log('请求正在处理中，请稍候...');
+    return;
   }
-  await loadCart()
+  
+  try {
+    // 添加到待处理集合
+    pendingRequests.value.add(dish.id);
+    
+    const item = cart.value.items.find(i => i.dishId === dish.id)
+    if (!item) return
+
+    const newQty = item.quantity - 1
+    if (newQty > 0) {
+      await addOrUpdateCartItem(cart.value.cartId, dish.id, newQty)
+    } else {
+      await removeCartItem(cart.value.cartId, dish.id)
+    }
+    await loadCart()
+  } finally {
+    // 请求完成后从待处理集合中移除
+    pendingRequests.value.delete(dish.id);
+  }
 }
 
 // 读取购物车
@@ -152,7 +182,6 @@ async function loadCart() {
 async function loadData(storeId: string) {
   storeInfo.value = await getStoreInfo(storeId)
   allMenuItems.value = await getMenuItem(storeId)
-  menuItems.value = allMenuItems.value
   categories.value = await getStoreCategories(storeId)
   
   // 如果有分类，默认选中第一个

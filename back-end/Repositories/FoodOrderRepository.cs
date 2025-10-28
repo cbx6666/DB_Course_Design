@@ -31,6 +31,7 @@ namespace BackEnd.Repositories
                                        .Include(fo => fo.Customer)               // 顾客
                                        .Include(fo => fo.Cart)                   // 购物车
                                        .Include(fo => fo.Store)                  // 店铺
+                                       .Include(fo => fo.DeliveryInfo)           // 配送信息
                                        .Include(fo => fo.Coupons)                // 优惠券
                                        .Include(fo => fo.AfterSaleApplications)  // 售后申请
                                        .Include(fo => fo.Comments)               // 评论

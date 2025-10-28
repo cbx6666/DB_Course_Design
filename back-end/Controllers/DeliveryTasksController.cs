@@ -55,6 +55,25 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
+        /// 获取订单配送信息
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>配送信息</returns>
+        [HttpGet("order/{orderId}")]
+        public async Task<IActionResult> GetOrderDeliveryInfo(int orderId)
+        {
+            try
+            {
+                var info = await _deliveryService.GetOrderDeliveryInfoAsync(orderId);
+                return Ok(info);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { code = 400, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// 从Token中获取商家ID
         /// </summary>
         /// <returns>商家ID，如果无效则返回null</returns>

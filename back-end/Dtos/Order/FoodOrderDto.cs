@@ -1,4 +1,5 @@
 using BackEnd.Models.Enums;
+using BackEnd.DTOs.Cart;
 
 namespace BackEnd.DTOs.Order
 {
@@ -56,5 +57,25 @@ namespace BackEnd.DTOs.Order
         /// 配送状态
         /// </summary>
         public int? DeliveryStatus { get; set; }
+
+        /// <summary>
+        /// 订单菜品项目
+        /// </summary>
+        public IEnumerable<ShoppingCartItemDto>? Items { get; set; }
+
+        /// <summary>
+        /// 配送地址
+        /// </summary>
+        public string? DeliveryAddress { get; set; }
+
+        /// <summary>
+        /// 收货人姓名
+        /// </summary>
+        public string? DeliveryName { get; set; }
+
+        /// <summary>
+        /// 收货人电话
+        /// </summary>
+        public string? DeliveryPhone { get; set; }
     }
 }

@@ -58,44 +58,34 @@ namespace BackEnd.Services
             if (storeId.HasValue)
                 orders = orders.Where(o => o.StoreID == storeId.Value);
 
-            return orders.Select(o => new FoodOrderDto
+            var result = new List<FoodOrderDto>();
+            
+            foreach (var o in orders)
             {
-                OrderId = o.OrderID,
-                PaymentTime = o.PaymentTime?.ToString("o") ?? string.Empty,
-                Remarks = o.Remarks,
-                CustomerId = o.CustomerID,
-                CartId = o.CartID ?? 0,
-                StoreId = o.StoreID,
-                SellerId = o.Store.SellerID,
-                OrderState = o.FoodOrderState,
-                DeliveryTaskId = o.DeliveryTask?.TaskID,
-                DeliveryStatus = o.DeliveryTask != null ? (int)o.DeliveryTask.Status : -1
-            });
-        }
-
-        /// <summary>
-        /// 根据ID获取订单
-        /// </summary>
-        /// <param name="orderId">订单ID</param>
-        /// <returns>订单信息</returns>
-        public async Task<FoodOrderDto?> GetOrderByIdAsync(int orderId)
-        {
-            var order = await _orderRepo.GetByIdAsync(orderId);
-            if (order == null) return null;
-
-            return new FoodOrderDto
-            {
-                OrderId = order.OrderID,
-                PaymentTime = order.PaymentTime?.ToString("o") ?? string.Empty,
-                Remarks = order.Remarks,
-                CustomerId = order.CustomerID,
-                CartId = order.CartID ?? 0,
-                StoreId = order.StoreID,
-                SellerId = order.Store.SellerID,
-                OrderState = order.FoodOrderState,
-                DeliveryTaskId = order.DeliveryTask?.TaskID,
-                DeliveryStatus = order.DeliveryTask != null ? (int)order.DeliveryTask.Status : -1
-            };
+                // 获取购物车项目
+                var cartItems = o.CartID.HasValue ? await GetCartItemsAsync(o.CartID.Value) : Enumerable.Empty<ShoppingCartItemDto>();
+                
+                result.Add(new FoodOrderDto
+                {
+                    OrderId = o.OrderID,
+                    PaymentTime = o.PaymentTime?.ToString("o") ?? string.Empty,
+                    Remarks = o.Remarks,
+                    CustomerId = o.CustomerID,
+                    CartId = o.CartID ?? 0,
+                    StoreId = o.StoreID,
+                    SellerId = o.Store.SellerID,
+                    OrderState = o.FoodOrderState,
+                    DeliveryTaskId = o.DeliveryTask?.TaskID,
+                    DeliveryStatus = o.DeliveryTask != null ? (int)o.DeliveryTask.Status : -1,
+                    Items = cartItems,
+                    // 配送信息
+                    DeliveryAddress = o.DeliveryInfo?.Address,
+                    DeliveryName = o.DeliveryInfo?.Name,
+                    DeliveryPhone = o.DeliveryInfo?.PhoneNumber
+                });
+            }
+            
+            return result;
         }
 
         /// <summary>

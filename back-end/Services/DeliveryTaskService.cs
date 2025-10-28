@@ -57,6 +57,7 @@ namespace BackEnd.Services
                 OrderID = dto.OrderId,
                 EstimatedArrivalTime = DateTime.Parse(dto.EstimatedArrivalTime),
                 EstimatedDeliveryTime = DateTime.Parse(dto.EstimatedDeliveryTime),
+                PublishTime = DateTime.Now,
                 Status = DeliveryStatus.To_Be_Taken,
                 DeliveryFee = order.DeliveryFee
             };
@@ -109,7 +110,8 @@ namespace BackEnd.Services
                     EstimatedArrivalTime = task.EstimatedArrivalTime.ToString("o"),
                     EstimatedDeliveryTime = task.EstimatedDeliveryTime.ToString("o"),
                     CustomerId = task.Order.CustomerID,
-                    StoreId = task.Order.StoreID
+                    StoreId = task.Order.StoreID,
+                    Status = (int)task.Status
                 },
                 Publish = new PublishTaskDto
                 {
@@ -136,7 +138,9 @@ namespace BackEnd.Services
                     AverageRating = courier.AverageRating,
                     MonthlySalary = courier.MonthlySalary,
                     FullName = courier.User?.FullName,
-                    PhoneNumber = courier.User?.PhoneNumber
+                    PhoneNumber = courier.User?.PhoneNumber,
+                    Longitude = courier.CourierLongitude,
+                    Latitude = courier.CourierLatitude
                 }
             };
 

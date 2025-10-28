@@ -69,6 +69,7 @@ namespace BackEnd.Repositories
                                  .Include(dt => dt.Order)
                                  .ThenInclude(o => o.Store)
                                  .Include(dt => dt.Courier)
+                                 .ThenInclude(c => c.User)
                                  .Include(dt => dt.DeliveryComplaints)
                                  .FirstOrDefaultAsync(dt => dt.OrderID == orderId);
         }
