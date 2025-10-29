@@ -56,7 +56,6 @@ export const STATUS_CONFIG = {
         READY: 'ready',
         DELIVERING: 'delivering',
         COMPLETED: 'completed',
-        CANCELLED: 'cancelled',
     },
 
     // 用户角色

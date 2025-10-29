@@ -87,30 +87,6 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
-        /// 拒绝订单
-        /// </summary>
-        /// <param name="orderId">订单ID</param>
-        /// <param name="dto">拒绝原因</param>
-        /// <returns>操作结果</returns>
-        [HttpPost("{orderId}/reject")]
-        public async Task<IActionResult> RejectOrder(int orderId, [FromBody] RejectOrderDto dto)
-        {
-            try
-            {
-                var result = await _orderService.RejectOrderAsync(orderId, dto.Reason);
-                return Ok(result);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { code = 404, message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { code = 400, message = ex.Message });
-            }
-        }
-
-        /// <summary>
         /// 获取订单优惠券信息
         /// </summary>
         /// <param name="orderId">订单ID</param>

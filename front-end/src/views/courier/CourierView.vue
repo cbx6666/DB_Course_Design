@@ -620,7 +620,7 @@ interface Complaint {
 
 // --- 状态定义 ---
 // 新增一个类型别名，让代码更清晰
-type OrderStatus = 'to_be_taken' | 'pending' | 'delivering' | 'completed' | 'cancelled';
+type OrderStatus = 'to_be_taken' | 'pending' | 'delivering' | 'completed';
 const userProfile = ref<UserProfile | null>(null);
 const locationInfo = ref<any | null>(null);
 const orders = ref<Order[]>([]);
@@ -636,8 +636,6 @@ const activeOrderTab = ref<OrderStatus>('pending');
 const availableOrders = ref<Order[]>([]);
 
 const complaints = ref<Complaint[]>([]);
-
-const cancelledOrderInfo = ref<{ id: string; restaurant: string } | null>(null);
 
 const activeComplaintTab = ref<'all' | 'punished'>('all');
 
@@ -667,8 +665,7 @@ const tabs = [
 const orderTabs = [
     { key: 'pending', label: '待取单' },
     { key: 'delivering', label: '配送中' },
-    { key: 'completed', label: '已送达' },
-    { key: 'cancelled', label: '已取消' } 
+    { key: 'completed', label: '已送达' }
 ] as const;
 
 // --- API 调用逻辑 ---
@@ -715,36 +712,8 @@ const refreshOrderList = async () => {
 
 
 
-/**
- * 【核心】处理接收到的“订单被取消”通知
- * 在真实项目中，这个函数会被 WebSocket 推送调用
- * @param orderId 被取消的订单ID
- */
-const handleOrderCancelled = async (orderId: string) => {
-    // 1. 在当前的前端订单列表中，找到这个订单的信息，主要是为了获取餐厅名用于弹窗显示
-    const orderToCancel = orders.value.find(o => o.id === orderId);
-
-    // 如果在当前列表（比如“待取单”）中找不到这个订单，可能是因为骑手正在看其他页面。
-    // 即使找不到，我们依然应该弹窗提示，但内容可以通用一些。
-    const restaurantName = orderToCancel ? `【${orderToCancel.restaurant}】的` : '';
-
-    // 2. 弹出UI提示，告知骑手这个事实
-    await ElMessageBox.alert(
-        `您有一个订单（${restaurantName}订单号: #${orderId}）已被用户取消。`, // 弹窗内容
-        '订单取消通知', // 弹窗标题
-        {
-            confirmButtonText: '我知道了',
-            type: 'warning', // 警告类型图标
-            callback: () => {
-                // 3. 用户点击“我知道了”之后，刷新当前订单列表以同步最新状态
-                ElMessage.info('正在刷新订单列表...');
-                refreshOrderList(); // 调用您已有的刷新函数
-            },
-        }
-    );
-    
-    // 【重要】在真实API模式下，刷新后数据会从后端重新获取。
-};
+// 注意：订单取消功能已移除，配送状态不再支持 Cancelled
+// 如果订单需要取消，配送任务状态将改回 To_Be_Taken，让其他骑手可以接单
 
 /** 处理“取单”操作 */
 const handlePickupOrder = async (orderId: string) => {
@@ -940,7 +909,6 @@ const getOrderStatusClass = (status: string) => {
         case 'pending': return 'bg-orange-100 text-orange-600';
         case 'delivering': return 'bg-blue-100 text-blue-600';
         case 'completed': return 'bg-green-100 text-green-600';
-        case 'cancelled': return 'bg-gray-200 text-gray-500';
         default: return 'bg-gray-100 text-gray-600';
     }
 };
@@ -951,7 +919,6 @@ const getOrderStatusText = (status: string) => {
         case 'pending': return '待取单';
         case 'delivering': return '配送中';
         case 'completed': return '已送达';
-        case 'cancelled': return '已取消';
         default: return '未知状态';
     }
 };

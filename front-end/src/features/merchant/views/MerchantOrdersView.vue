@@ -159,7 +159,7 @@
                      <div class="text-gray-500 text-xs mt-2 border-t border-gray-200 pt-1 flex justify-between">
                        <span>共{{ getTotalQuantity(scope.row.items) }}件商品</span>
                        <span class="font-medium text-orange-600">
-                         合计：¥{{ getTotalAmount(scope.row.items) }}
+                         合计：¥{{ getSubtotal(scope.row.items).toFixed(2) }}
                        </span>
                      </div>
                 </div>
@@ -188,6 +188,24 @@
                 <span class="text-gray-600">{{ scope.row.remarks || '无' }}</span>
               </template>
             </el-table-column>
+            <el-table-column label="优惠券" min-width="140">
+              <template #default="scope">
+                <div v-if="scope.row.usedCoupon" class="text-xs">
+                  <div class="font-medium text-[#F9771C] mb-1">
+                    <span v-if="scope.row.usedCoupon.discountType === 'fixed'">
+                      ¥{{ scope.row.usedCoupon.discountValue.toFixed(0) }}
+                    </span>
+                    <span v-else>
+                      {{ (scope.row.usedCoupon.discountValue * 10).toFixed(1) }}折
+                    </span>
+                  </div>
+                  <div class="text-gray-500 truncate" :title="scope.row.usedCoupon.couponName">
+                    {{ scope.row.usedCoupon.couponName || '优惠券' }}
+                  </div>
+                </div>
+                <span v-else class="text-gray-400 text-xs">未使用</span>
+              </template>
+            </el-table-column>
             <el-table-column label="订单管理" min-width="160" align="left">
               <template #default="scope">
                 <div class="space-y-1">
@@ -202,11 +220,13 @@
                   <!-- 接单/出餐按钮 -->
                   <div class="flex flex-col">
                     <button v-if="scope.row.orderState === 0" @click="acceptOrder(scope.row.orderId)"
-                      class="btn-success btn-small shrink-0 w-full py-1.5">
+                      class="btn-small shrink-0 w-full py-1.5"
+                      style="background-color: #f59e0b !important; color: white !important; border-radius: 8px !important;">
                       接单
                     </button>
                     <button v-else-if="scope.row.orderState === 1" @click="markAsReady(scope.row.orderId)"
-                      class="btn-warning btn-small shrink-0 w-full py-1.5">
+                      class="btn-small shrink-0 w-full py-1.5"
+                      style="background-color: #f59e0b !important; color: white !important; border-radius: 8px !important;">
                       出餐
                     </button>
                     <button v-else-if="scope.row.orderState === 2" disabled
@@ -235,7 +255,8 @@
                   <!-- 配送操作按钮 -->
                   <div class="flex flex-col">
                     <button v-if="!scope.row.deliveryTaskId && scope.row.orderState !== 0"
-                      @click="openPublishDialog(scope.row)" class="btn-info btn-small shrink-0 w-full py-1.5">
+                      @click="openPublishDialog(scope.row)" class="btn-small shrink-0 w-full py-1.5"
+                      style="background-color: #f59e0b !important; color: white !important; border-radius: 8px !important;">
                       发布配送
                     </button>
                     <button v-else-if="!scope.row.deliveryTaskId && scope.row.orderState === 0" disabled
@@ -309,7 +330,7 @@
                     共 {{ selectedDishOrder.items.length }} 种菜品，{{ getTotalQuantity(selectedDishOrder.items) }} 件商品
                   </span>
                   <span class="text-lg font-bold text-orange-600">
-                    合计：¥{{ getTotalAmount(selectedDishOrder.items) }}
+                    合计：¥{{ getSubtotal(selectedDishOrder.items).toFixed(2) }}
                   </span>
                 </div>
               </div>
@@ -318,14 +339,14 @@
           <div v-else class="text-center py-8 text-gray-400">
             <div class="text-lg mb-2">暂无菜品信息</div>
             <div class="text-sm">订单ID: {{ selectedDishOrder?.orderId }}</div>
-          </div>
+            </div>
           </div>
 
         <div class="p-4 border-t border-gray-200 flex justify-end">
           <button @click="closeDishDetailsDialog" class="btn-outline btn-medium">关闭</button>
-        </div>
-      </div>
-    </div>
+                </div>
+                </div>
+              </div>
 
     <!-- 配送信息对话框 -->
     <div v-if="showDeliveryInfoDialog"
@@ -334,7 +355,7 @@
         class="bg-white rounded-2xl w-[600px] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl border border-gray-100 transform transition-all duration-300 scale-100">
         <div
           class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
-          <div>
+                <div>
             <div class="text-xl font-bold text-gray-900">配送信息</div>
             <div class="text-sm text-blue-600 font-medium">订单ID: {{ deliveryInfo?.order?.orderId }}</div>
           </div>
@@ -343,7 +364,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
-        </div>
+                </div>
 
         <div class="flex-1 p-6 overflow-y-auto">
           <!-- 配送状态 -->
@@ -354,8 +375,8 @@
                 :class="[deliveryStatusMap[String(deliveryInfo?.deliveryTask?.status ?? -1)]?.colorClass || 'bg-gray-100 text-gray-600', 'px-4 py-2 rounded-full text-sm font-medium']">
                 {{ deliveryStatusMap[String(deliveryInfo?.deliveryTask?.status ?? -1)]?.label || '未知状态' }}
               </span>
-            </div>
-          </div>
+                </div>
+              </div>
 
           <!-- 收货地址 -->
           <div class="mb-6">
@@ -372,9 +393,9 @@
               <div class="flex items-start text-gray-700">
                 <span class="font-medium mr-2">收货地址：</span>
                 <span class="flex-1 text-left">{{ deliveryInfo?.order?.deliveryAddress || '未提供' }}</span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
           <!-- 骑手信息 -->
           <div>
@@ -422,16 +443,16 @@
                   <div class="text-sm mt-1">请等待骑手接单</div>
                 </div>
               </div>
+              </div>
             </div>
           </div>
-        </div>
 
         <div class="p-4 border-t border-gray-200 flex justify-end">
           <button @click="closeDeliveryInfoDialog" class="btn-outline btn-medium">关闭</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -448,16 +469,17 @@ import { useRouter, useRoute } from 'vue-router';
 import {
   getOrders,
   acceptOrder as acceptOrderApi,
-  rejectOrder as rejectOrderApi,
   markAsReady as markAsReadyApi,
   publishDeliveryTask,
   getOrderDeliveryInfo,
   type FoodOrder,
-  type OrderItem
+  type OrderItem,
+  type OrderCouponInfo
 } from '@/api/merchant/orders';
 
 import {
   getMerchantInfo,
+  getShopOverview,
   type MerchantInfo
 } from '@/api/merchant/shop';
 
@@ -548,12 +570,12 @@ const loadOrders = async () => {
         ...order,
         localStatus: 'accepted',
       }));
-      
-      // 计算订单统计
-      calculateOrderStats();
     } else {
       orders.value = [];
     }
+    
+    // 无论是否有订单，都需要计算统计（月销量从API获取）
+    await calculateOrderStats();
   } catch (error) {
     console.error('加载订单失败:', error);
     errorMessage.value = '加载订单失败，请重试';
@@ -564,17 +586,31 @@ const loadOrders = async () => {
 };
 
 // 计算订单统计
-const calculateOrderStats = () => {
+const calculateOrderStats = async () => {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  orderStats.value = {
-    pending: orders.value.filter(order => order.orderState === 0).length,
-    today: orders.value.filter(order => order.paymentTime ? new Date(order.paymentTime) >= today : false).length,
-    monthly: orders.value.filter(order => order.paymentTime ? new Date(order.paymentTime) >= thisMonth : false).length,
-    revenue: orders.value.reduce((sum, order) => sum + (order.items ? getTotalAmount(order.items) : 0), 0)
-  };
+  // 从订单列表计算待处理、今日订单和总收入
+  orderStats.value.pending = orders.value.filter(order => order.orderState === 0).length;
+  orderStats.value.today = orders.value.filter(order => order.paymentTime ? new Date(order.paymentTime) >= today : false).length;
+  orderStats.value.revenue = orders.value.reduce((sum, order) => sum + (order.items ? getTotalAmount(order.items, order.usedCoupon) : 0), 0);
+  
+  // 本月订单：使用后端API获取的月销量（与店铺概况保持一致）
+  try {
+    const overview = await getShopOverview();
+    if (overview?.data?.monthlySales !== undefined) {
+      orderStats.value.monthly = overview.data.monthlySales;
+    }
+  } catch (error) {
+    console.error('获取月销量失败:', error);
+    // 如果API失败，回退到从订单列表计算（但应该尽量避免这种情况）
+  const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const COMPLETED_STATUS = 3;
+    orderStats.value.monthly = orders.value.filter(order => 
+      order.orderState === COMPLETED_STATUS && 
+      order.paymentTime ? new Date(order.paymentTime) >= thisMonth : false
+    ).length;
+  }
 };
 
 // 筛选订单
@@ -636,12 +672,13 @@ const openPublishDialog = async (order: FoodOrder) => {
     const estimatedDeliveryTime = new Date(Date.now() + 40 * 60 * 1000); // 40分钟后
     
     await ElMessageBox.confirm(
-      `确定发布配送任务吗？\n预计到达：${estimatedArrivalTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}\n预计送达：${estimatedDeliveryTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`,
+      `确定发布配送任务吗？<br>骑手预计到达：${estimatedArrivalTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })} ，预计送达：${estimatedDeliveryTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`,
       '发布配送任务',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'info'
+        type: 'info',
+        dangerouslyUseHTMLString: true
       }
     );
 
@@ -700,25 +737,6 @@ const acceptOrder = async (orderId: number) => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('接单失败，请重试');
-    }
-  }
-};
-
-// 拒单
-const rejectOrder = async (orderId: number) => {
-  try {
-    await ElMessageBox.confirm('确定要拒绝这个订单吗？', '确认拒单', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    });
-
-    await rejectOrderApi(orderId);
-    ElMessage.success('订单已拒绝');
-    await loadOrders();
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('拒单失败，请重试');
     }
   }
 };
@@ -801,9 +819,37 @@ const getTotalQuantity = (items: OrderItem[]) => {
   return items.reduce((total, item) => total + item.quantity, 0);
 };
 
-// 计算订单总金额
-const getTotalAmount = (items: OrderItem[]) => {
+// 计算商品原始总价（不含优惠券，不含配送费）
+const getSubtotal = (items: OrderItem[]) => {
   return items.reduce((total, item) => total + (item.totalPrice || 0), 0);
+};
+
+// 计算订单总金额（含优惠券折扣，不包含配送费）
+// 用于总收入统计
+const getTotalAmount = (items: OrderItem[], usedCoupon?: OrderCouponInfo) => {
+  const subtotal = getSubtotal(items);
+  
+  // 如果没有优惠券，直接返回商品总价
+  if (!usedCoupon) {
+    return subtotal;
+  }
+  
+  // 计算优惠金额（只针对商品总价，不包括配送费）
+  let discountAmount = 0;
+  
+  if (usedCoupon.discountType === 'fixed') {
+    // 满减券：discountValue 就是优惠金额
+    discountAmount = usedCoupon.discountValue;
+  } else if (usedCoupon.discountType === 'discount') {
+    // 折扣券：discountValue 是折扣比例（0-1），计算优惠金额
+    discountAmount = subtotal * (1 - usedCoupon.discountValue);
+  }
+  
+  // 确保优惠金额不超过商品总价
+  discountAmount = Math.min(discountAmount, subtotal);
+  
+  // 商品总价（含优惠券折扣，不含配送费）
+  return Math.max(0, subtotal - discountAmount);
 };
 
 // 订单状态映射
@@ -819,7 +865,6 @@ const deliveryStatusMap: Record<string, { label: string; colorClass: string }> =
   '1': { label: '骑手未取餐', colorClass: 'bg-yellow-100 text-yellow-600' },
   '2': { label: '配送中', colorClass: 'bg-blue-100 text-blue-600' },
   '3': { label: '已完成', colorClass: 'bg-green-100 text-green-600' },
-  '4': { label: '已取消', colorClass: 'bg-red-100 text-red-600' },
 };
 
 const formatDate = (dateString: string) => {
@@ -942,26 +987,26 @@ input[type="number"] {
 }
 
 /* 按钮样式 */
-.btn-primary {
-  background-color: #3b82f6;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  transition: all 0.2s;
-}
-.btn-primary:hover {
-  background-color: #2563eb;
-}
+ .btn-primary {
+   background-color: #f59e0b;
+   color: white;
+   padding: 0.5rem 1rem;
+   border-radius: 0.5rem;
+   transition: all 0.2s;
+ }
+ .btn-primary:hover {
+   background-color: #d97706;
+ }
 
 .btn-success {
-  background-color: #10b981;
+  background-color: #f59e0b;
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   transition: all 0.2s;
 }
 .btn-success:hover {
-  background-color: #059669;
+  background-color: #d97706;
 }
 
 .btn-warning {
@@ -987,14 +1032,14 @@ input[type="number"] {
 }
 
 .btn-info {
-  background-color: #06b6d4;
+  background-color: #f59e0b;
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   transition: all 0.2s;
 }
 .btn-info:hover {
-  background-color: #0891b2;
+  background-color: #d97706;
 }
 
 .btn-secondary {

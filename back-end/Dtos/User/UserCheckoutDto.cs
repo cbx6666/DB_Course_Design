@@ -22,12 +22,6 @@ namespace BackEnd.DTOs.User
         public CouponState CouponState { get; set; }
 
         /// <summary>
-        /// 关联订单ID
-        /// </summary>
-        [Required]
-        public int? OrderID { get; set; }
-
-        /// <summary>
         /// 优惠券管理ID
         /// </summary>
         [Required]
@@ -48,10 +42,47 @@ namespace BackEnd.DTOs.User
         public decimal Value { get; set; }
 
         /// <summary>
+        /// 优惠券类型（Fixed=满减券, Discount=折扣券）
+        /// </summary>
+        [Required]
+        public string CouponType { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 有效期起始时间
+        /// </summary>
+        [Required]
+        public string ValidFrom { get; set; } = string.Empty;
+
+        /// <summary>
         /// 有效期至
         /// </summary>
         [Required]
         public string ValidTo { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 优惠券名称
+        /// </summary>
+        public string? CouponName { get; set; }
+
+        /// <summary>
+        /// 优惠券描述
+        /// </summary>
+        public string? Description { get; set; }
+
+        /// <summary>
+        /// 店铺ID
+        /// </summary>
+        public int StoreID { get; set; }
+
+        /// <summary>
+        /// 店铺名称
+        /// </summary>
+        public string? StoreName { get; set; }
+
+        /// <summary>
+        /// 店铺图片
+        /// </summary>
+        public string? StoreImage { get; set; }
     }
 
     /// <summary>

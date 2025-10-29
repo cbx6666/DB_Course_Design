@@ -1,7 +1,7 @@
 // src/api/types.ts
 // 骑手相关的数据类型定义
 
-export type OrderStatus = 'to_be_taken' | 'pending' | 'delivering' | 'completed' | 'cancelled';
+export type OrderStatus = 'to_be_taken' | 'pending' | 'delivering' | 'completed';
 
 export interface UserProfile {
     name: string;

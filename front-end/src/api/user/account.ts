@@ -29,5 +29,3 @@ export async function saveAccountInfo(data: AccountUpdateData) {
         },
     });
 }
-
-

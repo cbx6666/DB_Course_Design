@@ -39,10 +39,10 @@
                         </div>
                         <span :class="{
                             'text-gray-500': order.orderStatus === 0,
-                            'text-orange-500': order.orderStatus === 1,
-                            'text-green-500': order.orderStatus === 2,
+                            'text-orange-500': order.deliveryStatus === 1 || order.deliveryStatus === 2,
+                            'text-green-500': order.deliveryStatus === 3,
                         }" class="font-medium">
-                            {{ getOrderStatusText(order.orderStatus) }}
+                            {{ getOrderStatusText(order) }}
                         </span>
                     </div>
 
@@ -69,9 +69,38 @@
 
                         <!-- 右边：金额 + 操作按钮 -->
                         <div class="text-right">
-                            <p class="font-bold text-lg">¥{{ order.totalAmount }}</p>
+                            <!-- 费用明细 -->
+                            <div class="mb-2 text-xs text-gray-600 space-y-1">
+                                <!-- 商品原始总价（不含优惠券折扣） -->
+                                <div class="flex items-center justify-end">
+                                    <span>商品：</span>
+                                    <span class="ml-1">¥{{ order.totalAmount.toFixed(2) }}</span>
+                                </div>
+                                <!-- 配送费 -->
+                                <div class="flex items-center justify-end">
+                                    <span>配送费：</span>
+                                    <span class="ml-1">¥{{ (order.deliveryFee || 0).toFixed(2) }}</span>
+                                </div>
+                                <!-- 优惠券信息 -->
+                                <div v-if="order.usedCoupon" class="flex items-center justify-end">
+                                    <span class="inline-flex items-center px-2 py-1 rounded bg-yellow-50 text-yellow-700 border border-yellow-200">
+                                        <i class="fas fa-ticket-alt mr-1"></i>
+                                        <span>{{ order.usedCoupon.couponName || '优惠券' }}</span>
+                                        <span class="ml-1">
+                                            <span v-if="order.usedCoupon.discountType === 'fixed'">
+                                                -¥{{ order.usedCoupon.discountValue.toFixed(0) }}
+                                            </span>
+                                            <span v-else-if="order.usedCoupon.discountType === 'discount'">
+                                                {{ (order.usedCoupon.discountValue * 10).toFixed(1) }}折
+                                            </span>
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- 实付金额 -->
+                            <p class="font-bold text-lg">¥{{ getActualAmount(order).toFixed(2) }}</p>
 
-                            <!-- 已接单 -->
+                            <!-- 未接单 -->
                             <div v-if="order.orderStatus === 0" class="flex justify-end gap-2 mt-2">
                                 <button @click="dialogVisibleMerchant = true"
                                     class="bg-orange-500 hover:bg-orange-600 text-white w-8 h-8 rounded-full text-sm transition-colors cursor-pointer"
@@ -84,8 +113,22 @@
                                     :emojis="['😊', '👍', '❤️', '🎉']" @submit="handleMerchantReply" />
                             </div>
 
+                            <!-- 已接单（已接单但还未开始配送） -->
+                            <div v-if="order.orderStatus !== 0 && (order.deliveryStatus === null || order.deliveryStatus === undefined || order.deliveryStatus === 0)" 
+                                class="flex justify-end gap-2 mt-2">
+                                <button @click="dialogVisibleMerchant = true"
+                                    class="bg-orange-500 hover:bg-orange-600 text-white w-8 h-8 rounded-full text-sm transition-colors cursor-pointer"
+                                    title="联系商家">
+                                    <i class="fas fa-store"></i>
+                                </button>
+                                <!-- 联系商家对话框 -->
+                                <ReplyDialog v-model="dialogVisibleMerchant" title="联系商家" identity="user"
+                                    :chatMessages="merchantChat" :quickPhrases="['您好，有什么能帮您？', '请稍等一下']"
+                                    :emojis="['😊', '👍', '❤️', '🎉']" @submit="handleMerchantReply" />
+                            </div>
+
                             <!-- 配送中 -->
-                            <div v-if="order.orderStatus === 1" class="flex justify-end gap-2 mt-2">
+                            <div v-if="order.deliveryStatus === 1 || order.deliveryStatus === 2" class="flex justify-end gap-2 mt-2">
                                 <button @click="dialogVisibleMerchant = true"
                                     class="bg-orange-500 hover:bg-orange-600 text-white w-8 h-8 rounded-full text-sm transition-colors cursor-pointer"
                                     title="联系商家">
@@ -117,7 +160,7 @@
                             </div>
 
                             <!-- 已完成 -->
-                            <div v-if="order.orderStatus === 2" class="flex justify-end gap-2 mt-2">
+                            <div v-if="order.deliveryStatus === 3" class="flex justify-end gap-2 mt-2">
                                 <!-- 售后按钮 -->
                                 <button @click="openAfterSale(order.orderID)"
                                     class="relative w-8 h-8 flex items-center justify-center cursor-pointer"
@@ -182,7 +225,8 @@ const showRevealDelivery = ref(false);
 
 const orderStatuses = [
     { key: "all", label: "全部订单" },
-    { key: "pending", label: "已接单" },
+    { key: "unaccepted", label: "未接单" },
+    { key: "accepted", label: "已接单" },
     { key: "delivering", label: "配送中" },
     { key: "completed", label: "已完成" },
 ];
@@ -191,13 +235,26 @@ onMounted(() => {
     fetchOrders();
 });
 
-const getOrderStatusText = (statusNum: number) => {
-    const map: Record<number, string> = {
-        0: "已接单",
-        1: "配送中",
-        2: "已完成",
+const getOrderStatusText = (order: OrderInfo) => {
+    // 未接单：订单状态为 Pending (0)
+    if (order.orderStatus === 0) {
+        return "未接单";
+    }
+    
+    // 如果订单已接单，检查配送状态
+    if (order.deliveryStatus === null || order.deliveryStatus === undefined) {
+        return "已接单";
+    }
+    
+    // 配送状态映射
+    const deliveryStatusMap: Record<number, string> = {
+        0: "已接单",      // To_Be_Taken: 待取件
+        1: "配送中",      // Pending: 待取单
+        2: "配送中",      // Delivering: 配送中
+        3: "已完成",      // Completed: 已完成
     };
-    return map[statusNum] || "未知状态";
+    
+    return deliveryStatusMap[order.deliveryStatus] || "未知状态";
 };
 
 const fetchOrders = async () => {
@@ -214,16 +271,63 @@ const fetchOrders = async () => {
 const filteredOrders = computed(() => {
     if (activeOrderStatus.value === "all") {
         return orders.value;
-    } else {
-        const statusMap: Record<string, number> = {
-            pending: 0,
-            delivering: 1,
-            completed: 2,
-        };
-        const statusNum = statusMap[activeOrderStatus.value];
-        return orders.value.filter((order) => order.orderStatus === statusNum);
     }
+    
+    return orders.value.filter((order) => {
+        switch (activeOrderStatus.value) {
+            case "unaccepted":
+                // 未接单：订单状态为 Pending (0)
+                return order.orderStatus === 0;
+            
+            case "accepted":
+                // 已接单：订单已接单（orderStatus !== 0）且（没有配送任务 或 配送状态是 To_Be_Taken=0）
+                return order.orderStatus !== 0 && 
+                       (order.deliveryStatus === null || 
+                        order.deliveryStatus === undefined || 
+                        order.deliveryStatus === 0);
+            
+            case "delivering":
+                // 配送中：配送状态是 Pending=1 或 Delivering=2
+                return order.deliveryStatus === 1 || order.deliveryStatus === 2;
+            
+            case "completed":
+                // 已完成：配送状态是 Completed=3
+                return order.deliveryStatus === 3;
+            
+            default:
+                return true;
+        }
+    });
 });
+
+// 获取订单实际支付金额 = 原始商品总价 + 配送费 - 优惠券折扣
+const getActualAmount = (order: OrderInfo): number => {
+    const subtotal = order.totalAmount; // 原始商品总价
+    const deliveryFee = order.deliveryFee || 0;
+    
+    // 如果没有优惠券，直接返回商品总价 + 配送费
+    if (!order.usedCoupon) {
+        return subtotal + deliveryFee;
+    }
+    
+    // 计算优惠金额
+    let discountAmount = 0;
+    const coupon = order.usedCoupon;
+    
+    if (coupon.discountType === 'fixed') {
+        // 满减券：discountValue 就是优惠金额
+        discountAmount = coupon.discountValue;
+    } else if (coupon.discountType === 'discount') {
+        // 折扣券：discountValue 是折扣比例（0-1），计算优惠金额
+        discountAmount = subtotal * (1 - coupon.discountValue);
+    }
+    
+    // 确保优惠金额不超过商品总价
+    discountAmount = Math.min(discountAmount, subtotal);
+    
+    // 实付金额 = 原始商品总价 + 配送费 - 优惠金额
+    return Math.max(0, subtotal + deliveryFee - discountAmount);
+};
 
 function openReviewWindow(orderID: number) {
     showReviewWindow.value[orderID] = true;

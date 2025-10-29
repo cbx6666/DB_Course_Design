@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using BackEnd.Models.Enums;
+using BackEnd.DTOs.Coupon;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BackEnd.DTOs.User
@@ -208,17 +209,17 @@ namespace BackEnd.DTOs.User
         [Required]
         public string StoreName { get; set; } = string.Empty;
 
-    /// <summary>
-    /// 菜品图片列表
-    /// </summary>
-    [Required]
-    public List<string> DishImage { get; set; } = new List<string>();
+        /// <summary>
+        /// 菜品图片列表
+        /// </summary>
+        [Required]
+        public List<string> DishImage { get; set; } = new List<string>();
 
-    /// <summary>
-    /// 菜品详情列表
-    /// </summary>
-    [Required]
-    public List<OrderDishDto> DishDetails { get; set; } = new List<OrderDishDto>();
+        /// <summary>
+        /// 菜品详情列表
+        /// </summary>
+        [Required]
+        public List<OrderDishDto> DishDetails { get; set; } = new List<OrderDishDto>();
 
         /// <summary>
         /// 总金额
@@ -231,6 +232,22 @@ namespace BackEnd.DTOs.User
         /// </summary>
         [Required]
         public FoodOrderState OrderStatus { get; set; }
+
+        /// <summary>
+        /// 配送状态（可选，订单未接单或没有配送任务时为null）
+        /// </summary>
+        public DeliveryStatus? DeliveryStatus { get; set; }
+
+        /// <summary>
+        /// 使用的优惠券信息
+        /// </summary>
+        public OrderCouponInfoDto? UsedCoupon { get; set; }
+
+        /// <summary>
+        /// 配送费用
+        /// </summary>
+        [Required]
+        public decimal DeliveryFee { get; set; }
     }
 
     /// <summary>
@@ -264,11 +281,6 @@ namespace BackEnd.DTOs.User
         /// 头像
         /// </summary>
         public string Image { get; set; } = null!;
-
-        /// <summary>
-        /// 默认地址
-        /// </summary>
-        public string DefaultAddress { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -375,5 +387,89 @@ namespace BackEnd.DTOs.User
         /// 所有店铺列表
         /// </summary>
         public List<ShowStoreDto> AllStores { get; set; } = new List<ShowStoreDto>();
+    }
+
+    /// <summary>
+    /// 可领取优惠券数据传输对象
+    /// </summary>
+    public class AvailableCouponDto
+    {
+        /// <summary>
+        /// 优惠券管理ID
+        /// </summary>
+        [Required]
+        public int CouponManagerID { get; set; }
+
+        /// <summary>
+        /// 优惠券名称
+        /// </summary>
+        [Required]
+        public string CouponName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 优惠券类型（fixed=满减券, discount=折扣券）
+        /// </summary>
+        [Required]
+        public string Type { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 最低消费金额
+        /// </summary>
+        [Required]
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal MinimumSpend { get; set; }
+
+        /// <summary>
+        /// 优惠值（满减券为优惠金额，折扣券为折扣比例）
+        /// </summary>
+        [Required]
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal Value { get; set; }
+
+        /// <summary>
+        /// 有效期开始时间
+        /// </summary>
+        [Required]
+        public string ValidFrom { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 有效期结束时间
+        /// </summary>
+        [Required]
+        public string ValidTo { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 描述
+        /// </summary>
+        public string? Description { get; set; }
+
+        /// <summary>
+        /// 店铺ID
+        /// </summary>
+        [Required]
+        public int StoreID { get; set; }
+
+        /// <summary>
+        /// 店铺名称
+        /// </summary>
+        [Required]
+        public string StoreName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 店铺图片
+        /// </summary>
+        public string? StoreImage { get; set; }
+
+        /// <summary>
+        /// 剩余数量
+        /// </summary>
+        [Required]
+        public int RemainingQuantity { get; set; }
+
+        /// <summary>
+        /// 是否已领取
+        /// </summary>
+        [Required]
+        public bool IsClaimed { get; set; }
     }
 }

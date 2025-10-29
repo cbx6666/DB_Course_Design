@@ -164,11 +164,6 @@ namespace BackEnd.Models
         public ICollection<Comment>? Comments { get; set; }
 
         /// <summary>
-        /// 配送任务集合
-        /// </summary>
-        public ICollection<DeliveryTask>? DeliveryTasks { get; set; }
-
-        /// <summary>
         /// 购物车集合
         /// </summary>
         public ICollection<ShoppingCart>? ShoppingCarts { get; set; }

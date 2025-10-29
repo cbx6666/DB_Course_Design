@@ -1,6 +1,9 @@
 using BackEnd.DTOs.User;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
+using BackEnd.Models.Enums;
+using BackEnd.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackEnd.Services
 {
@@ -14,6 +17,8 @@ namespace BackEnd.Services
         private readonly ICouponRepository _couponRepository;
         private readonly IFoodOrderRepository _foodOrderRepository;
         private readonly IShoppingCartRepository _shoppingCartRepository;
+        private readonly ICouponManagerRepository _couponManagerRepository;
+        private readonly AppDbContext _context;
 
         /// <summary>
         /// 构造函数
@@ -28,13 +33,17 @@ namespace BackEnd.Services
             IUserRepository userRepository,
             ICouponRepository couponRepository,
             IFoodOrderRepository foodOrderRepository,
-            IShoppingCartRepository shoppingCartRepository)
+            IShoppingCartRepository shoppingCartRepository,
+            ICouponManagerRepository couponManagerRepository,
+            AppDbContext context)
         {
             _storeRepository = storeRepository;
             _userRepository = userRepository;
             _couponRepository = couponRepository;
             _foodOrderRepository = foodOrderRepository;
             _shoppingCartRepository = shoppingCartRepository;
+            _couponManagerRepository = couponManagerRepository;
+            _context = context;
         }
 
         /// <summary>
@@ -80,8 +89,12 @@ namespace BackEnd.Services
         /// <returns>订单历史</returns>
         public async Task<List<HistoryOrderDto>> GetOrderHistoryAsync(int userId)
         {
-            // 获取用户的所有订单
-            var orders = await _foodOrderRepository.GetOrdersByCustomerIdOrderedByDateAsync(userId);
+            // 获取所有订单（包括优惠券信息），然后按消费者ID筛选
+            var allOrders = await _foodOrderRepository.GetAllAsync();
+            var orders = allOrders
+                .Where(o => o.CustomerID == userId)
+                .OrderByDescending(o => o.OrderTime)
+                .ToList();
 
             var result = new List<HistoryOrderDto>();
 
@@ -127,6 +140,31 @@ namespace BackEnd.Services
                     }
                 }
 
+                // 获取订单使用的优惠券信息
+                DTOs.Coupon.OrderCouponInfoDto? usedCoupon = null;
+                
+                if (order.Coupons != null && order.Coupons.Any())
+                {
+                    var coupon = order.Coupons.FirstOrDefault(); // 一个订单通常只有一个优惠券
+                    if (coupon != null && coupon.CouponManager != null)
+                    {
+                        usedCoupon = new DTOs.Coupon.OrderCouponInfoDto
+                        {
+                            CouponId = coupon.CouponID,
+                            CouponName = coupon.CouponManager.CouponName,
+                            Description = coupon.CouponManager.Description,
+                            DiscountType = coupon.CouponManager.CouponType == Models.Enums.CouponType.Fixed ? "fixed" : "discount",
+                            DiscountValue = coupon.CouponManager.Value,
+                            ValidFrom = coupon.CouponManager.ValidFrom.ToString("o"),
+                            ValidTo = coupon.CouponManager.ValidTo.ToString("o"),
+                            IsUsed = coupon.CouponState == Models.Enums.CouponState.Used
+                        };
+                    }
+                }
+                
+                // TotalAmount 返回原始商品总价（不含优惠券折扣，不含配送费）
+                // 前端会单独显示商品价格、配送费和优惠券信息，然后计算实付金额
+
                 result.Add(new HistoryOrderDto
                 {
                     OrderID = order.OrderID,
@@ -138,8 +176,11 @@ namespace BackEnd.Services
                     StoreName = store?.StoreName ?? "",
                     DishImage = dishImages,
                     DishDetails = dishDetails,
-                    TotalAmount = totalAmount,
-                    OrderStatus = order.FoodOrderState
+                    TotalAmount = totalAmount, // 原始商品总价（不含优惠券折扣，不含配送费）
+                    OrderStatus = order.FoodOrderState,
+                    DeliveryStatus = order.DeliveryTask?.Status,
+                    UsedCoupon = usedCoupon,
+                    DeliveryFee = order.DeliveryFee // 配送费单独返回
                 });
             }
 
@@ -160,15 +201,13 @@ namespace BackEnd.Services
                 if (user == null)
                     return null;
 
-                // 暂时不获取地址信息，先确保基本功能正常
                 return new UserInfoResponse
                 {
                     Name = user.Username ?? string.Empty,
                     PhoneNumber = user.PhoneNumber,
                     Image = string.IsNullOrWhiteSpace(user.Avatar) 
                         ? "/images/default-avatar.jpg" 
-                        : user.Avatar,
-                    DefaultAddress = string.Empty // 暂时返回空字符串
+                        : user.Avatar
                 };
             }
             catch (Exception)
@@ -214,6 +253,139 @@ namespace BackEnd.Services
 
             return new StoresResponseDto { AllStores = operationalStores.ToList() };
         }
+
+        /// <summary>
+        /// 获取所有可领取的优惠券
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>可领取优惠券列表</returns>
+        public async Task<List<AvailableCouponDto>> GetAvailableCouponsAsync(int userId)
+        {
+            var now = DateTime.Now;
+            
+            // 获取用户信息
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null || user.Customer == null)
+            {
+                return new List<AvailableCouponDto>();
+            }
+
+            var customerId = user.Customer.UserID;
+
+            // 获取所有有效的优惠券管理（未过期，包括未开始的）
+            var allCouponManagers = await _context.CouponManagers
+                .Include(cm => cm.Store)
+                .Include(cm => cm.Coupons)
+                .Where(cm => cm.ValidTo >= now)
+                .ToListAsync();
+            
+            // 过滤出还有剩余数量的优惠券（通过 Coupons.Count 计算）
+            allCouponManagers = allCouponManagers
+                .Where(cm => (cm.Coupons?.Count ?? 0) < cm.TotalQuantity)
+                .ToList();
+
+            // 获取用户已领取的优惠券管理ID列表
+            var claimedCouponManagerIds = await _context.Coupons
+                .Where(c => c.CustomerID == customerId)
+                .Select(c => c.CouponManagerID)
+                .Distinct()
+                .ToListAsync();
+
+            var result = new List<AvailableCouponDto>();
+
+            foreach (var cm in allCouponManagers)
+            {
+                // 计算剩余数量
+                var totalClaimedCount = cm.Coupons?.Count ?? 0;
+                var remainingQuantity = cm.TotalQuantity - totalClaimedCount;
+
+                // 检查是否已领取（同一用户不能重复领取同一优惠券）
+                var isClaimed = claimedCouponManagerIds.Contains(cm.CouponManagerID);
+
+                result.Add(new AvailableCouponDto
+                {
+                    CouponManagerID = cm.CouponManagerID,
+                    CouponName = cm.CouponName,
+                    Type = cm.CouponType == CouponType.Fixed ? "fixed" : "discount",
+                    MinimumSpend = cm.MinimumSpend,
+                    Value = cm.Value,
+                    ValidFrom = cm.ValidFrom.ToString("yyyy-MM-dd HH:mm:ss"),
+                    ValidTo = cm.ValidTo.ToString("yyyy-MM-dd HH:mm:ss"),
+                    Description = cm.Description,
+                    StoreID = cm.StoreID,
+                    StoreName = cm.Store?.StoreName ?? "",
+                    StoreImage = cm.Store?.StoreImage,
+                    RemainingQuantity = remainingQuantity,
+                    IsClaimed = isClaimed
+                });
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 领取优惠券
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="couponManagerId">优惠券管理ID</param>
+        /// <returns>领取结果</returns>
+        public async Task<bool> ClaimCouponAsync(int userId, int couponManagerId)
+        {
+            // 获取用户信息
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null || user.Customer == null)
+            {
+                return false;
+            }
+
+            var customerId = user.Customer.UserID;
+
+            // 获取优惠券管理信息
+            var couponManager = await _couponManagerRepository.GetByIdAsync(couponManagerId);
+            if (couponManager == null)
+            {
+                return false;
+            }
+
+            // 检查优惠券是否有效
+            var now = DateTime.Now;
+            if (now > couponManager.ValidTo)
+            {
+                return false;
+            }
+
+            // 需要重新加载 Coupons 以确保获取最新数量
+            await _context.Entry(couponManager)
+                .Collection(cm => cm.Coupons!)
+                .LoadAsync();
+
+            // 检查是否还有剩余数量
+            var totalClaimed = couponManager.Coupons?.Count ?? 0;
+            if (totalClaimed >= couponManager.TotalQuantity)
+            {
+                return false;
+            }
+
+            // 检查用户是否已经领取过这个优惠券
+            var existingCoupon = await _context.Coupons
+                .FirstOrDefaultAsync(c => c.CustomerID == customerId && c.CouponManagerID == couponManagerId);
+            if (existingCoupon != null)
+            {
+                return false; // 已经领取过了
+            }
+
+            // 创建新的优惠券
+            var newCoupon = new BackEnd.Models.Coupon
+            {
+                CustomerID = customerId,
+                CouponManagerID = couponManagerId,
+                CouponState = CouponState.Unused
+            };
+
+            await _couponRepository.AddAsync(newCoupon);
+            await _couponRepository.SaveAsync();
+
+            return true;
+        }
     }
 }
-

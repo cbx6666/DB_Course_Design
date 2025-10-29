@@ -50,11 +50,6 @@ namespace BackEnd.Models
         public int TotalQuantity { get; set; }
 
         /// <summary>
-        /// 已使用数量
-        /// </summary>
-        public int UsedQuantity { get; set; } = 0;
-
-        /// <summary>
         /// 有效期开始时间
         /// </summary>
         [Required]

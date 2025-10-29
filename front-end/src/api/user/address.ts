@@ -16,5 +16,3 @@ export const updateUserAddress = (payload: UserAddress) => putData("/user/profil
 // 兼容旧接口：获取默认/单个地址
 export type Address = UserAddress;
 export const getAddress = (userId?: number) => getData<UserAddress>("/user/profile/address");
-
-

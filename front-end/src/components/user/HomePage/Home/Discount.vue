@@ -5,7 +5,8 @@
       <div
         v-for="(promo, index) in promotions"
         :key="index"
-        class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow text-left"
+        class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow text-left cursor-pointer"
+        @click="goToCoupons"
       >
         <img :src="promo.image" :alt="promo.title" class="w-full h-48 object-cover object-top" />
         <div class="p-4">
@@ -18,6 +19,13 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const goToCoupons = () => {
+  router.push('/home/coupons');
+};
 const promotions = [
   {
     title: "新用户专享",

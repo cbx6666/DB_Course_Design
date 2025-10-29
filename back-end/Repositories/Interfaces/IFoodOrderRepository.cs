@@ -8,13 +8,6 @@ namespace BackEnd.Repositories.Interfaces
     public interface IFoodOrderRepository
     {
         /// <summary>
-        /// 根据用户ID获取订单
-        /// </summary>
-        /// <param name="userId">用户ID</param>
-        /// <returns>订单列表</returns>
-        Task<IEnumerable<FoodOrder>> GetByUserIdAsync(int userId);
-
-        /// <summary>
         /// 获取所有订单
         /// </summary>
         /// <returns>订单列表</returns>

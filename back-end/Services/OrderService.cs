@@ -65,6 +65,27 @@ namespace BackEnd.Services
                 // 获取购物车项目
                 var cartItems = o.CartID.HasValue ? await GetCartItemsAsync(o.CartID.Value) : Enumerable.Empty<ShoppingCartItemDto>();
                 
+                // 获取订单使用的优惠券信息
+                OrderCouponInfoDto? usedCoupon = null;
+                if (o.Coupons != null && o.Coupons.Any())
+                {
+                    var coupon = o.Coupons.FirstOrDefault(); // 一个订单通常只有一个优惠券
+                    if (coupon != null && coupon.CouponManager != null)
+                    {
+                        usedCoupon = new OrderCouponInfoDto
+                        {
+                            CouponId = coupon.CouponID,
+                            CouponName = coupon.CouponManager.CouponName,
+                            Description = coupon.CouponManager.Description,
+                            DiscountType = coupon.CouponManager.CouponType == Models.Enums.CouponType.Fixed ? "fixed" : "discount",
+                            DiscountValue = coupon.CouponManager.Value,
+                            ValidFrom = coupon.CouponManager.ValidFrom.ToString("o"),
+                            ValidTo = coupon.CouponManager.ValidTo.ToString("o"),
+                            IsUsed = coupon.CouponState == Models.Enums.CouponState.Used
+                        };
+                    }
+                }
+                
                 result.Add(new FoodOrderDto
                 {
                     OrderId = o.OrderID,
@@ -81,7 +102,10 @@ namespace BackEnd.Services
                     // 配送信息
                     DeliveryAddress = o.DeliveryInfo?.Address,
                     DeliveryName = o.DeliveryInfo?.Name,
-                    DeliveryPhone = o.DeliveryInfo?.PhoneNumber
+                    DeliveryPhone = o.DeliveryInfo?.PhoneNumber,
+                    DeliveryFee = o.DeliveryFee,
+                    // 优惠券信息
+                    UsedCoupon = usedCoupon
                 });
             }
             
@@ -144,26 +168,6 @@ namespace BackEnd.Services
                 OrderId = orderId,
                 Decision = "completed",
                 DecidedAt = DateTime.Now.ToString("o")
-            };
-        }
-
-        /// <summary>
-        /// 拒绝订单
-        /// </summary>
-        /// <param name="orderId">订单ID</param>
-        /// <param name="reason">拒绝原因</param>
-        /// <returns>订单决策结果</returns>
-        public async Task<OrderDecisionDto> RejectOrderAsync(int orderId, string? reason)
-        {
-            var order = await _orderRepo.GetByIdAsync(orderId)
-                ?? throw new KeyNotFoundException("订单不存在");
-
-            return new OrderDecisionDto
-            {
-                OrderId = orderId,
-                Decision = "rejected",
-                DecidedAt = DateTime.Now.ToString("o"),
-                Reason = reason
             };
         }
 

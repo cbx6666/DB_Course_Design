@@ -1,5 +1,16 @@
 import apiClient from '../client';
 
+export interface OrderCouponInfo {
+    couponId: number;
+    couponName?: string;
+    description?: string;
+    discountType: string; // 'fixed' | 'discount'
+    discountValue: number;
+    validFrom: string;
+    validTo: string;
+    isUsed: boolean;
+}
+
 export interface FoodOrder {
     orderId: number;
     paymentTime: string;
@@ -14,7 +25,9 @@ export interface FoodOrder {
     deliveryAddress?: string;
     deliveryName?: string;
     deliveryPhone?: string;
+    deliveryFee?: number;
     items?: OrderItem[];
+    usedCoupon?: OrderCouponInfo;
 }
 
 export interface OrderItem {
@@ -30,42 +43,47 @@ export interface OrderItem {
 export const getOrders = async (params?: { sellerId?: number; storeId?: number }) => {
     const response = await apiClient.get('/orders', { params });
     const mapItem = (it: any): OrderItem => ({
-        dishId: it?.DishID ?? it?.dishId ?? it?.dish?.DishID ?? it?.dish?.id ?? 0,
-        quantity: it?.Quantity ?? it?.quantity ?? 0,
-        totalPrice: it?.TotalPrice ?? it?.totalPrice ?? 0,
-        dish: (it?.Dish || it?.dish)
-            ? {
-                dishName: it?.Dish?.DishName ?? it?.dish?.dishName,
-                price: it?.Dish?.Price ?? it?.dish?.price,
-            }
-            : undefined,
+        dishId: it?.dishId ?? it?.dish?.id ?? 0,
+        quantity: it?.quantity ?? 0,
+        totalPrice: it?.totalPrice ?? 0,
+        dish: it?.dish ? {
+            dishName: it.dish.dishName,
+            price: it.dish.price,
+        } : undefined,
     });
 
     const list = (response.data || []).map((o: any) => ({
-        orderId: o.OrderID ?? o.orderId,
-        paymentTime: o.PaymentTime ?? o.paymentTime,
-        remarks: o.Remarks ?? o.remarks,
-        customerId: o.CustomerID ?? o.customerId,
-        cartId: o.CartID ?? o.cartId,
-        storeId: o.StoreID ?? o.storeId,
-        sellerId: o.SellerID ?? o.sellerId,
-        orderState: o.OrderState ?? o.orderState ?? 0,
-        deliveryTaskId: o.DeliveryTaskId ?? o.deliveryTaskId ?? null,
-        deliveryStatus: o.DeliveryStatus ?? o.deliveryStatus ?? null,
-        deliveryAddress: o.DeliveryAddress ?? o.deliveryAddress,
-        deliveryName: o.DeliveryName ?? o.deliveryName,
-        deliveryPhone: o.DeliveryPhone ?? o.deliveryPhone,
-        items: Array.isArray(o.Items ?? o.items) ? (o.Items ?? o.items).map(mapItem) : [],
+        orderId: o.orderId,
+        paymentTime: o.paymentTime,
+        remarks: o.remarks,
+        customerId: o.customerId,
+        cartId: o.cartId,
+        storeId: o.storeId,
+        sellerId: o.sellerId,
+        orderState: o.orderState ?? 0,
+        deliveryTaskId: o.deliveryTaskId ?? null,
+        deliveryStatus: o.deliveryStatus ?? null,
+        deliveryAddress: o.deliveryAddress,
+        deliveryName: o.deliveryName,
+        deliveryPhone: o.deliveryPhone,
+        deliveryFee: o.deliveryFee ?? 0,
+        items: Array.isArray(o.items) ? o.items.map(mapItem) : [],
+        usedCoupon: o.usedCoupon ? {
+            couponId: o.usedCoupon.couponId ?? 0,
+            couponName: o.usedCoupon.couponName,
+            description: o.usedCoupon.description,
+            discountType: o.usedCoupon.discountType ?? '',
+            discountValue: o.usedCoupon.discountValue ?? 0,
+            validFrom: o.usedCoupon.validFrom ?? '',
+            validTo: o.usedCoupon.validTo ?? '',
+            isUsed: o.usedCoupon.isUsed ?? false,
+        } : undefined,
     })) as FoodOrder[];
     return list;
 };
 
 export const acceptOrder = async (orderId: number) => {
     await apiClient.post(`/orders/${orderId}/accept`);
-};
-
-export const rejectOrder = async (orderId: number) => {
-    await apiClient.post(`/orders/${orderId}/reject`);
 };
 
 // 标记为已准备（出餐）

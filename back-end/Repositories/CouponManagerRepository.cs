@@ -110,6 +110,7 @@ namespace BackEnd.Repositories
 
             var total = await query.CountAsync();
             var coupons = await query
+                .Include(cm => cm.Coupons) // 加载 Coupons 集合以便计算 UsedQuantity
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -131,11 +132,21 @@ namespace BackEnd.Repositories
             var total = coupons.Count;
             var now = DateTime.Now;
 
+            // 加载所有 Coupons 以计算实际使用数量
+            foreach (var coupon in coupons)
+            {
+                await _context.Entry(coupon)
+                    .Collection(c => c.Coupons!)
+                    .LoadAsync();
+            }
+
             var active = coupons.Count(c => c.ValidFrom <= now && c.ValidTo >= now);
             var expired = coupons.Count(c => c.ValidTo < now);
             var upcoming = coupons.Count(c => c.ValidFrom > now);
-            var totalUsed = coupons.Sum(c => c.UsedQuantity);
-            var totalValue = coupons.Sum(c => c.Value * c.UsedQuantity);
+            // 使用 Coupons.Count 来计算已使用数量
+            var totalUsed = coupons.Sum(c => c.Coupons?.Count ?? 0);
+            // 总优惠金额 = 每个优惠券的价值 × 已领取数量
+            var totalValue = coupons.Sum(c => c.Value * (c.Coupons?.Count ?? 0));
 
             return (total, active, expired, upcoming, totalUsed, totalValue);
         }

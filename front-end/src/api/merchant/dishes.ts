@@ -24,13 +24,13 @@ export const getDishes = async (categoryId: number) => {
         params: { categoryId: categoryId.toString() }
     });
     const list = (response.data || []).map((d: any) => ({
-        dishId: d.DishID ?? d.dishId,
-        dishName: d.DishName ?? d.dishName,
-        price: d.Price ?? d.price,
-        description: d.Description ?? d.description,
-        isSoldOut: d.IsSoldOut ?? d.isSoldOut,
-        categoryId: d.CategoryID ?? d.categoryId ?? 1,
-        image: d.DishImage ?? d.dishImage ?? d.image,
+        dishId: d.dishId,
+        dishName: d.dishName,
+        price: d.price,
+        description: d.description,
+        isSoldOut: d.isSoldOut,
+        categoryId: d.categoryId ?? 1,
+        image: d.dishImage ?? d.image,
     })) as Dish[];
     return list;
 };
@@ -48,12 +48,13 @@ export const createDish = async (dishData: NewDishData, sellerId: number) => {
     const response = await apiClient.post('/dishes', payload);
     const d = response.data;
     const mapped: Dish = {
-        dishId: d.DishID ?? d.dishId,
-        dishName: d.DishName ?? d.dishName,
-        price: d.Price ?? d.price,
-        description: d.Description ?? d.description,
-        isSoldOut: d.IsSoldOut ?? d.isSoldOut,
-        categoryId: d.CategoryID ?? d.categoryId ?? 1,
+        dishId: d.dishId,
+        dishName: d.dishName,
+        price: d.price,
+        description: d.description,
+        isSoldOut: d.isSoldOut,
+        categoryId: d.categoryId ?? 1,
+        image: d.dishImage ?? d.image,
     };
     return mapped;
 };
@@ -72,12 +73,13 @@ export const updateDish = async (
     const response = await apiClient.patch(`/dishes/${dishId}`, payload);
     const d = response.data;
     const mapped: Dish = {
-        dishId: d.DishID ?? d.dishId,
-        dishName: d.DishName ?? d.dishName,
-        price: d.Price ?? d.price,
-        description: d.Description ?? d.description,
-        isSoldOut: d.IsSoldOut ?? d.isSoldOut,
-        categoryId: d.CategoryID ?? d.categoryId ?? 1,
+        dishId: d.dishId,
+        dishName: d.dishName,
+        price: d.price,
+        description: d.description,
+        isSoldOut: d.isSoldOut,
+        categoryId: d.categoryId ?? 1,
+        image: d.dishImage ?? d.image,
     };
     return mapped;
 };

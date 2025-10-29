@@ -60,13 +60,6 @@ namespace BackEnd.Services.Interfaces
         Task<bool> AcceptOrderAsync(int courierId, int orderId);
 
         /// <summary>
-        /// 拒绝订单
-        /// </summary>
-        /// <param name="orderId">订单ID</param>
-        /// <returns>拒绝结果</returns>
-        Task<bool> RejectOrderAsync(int orderId);
-
-        /// <summary>
         /// 获取月收入
         /// </summary>
         /// <param name="courierId">配送员ID</param>

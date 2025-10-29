@@ -137,6 +137,64 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
+        /// 获取所有可领取的优惠券
+        /// </summary>
+        /// <returns>可领取优惠券列表</returns>
+        [HttpGet("available-coupons")]
+        public async Task<IActionResult> GetAvailableCoupons()
+        {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+            {
+                return Unauthorized("无效的Token");
+            }
+
+            try
+            {
+                var coupons = await _userHomepageService.GetAvailableCouponsAsync(userId.Value);
+                return Ok(coupons);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "获取可领取优惠券失败");
+                return StatusCode(500, "获取可领取优惠券失败");
+            }
+        }
+
+        /// <summary>
+        /// 领取优惠券
+        /// </summary>
+        /// <param name="couponManagerId">优惠券管理ID</param>
+        /// <returns>领取结果</returns>
+        [HttpPost("claim-coupon/{couponManagerId}")]
+        public async Task<IActionResult> ClaimCoupon(int couponManagerId)
+        {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+            {
+                return Unauthorized("无效的Token");
+            }
+
+            try
+            {
+                var success = await _userHomepageService.ClaimCouponAsync(userId.Value, couponManagerId);
+                if (success)
+                {
+                    return Ok(new { success = true, message = "优惠券领取成功" });
+                }
+                else
+                {
+                    return BadRequest(new { success = false, message = "优惠券领取失败，可能已领取过或已领完" });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "领取优惠券失败");
+                return StatusCode(500, new { success = false, message = "领取优惠券失败" });
+            }
+        }
+
+        /// <summary>
         /// 从Token中获取用户ID
         /// </summary>
         /// <returns>用户ID，如果无效则返回null</returns>

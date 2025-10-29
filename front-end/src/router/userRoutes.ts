@@ -2,6 +2,7 @@ import { RouteRecordRaw } from 'vue-router';
 import UserHomeView from '@/views/user/Homepage/UserHome.vue'
 import UserRestaurantsView from '@/views/user/Homepage/UserRestaurants.vue'
 import UserOrderView from '@/views/user/Homepage/UserOrders.vue'
+import UserCouponsView from '@/views/user/Homepage/UserCoupons.vue'
 import HomeLayout from '@/views/user/Homepage/HomeLayout.vue';
 
 const userRoutes: Array<RouteRecordRaw> = [
@@ -10,7 +11,7 @@ const userRoutes: Array<RouteRecordRaw> = [
     redirect: '/home/intro'
   },
 
-    {
+  {
     path: '/home',
     component: HomeLayout,
     children: [
@@ -31,6 +32,12 @@ const userRoutes: Array<RouteRecordRaw> = [
         name: 'Order',
         component: UserOrderView,
         meta: { title: '订单' }
+      },
+      {
+        path: 'coupons',
+        name: 'Coupons',
+        component: UserCouponsView,
+        meta: { title: '优惠' }
       }
     ]
   }

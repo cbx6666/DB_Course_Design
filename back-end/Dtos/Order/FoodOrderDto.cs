@@ -1,5 +1,6 @@
 using BackEnd.Models.Enums;
 using BackEnd.DTOs.Cart;
+using BackEnd.DTOs.Coupon;
 
 namespace BackEnd.DTOs.Order
 {
@@ -77,5 +78,15 @@ namespace BackEnd.DTOs.Order
         /// 收货人电话
         /// </summary>
         public string? DeliveryPhone { get; set; }
+
+        /// <summary>
+        /// 使用的优惠券信息
+        /// </summary>
+        public OrderCouponInfoDto? UsedCoupon { get; set; }
+
+        /// <summary>
+        /// 配送费用
+        /// </summary>
+        public decimal DeliveryFee { get; set; }
     }
 }

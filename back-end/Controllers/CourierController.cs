@@ -198,29 +198,6 @@ namespace BackEnd.Controllers
             }
         }
 
-        /// <summary>
-        /// 拒绝订单
-        /// </summary>
-        /// <param name="orderId">订单ID</param>
-        /// <returns>操作结果</returns>
-        [HttpPost("orders/{orderId}/reject")]
-        public async Task<IActionResult> RejectOrder(string orderId)
-        {
-            if (!int.TryParse(orderId, out int taskId))
-            {
-                return BadRequest("无效的订单ID格式。");
-            }
-
-            try
-            {
-                var success = await _courierService.RejectOrderAsync(taskId);
-                return !success ? BadRequest(new { success = false, message = "无法拒绝该订单，它可能已被处理或不存在。" }) : Ok(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"服务器内部错误: {ex.Message}");
-            }
-        }
 
         /// <summary>
         /// 获取月度收入

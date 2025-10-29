@@ -65,11 +65,11 @@ namespace BackEnd.Repositories
         {
             return await _context.DeliveryTasks
                                  .Include(dt => dt.Order)
-                                 .ThenInclude(o => o.Customer)
+                                    .ThenInclude(o => o.Customer)
                                  .Include(dt => dt.Order)
                                  .ThenInclude(o => o.Store)
                                  .Include(dt => dt.Courier)
-                                 .ThenInclude(c => c.User)
+                                    .ThenInclude(c => c!.User)
                                  .Include(dt => dt.DeliveryComplaints)
                                  .FirstOrDefaultAsync(dt => dt.OrderID == orderId);
         }

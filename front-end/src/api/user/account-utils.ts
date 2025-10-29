@@ -13,5 +13,3 @@ export async function getUserID(account: string | number) {
 
     return getData<number>('/user/account', { params })
 }
-
-

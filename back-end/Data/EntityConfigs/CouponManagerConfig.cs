@@ -43,7 +43,6 @@ namespace BackEnd.Data.EntityConfigs
                 .HasConversion<string>()
                 .HasMaxLength(100);
             builder.Property(cm => cm.TotalQuantity).HasColumnName("TOTALQUANTITY");
-            builder.Property(cm => cm.UsedQuantity).HasColumnName("USEDQUANTITY");
             builder.Property(cm => cm.Description).HasColumnName("DESCRIPTION").HasMaxLength(500);
 
             // 关系配置

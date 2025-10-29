@@ -52,6 +52,11 @@ namespace BackEnd.DTOs.User
         /// </summary>
         [Required]
         public int DeliveryInfoID { get; set; }
+
+        /// <summary>
+        /// 优惠券ID（可选）
+        /// </summary>
+        public int? CouponId { get; set; }
     }
 
     /// <summary>

@@ -76,8 +76,13 @@ const pendingRequests = ref<Set<number>>(new Set());
 
 // 过滤后的菜品列表
 const filteredMenuItems = computed(() => {
-  if (selectedCategoryId.value === null) {
+  // 如果没有分类，显示所有菜品
+  if (categories.value.length === 0) {
     return allMenuItems.value
+  }
+  // 如果没有选中分类但有分类数据，显示第一个分类的菜品
+  if (selectedCategoryId.value === null && categories.value.length > 0) {
+    return allMenuItems.value.filter(item => item.categoryId === categories.value[0].id)
   }
   // 根据选中的分类ID过滤菜品
   return allMenuItems.value.filter(item => item.categoryId === selectedCategoryId.value)

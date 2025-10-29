@@ -67,17 +67,25 @@ namespace BackEnd.Services
             // 查询用户的优惠券信息
             var coupons = await _couponRepository.GetByCustomerIdAsync(user.Customer.UserID);
 
-            // 转换为 DTO
-            return coupons.Select(c => new UserCouponDto
-            {
-                CouponID = c.CouponID,
-                CouponState = GetActualCouponState(c),
-                OrderID = c.OrderID,
-                CouponManagerID = c.CouponManagerID,
-                MinimumSpend = c.CouponManager.MinimumSpend,
-                Value = c.CouponManager.Value,
-                ValidTo = c.CouponManager.ValidTo.ToString("yyyy-MM-ddTHH:mm:ss")
-            }).ToList();
+            // 转换为 DTO，只返回未使用的优惠券
+            return coupons
+                .Where(c => GetActualCouponState(c) == CouponState.Unused)
+                .Select(c => new UserCouponDto
+                {
+                    CouponID = c.CouponID,
+                    CouponState = GetActualCouponState(c),
+                    CouponManagerID = c.CouponManagerID,
+                    MinimumSpend = c.CouponManager.MinimumSpend,
+                    Value = c.CouponManager.Value,
+                    CouponType = c.CouponManager.CouponType == CouponType.Fixed ? "fixed" : "discount",
+                    ValidFrom = c.CouponManager.ValidFrom.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    ValidTo = c.CouponManager.ValidTo.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    CouponName = c.CouponManager.CouponName,
+                    Description = c.CouponManager.Description,
+                    StoreID = c.CouponManager.StoreID,
+                    StoreName = c.CouponManager.Store?.StoreName,
+                    StoreImage = c.CouponManager.Store?.StoreImage
+                }).ToList();
         }
 
         /// <summary>

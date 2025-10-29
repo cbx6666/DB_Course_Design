@@ -32,64 +32,45 @@ namespace BackEnd.Repositories
                                        .Include(fo => fo.Cart)                   // 购物车
                                        .Include(fo => fo.Store)                  // 店铺
                                        .Include(fo => fo.DeliveryInfo)           // 配送信息
-                                       .Include(fo => fo.Coupons)                // 优惠券
                                        .Include(fo => fo.AfterSaleApplications)  // 售后申请
                                        .Include(fo => fo.Comments)               // 评论
                                        .OrderByDescending(fo => fo.OrderID)
                                        .ToListAsync();
 
-            // 批量加载 DeliveryTasks
+            // 批量加载 DeliveryTasks 和优惠券
             var orderIds = orders.Select(o => o.OrderID).ToList();
+            
             var tasks = await _context.DeliveryTasks
                 .Where(d => orderIds.Contains(d.OrderID))
                 .Select(d => new { d.OrderID, d.TaskID, d.Status })
                 .ToListAsync();
 
+            // 批量加载优惠券及其管理信息（处理可空集合）
+            var coupons = await _context.Coupons
+                .Include(c => c.CouponManager)
+                .Where(c => c.OrderID.HasValue && orderIds.Contains(c.OrderID.Value))
+                .ToListAsync();
+
+            // 将优惠券分组到对应的订单
+            var couponsByOrder = coupons
+                .Where(c => c.OrderID.HasValue)
+                .GroupBy(c => c.OrderID!.Value)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             var taskDict = tasks.ToDictionary(t => t.OrderID);
 
             foreach (var order in orders)
             {
-                if (taskDict.TryGetValue(order.OrderID, out var t))
+                // 手动分配优惠券到订单（如果订单的 Coupons 集合为 null，则创建新列表）
+                if (couponsByOrder.TryGetValue(order.OrderID, out var orderCoupons))
                 {
-                    order.DeliveryTask = new DeliveryTask
+                    order.Coupons ??= new List<Coupon>();
+                    foreach (var coupon in orderCoupons)
                     {
-                        TaskID = t.TaskID,
-                        Status = t.Status,
-                        OrderID = order.OrderID
-                    };
+                        order.Coupons.Add(coupon);
+                    }
                 }
-            }
 
-            return orders;
-        }
-
-        /// <summary>
-        /// 根据用户ID获取订单
-        /// </summary>
-        /// <param name="userId">用户ID</param>
-        /// <returns>订单列表</returns>
-        public async Task<IEnumerable<FoodOrder>> GetByUserIdAsync(int userId)
-        {
-            var orders = await _context.FoodOrders
-                                       .Where(fo => fo.CustomerID == userId)
-                                       .Include(fo => fo.Customer)
-                                       .Include(fo => fo.Cart)
-                                       .Include(fo => fo.Store)
-                                       .Include(fo => fo.Coupons)
-                                       .Include(fo => fo.AfterSaleApplications)
-                                       .ToListAsync();
-
-            // 批量加载 DeliveryTasks
-            var orderIds = orders.Select(o => o.OrderID).ToList();
-            var tasks = await _context.DeliveryTasks
-                .Where(d => orderIds.Contains(d.OrderID))
-                .Select(d => new { d.OrderID, d.TaskID, d.Status })
-                .ToListAsync();
-
-            var taskDict = tasks.ToDictionary(t => t.OrderID);
-
-            foreach (var order in orders)
-            {
                 if (taskDict.TryGetValue(order.OrderID, out var t))
                 {
                     order.DeliveryTask = new DeliveryTask

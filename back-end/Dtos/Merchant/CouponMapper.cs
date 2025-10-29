@@ -29,7 +29,7 @@ namespace BackEnd.DTOs.Merchant
                 StartTime = coupon.ValidFrom.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 EndTime = coupon.ValidTo.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 TotalQuantity = coupon.TotalQuantity,
-                UsedQuantity = coupon.UsedQuantity,
+                UsedQuantity = coupon.Coupons?.Count ?? 0, // 通过 Coupons.Count 计算已使用数量
                 Description = coupon.Description ?? "",
                 Status = coupon.Status
             };
@@ -60,7 +60,6 @@ namespace BackEnd.DTOs.Merchant
                 MinimumSpend = dto.MinAmount ?? 0,
                 Value = value,
                 TotalQuantity = dto.TotalQuantity,
-                UsedQuantity = 0,
                 ValidFrom = DateTime.Parse(dto.StartTime),
                 ValidTo = DateTime.Parse(dto.EndTime),
                 Description = dto.Description,

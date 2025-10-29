@@ -32,14 +32,6 @@ namespace BackEnd.Services.Interfaces
         Task<OrderDecisionDto> MarkAsReadyAsync(int orderId);
 
         /// <summary>
-        /// 拒绝订单
-        /// </summary>
-        /// <param name="orderId">订单ID</param>
-        /// <param name="reason">拒绝原因</param>
-        /// <returns>订单决策结果</returns>
-        Task<OrderDecisionDto> RejectOrderAsync(int orderId, string? reason);
-
-        /// <summary>
         /// 获取购物车商品
         /// </summary>
         /// <param name="cartId">购物车ID</param>

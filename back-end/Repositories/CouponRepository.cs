@@ -45,6 +45,7 @@ namespace BackEnd.Repositories
             // 对于单个查询，同样建议预加载关联数据
             return await _context.Coupons
                                  .Include(c => c.CouponManager)
+                                    .ThenInclude(cm => cm.Store)
                                  .Include(c => c.Order)
                                  .Include(c => c.Customer)
                                  .FirstOrDefaultAsync(c => c.CouponID == id);
@@ -59,6 +60,7 @@ namespace BackEnd.Repositories
         {
             return await _context.Coupons
                                  .Include(c => c.CouponManager)
+                                    .ThenInclude(cm => cm.Store)
                                  .Include(c => c.Order)
                                  .Include(c => c.Customer)
                                  .Where(c => c.CustomerID == customerId)

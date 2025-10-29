@@ -17,10 +17,19 @@
         <div v-if="selectedCoupon" class="flex items-center justify-between">
           <div class="flex-1">
             <p class="text-[#F9771C] font-bold text-lg mb-1">
-              ¥{{ selectedCoupon.discountAmount.toFixed(2) }}
+              <span v-if="selectedCoupon.couponType === 'fixed'">
+                ¥{{ selectedCoupon.discountAmount.toFixed(2) }}
+              </span>
+              <span v-else-if="selectedCoupon.couponType === 'discount'">
+                {{ (selectedCoupon.discountAmount * 10).toFixed(1) }}折
+              </span>
+              <span v-else>
+                ¥{{ selectedCoupon.discountAmount.toFixed(2) }}
+              </span>
             </p>
             <p class="text-xs text-gray-500">
-              满¥{{ selectedCoupon.minimumSpend.toFixed(2) }}可用 · 有效期至 {{ formatDate(selectedCoupon.validTo) }}
+              <span v-if="selectedCoupon.minimumSpend === 0">无门槛</span>
+              <span v-else>满¥{{ selectedCoupon.minimumSpend.toFixed(2) }}元可用</span> · 有效期至 {{ formatDate(selectedCoupon.validTo) }}
             </p>
           </div>
           <span class="px-2 py-0.5 text-[#F9771C] border border-[#F9771C] rounded text-xs">
@@ -73,10 +82,19 @@
               <div class="flex items-center justify-between">
                 <div class="flex-1">
                   <p class="text-[#F9771C] font-bold text-lg mb-1">
-                    ¥{{ coupon.discountAmount.toFixed(2) }}
+                    <span v-if="coupon.couponType === 'fixed'">
+                      ¥{{ coupon.discountAmount.toFixed(2) }}
+                    </span>
+                    <span v-else-if="coupon.couponType === 'discount'">
+                      {{ (coupon.discountAmount * 10).toFixed(1) }}折
+                    </span>
+                    <span v-else>
+                      ¥{{ coupon.discountAmount.toFixed(2) }}
+                    </span>
                   </p>
                   <p class="text-xs text-gray-500">
-                    满¥{{ coupon.minimumSpend.toFixed(2) }}可用 · 有效期至 {{ formatDate(coupon.validTo) }}
+                    <span v-if="coupon.minimumSpend === 0">无门槛</span>
+                    <span v-else>满¥{{ coupon.minimumSpend.toFixed(2) }}元可用</span> · 有效期至 {{ formatDate(coupon.validTo) }}
                   </p>
                 </div>
                 <i v-if="selectedCoupon?.couponID === coupon.couponID" class="fas fa-check text-[#F9771C]"></i>
@@ -92,7 +110,15 @@
               <div class="flex items-center justify-between">
                 <div class="flex-1">
                   <p class="text-gray-500 font-bold text-lg mb-1">
-                    ¥{{ coupon.discountAmount.toFixed(2) }}
+                    <span v-if="coupon.couponType === 'fixed'">
+                      ¥{{ coupon.discountAmount.toFixed(2) }}
+                    </span>
+                    <span v-else-if="coupon.couponType === 'discount'">
+                      {{ (coupon.discountAmount * 10).toFixed(1) }}折
+                    </span>
+                    <span v-else>
+                      ¥{{ coupon.discountAmount.toFixed(2) }}
+                    </span>
                   </p>
                   <p class="text-xs text-gray-400">
                     还差¥{{ (coupon.minimumSpend - totalAmount).toFixed(2) }}可使用

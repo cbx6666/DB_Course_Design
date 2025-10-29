@@ -47,8 +47,8 @@ export interface Order {
     deliveryFee: number;
 }
 
-export const submitOrder = (customerId: number, cartId: number, storeId: number, deliveryInfoId: number, deliveryFee: number, remarks?: string) => {
-    const requestBody = {
+export const submitOrder = (customerId: number, cartId: number, storeId: number, deliveryInfoId: number, deliveryFee: number, remarks?: string, couponId?: number | null) => {
+    const requestBody: any = {
         CartId: cartId,
         CustomerId: customerId,
         StoreId: storeId,
@@ -57,6 +57,10 @@ export const submitOrder = (customerId: number, cartId: number, storeId: number,
         DeliveryFee: deliveryFee,
         Remarks: remarks || ''
     };
+    // 如果提供了优惠券ID，添加到请求中
+    if (couponId && couponId > 0) {
+        requestBody.CouponId = couponId;
+    }
     return postData<Order>('/store/order/create', requestBody);
 }
 
@@ -64,5 +68,3 @@ export const useCoupon = (couponId: number | null) => {
     if (couponId == null) return Promise.resolve();
     return postData(`/user/checkout/coupon`, { couponId });
 }
-
-

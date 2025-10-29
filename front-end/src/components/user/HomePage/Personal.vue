@@ -92,8 +92,7 @@ const userStore = useUserStore();
 const userInfo = ref({
   name: "",
   phoneNumber: 0,
-  image: '',
-  defaultAddress: ""
+  image: ''
 });
 
 onMounted(async () => {

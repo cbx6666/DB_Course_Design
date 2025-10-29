@@ -49,5 +49,20 @@ namespace BackEnd.Services.Interfaces
         /// </summary>
         /// <returns>店铺列表</returns>
         Task<StoresResponseDto> GetAllStoresAsync();
+
+        /// <summary>
+        /// 获取所有可领取的优惠券
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>可领取优惠券列表</returns>
+        Task<List<AvailableCouponDto>> GetAvailableCouponsAsync(int userId);
+
+        /// <summary>
+        /// 领取优惠券
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="couponManagerId">优惠券管理ID</param>
+        /// <returns>领取结果</returns>
+        Task<bool> ClaimCouponAsync(int userId, int couponManagerId);
     }
 }

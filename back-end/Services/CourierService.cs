@@ -172,7 +172,6 @@ namespace BackEnd.Services
                 DeliveryStatus.Pending => "待取餐",
                 DeliveryStatus.Delivering => "配送中",
                 DeliveryStatus.Completed => "已完成",
-                DeliveryStatus.Cancelled => "已取消",
                 _ => "未知状态"
             };
         }
@@ -236,24 +235,6 @@ namespace BackEnd.Services
             return true;
         }
 
-        /// <summary>
-        /// 拒绝订单
-        /// </summary>
-        /// <param name="orderId">订单ID</param>
-        /// <returns>拒绝结果</returns>
-        public async Task<bool> RejectOrderAsync(int orderId)
-        {
-            var task = await _deliveryTaskRepository.GetByIdAsync(orderId);
-            if (task == null || task.Status != DeliveryStatus.Pending)
-            {
-                return false;
-            }
-
-            task.Status = DeliveryStatus.Cancelled;
-            await _deliveryTaskRepository.UpdateAsync(task);
-            await _deliveryTaskRepository.SaveAsync();
-            return true;
-        }
 
         /// <summary>
         /// 获取月收入

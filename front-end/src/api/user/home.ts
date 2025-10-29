@@ -28,6 +28,17 @@ export interface OrderDish {
     quantity: number
 }
 
+export interface OrderCouponInfo {
+    couponId: number
+    couponName?: string
+    description?: string
+    discountType: string  // 'fixed' | 'discount'
+    discountValue: number
+    validFrom: string
+    validTo: string
+    isUsed: boolean
+}
+
 export interface OrderInfo {
     orderID: number
     paymentTime: string
@@ -37,15 +48,17 @@ export interface OrderInfo {
     storeName: string
     dishImage: string[]
     dishDetails: OrderDish[]
-    totalAmount: number
+    totalAmount: number  // 原始商品总价（不含优惠券折扣，不含配送费）
     orderStatus: number
+    deliveryStatus?: number | null  // 配送状态：0=待取件, 1=待取单, 2=配送中, 3=已完成, null=无配送任务
+    usedCoupon?: OrderCouponInfo  // 使用的优惠券信息
+    deliveryFee: number  // 配送费
 }
 
 export interface UserInfo {
     name: string
     phoneNumber: number
     image: string
-    defaultAddress: string
 }
 
 export interface AfterSale {

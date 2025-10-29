@@ -54,6 +54,30 @@ const emit = defineEmits<{
   (e: 'checkout'): void;
 }>();
 
-const discount = computed(() => props.selectedCoupon?.discountAmount ?? 0);
-const total = computed(() => Math.max(0, props.subtotal +  props.deliveryFee - discount.value));
+// 计算优惠金额
+const discount = computed(() => {
+  if (!props.selectedCoupon) return 0;
+  
+  const coupon = props.selectedCoupon;
+  
+  // 满减券：discountAmount 就是优惠金额
+  if (coupon.couponType === 'fixed') {
+    return coupon.discountAmount;
+  }
+  
+  // 折扣券：discountAmount 是折扣比例（0-1），需要计算优惠金额
+  // 例如：discountAmount = 0.8 表示8折，优惠金额 = subtotal * (1 - 0.8) = subtotal * 0.2
+  if (coupon.couponType === 'discount') {
+    const discountRatio = coupon.discountAmount; // 已经是 0-1 的比例
+    const discountAmount = props.subtotal * (1 - discountRatio);
+    // 确保优惠金额不超过订单总额
+    return Math.min(discountAmount, props.subtotal);
+  }
+  
+  // 兼容旧数据（如果没有 couponType）
+  return coupon.discountAmount;
+});
+
+// 计算实付金额 = 商品总价 + 配送费 - 优惠金额
+const total = computed(() => Math.max(0, props.subtotal + props.deliveryFee - discount.value));
 </script>

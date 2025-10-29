@@ -115,7 +115,7 @@ namespace BackEnd.Repositories
         }
 
         /// <summary>
-        /// 更新店铺月销量并返回新值
+        /// 更新店铺月销量并返回新值（统计本月的已完成订单数）
         /// </summary>
         /// <param name="storeId">店铺ID</param>
         /// <returns>更新后的月销量</returns>
@@ -125,37 +125,22 @@ namespace BackEnd.Repositories
             if (store == null) return 0;
 
             var currentDate = DateTime.Now;
-            var lastMonth = currentDate.AddMonths(-1);
-            var firstDayOfLastMonth = new DateTime(lastMonth.Year, lastMonth.Month, 1);
-            var lastDayOfLastMonth = firstDayOfLastMonth.AddMonths(1).AddDays(-1);
+            var firstDayOfCurrentMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
 
-            // 计算上个月的完成订单数量
-            var lastMonthOrders = await _context.FoodOrders
+            // 计算本月到目前为止的已完成订单数
+            var currentMonthOrders = await _context.FoodOrders
                 .Where(o => o.StoreID == storeId &&
                            o.PaymentTime.HasValue &&
-                           o.PaymentTime.Value >= firstDayOfLastMonth &&
-                           o.PaymentTime.Value <= lastDayOfLastMonth &&
+                           o.PaymentTime.Value >= firstDayOfCurrentMonth &&
                            o.FoodOrderState == Models.Enums.FoodOrderState.Completed)
                 .CountAsync();
 
-            // 如果上个月没有订单，使用本月到目前为止的完成订单数
-            if (lastMonthOrders == 0)
-            {
-                var firstDayOfCurrentMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
-                lastMonthOrders = await _context.FoodOrders
-                    .Where(o => o.StoreID == storeId &&
-                               o.PaymentTime.HasValue &&
-                               o.PaymentTime.Value >= firstDayOfCurrentMonth &&
-                               o.FoodOrderState == Models.Enums.FoodOrderState.Completed)
-                    .CountAsync();
-            }
-
             // 更新缓存
-            store.MonthlySales = lastMonthOrders;
+            store.MonthlySales = currentMonthOrders;
             store.MonthlySalesLastUpdated = currentDate;
             await _context.SaveChangesAsync();
 
-            return lastMonthOrders;
+            return currentMonthOrders;
         }
 
         /// <summary>

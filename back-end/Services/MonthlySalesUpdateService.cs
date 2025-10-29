@@ -91,9 +91,7 @@ namespace BackEnd.Services
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
                 var currentDate = DateTime.Now;
-                var lastMonth = currentDate.AddMonths(-1);
-                var firstDayOfLastMonth = new DateTime(lastMonth.Year, lastMonth.Month, 1);
-                var lastDayOfLastMonth = firstDayOfLastMonth.AddMonths(1).AddDays(-1);
+                var firstDayOfCurrentMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
 
                 // 获取所有店铺
                 var stores = await dbContext.Stores.ToListAsync();
@@ -101,31 +99,19 @@ namespace BackEnd.Services
 
                 foreach (var store in stores)
                 {
-                    // 计算上个月的订单数量
+                    // 计算本月到目前为止的已完成订单数
                     var monthlySales = await dbContext.FoodOrders
                         .Where(o => o.StoreID == store.StoreID &&
                                    o.PaymentTime.HasValue &&
-                                   o.PaymentTime.Value >= firstDayOfLastMonth &&
-                                   o.PaymentTime.Value <= lastDayOfLastMonth &&
+                                   o.PaymentTime.Value >= firstDayOfCurrentMonth &&
                                    o.FoodOrderState == Models.Enums.FoodOrderState.Completed)
                         .CountAsync();
-
-                    // 如果上个月没有订单，使用本月到目前为止的订单数
-                    if (monthlySales == 0)
-                    {
-                        var firstDayOfCurrentMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
-                        monthlySales = await dbContext.FoodOrders
-                            .Where(o => o.StoreID == store.StoreID &&
-                                       o.PaymentTime.HasValue &&
-                                       o.PaymentTime.Value >= firstDayOfCurrentMonth &&
-                                       o.FoodOrderState == Models.Enums.FoodOrderState.Completed)
-                            .CountAsync();
-                    }
 
                     // 更新店铺月销量
                     if (store.MonthlySales != monthlySales)
                     {
                         store.MonthlySales = monthlySales;
+                        store.MonthlySalesLastUpdated = currentDate;
                         updatedCount++;
                     }
                 }

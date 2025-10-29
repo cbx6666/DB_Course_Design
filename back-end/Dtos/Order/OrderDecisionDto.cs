@@ -10,7 +10,7 @@ namespace BackEnd.DTOs.Order
         /// </summary>
         public int OrderId { get; set; }
         /// <summary>
-        /// 决策结果（"accepted" 或 "rejected"）
+        /// 决策结果（"accepted" 或 "completed"）
         /// </summary>
         public string Decision { get; set; } = null!;
         /// <summary>
