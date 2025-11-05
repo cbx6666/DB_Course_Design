@@ -61,7 +61,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 
 import type { UserAddress as Address, MenuItem, ShoppingCart, CouponInfo } from '@/api/user';
-import { getMenuItem, getShoppingCart, addOrUpdateCartItem, removeCartItem, submitOrder, useCoupon, getDeliveryTasks } from '@/api/user';
+import { getMenuItem, getShoppingCart, addOrUpdateCartItem, removeCartItem, submitOrder, getDeliveryTasks } from '@/api/user';
 
 import DishCard from '@/components/user/Checkout/DishCard.vue';
 import AddressSelector from '@/components/user/Checkout/AddressSelector.vue';

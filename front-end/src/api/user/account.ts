@@ -4,7 +4,7 @@ import API from '@/api/index';
 export interface AccountInfo {
     id: number;
     name: string;
-    image: string;
+    avatar: string;
 }
 
 export interface AccountUpdateData {
@@ -14,7 +14,7 @@ export interface AccountUpdateData {
 }
 
 export async function getAccountInfo() {
-    return getData<AccountInfo>("/user/profile/userProfile");
+    return getData<AccountInfo>("/customer/info/profile/userProfile");
 }
 
 export async function saveAccountInfo(data: AccountUpdateData) {
@@ -23,7 +23,7 @@ export async function saveAccountInfo(data: AccountUpdateData) {
     formData.append('Name', data.name);
     formData.append('AvatarFile', data.avatarFile);
 
-    return API.put('/user/profile/account/update', formData, {
+    return API.put('/customer/info/profile/account/update', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },

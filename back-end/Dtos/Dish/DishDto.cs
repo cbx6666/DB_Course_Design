@@ -87,6 +87,11 @@ namespace BackEnd.DTOs.Dish
         /// 是否售罄
         /// </summary>
         public int? IsSoldOut { get; set; }
+        
+        /// <summary>
+        /// 菜品图片
+        /// </summary>
+        public string? DishImage { get; set; }
     }
 
     /// <summary>

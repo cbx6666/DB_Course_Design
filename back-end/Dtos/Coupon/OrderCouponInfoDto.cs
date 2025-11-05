@@ -1,7 +1,9 @@
 namespace BackEnd.DTOs.Coupon
 {
     /// <summary>
-    /// 订单关联优惠券信息
+    /// 订单关联优惠券信息（随订单返回的已使用/关联的优惠券）
+    /// - 用于用户端/商家端订单视图中展示
+    /// - 来自订单上的关联 CouponManager/Coupon 信息
     /// </summary>
     public class OrderCouponInfoDto
     {
@@ -45,4 +47,4 @@ namespace BackEnd.DTOs.Coupon
         /// </summary>
         public bool IsUsed { get; set; }
     }
-}
+} 

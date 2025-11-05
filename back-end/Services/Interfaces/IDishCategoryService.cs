@@ -1,4 +1,5 @@
 using BackEnd.DTOs.DishCategory;
+using BackEnd.DTOs.Common;
 
 namespace BackEnd.Services.Interfaces
 {
@@ -12,7 +13,7 @@ namespace BackEnd.Services.Interfaces
         /// </summary>
         /// <param name="menuId">菜单ID</param>
         /// <returns>菜品种类列表</returns>
-        Task<DishCategoryListResponseDto> GetCategoriesByMenuIdAsync(int menuId);
+        Task<PageResultDto<DishCategoryDto>> GetCategoriesByMenuIdAsync(int menuId);
 
         /// <summary>
         /// 创建菜品种类

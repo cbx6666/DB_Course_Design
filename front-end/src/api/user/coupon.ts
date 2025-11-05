@@ -40,7 +40,7 @@ export interface ClaimCouponResponse {
  * 获取所有可领取的优惠券
  */
 export async function getAvailableCoupons(): Promise<AvailableCoupon[]> {
-    return getData<AvailableCoupon[]>('/user/home/available-coupons');
+    return getData<AvailableCoupon[]>('/customer/info/home/available-coupons');
 }
 
 /**
@@ -48,15 +48,15 @@ export async function getAvailableCoupons(): Promise<AvailableCoupon[]> {
  * @param couponManagerId 优惠券管理ID
  */
 export async function claimCoupon(couponManagerId: number): Promise<ClaimCouponResponse> {
-    return postData<ClaimCouponResponse>(`/user/home/claim-coupon/${couponManagerId}`);
+    return postData<ClaimCouponResponse>(`/customer/info/home/claim-coupon/${couponManagerId}`);
 }
 
 /**
- * 获取用户已领取的优惠券
+ * 获取用户已领取的优惠券（我的优惠券页面）
  * @param userId 用户ID（保留参数以兼容现有调用，但实际不使用，因为后端从Token获取）
  */
 export async function getCouponInfo(userId: number): Promise<CouponInfo[]> {
-    const data = await getData<any[]>('/user/coupons');
+    const data = await getData<any[]>('/customer/info/home/couponInfo');
     // 转换后端数据格式到前端格式
     return data.map((item: any) => {
         // 根据优惠券类型计算折扣金额

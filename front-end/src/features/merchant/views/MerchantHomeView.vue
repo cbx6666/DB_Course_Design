@@ -575,10 +575,10 @@ const uploadStoreImage = async (options: any) => {
     const file: File = options.file as File;
     const formData = new FormData();
     formData.append('imageFile', file);
-    const resp = await apiClient.put('/shop/image', formData, {
+    const resp = await apiClient.put('/merchant/store/image', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    const newUrl = resp?.data?.image;
+    const newUrl = resp?.data?.data;
     if (!newUrl) throw new Error('上传成功但未返回图片地址');
     shopInfo.value.storeImage = normalizeAssetUrl(newUrl);
     ElMessage.success('店铺图片已更新');

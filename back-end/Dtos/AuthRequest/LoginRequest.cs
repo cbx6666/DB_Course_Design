@@ -1,4 +1,5 @@
 using BackEnd.DTOs.User;
+using BackEnd.DTOs.Common;
 using System.ComponentModel.DataAnnotations;
 
 namespace BackEnd.DTOs.AuthRequest
@@ -29,26 +30,15 @@ namespace BackEnd.DTOs.AuthRequest
     }
 
     /// <summary>
-    /// 登录结果
+    /// 登录结果（继承自统一响应类，添加登录特定的数据字段）
     /// </summary>
-    public class LoginResult
+    public class LoginResult : ApiResponseDto
     {
-        /// <summary>
-        /// 是否成功
-        /// </summary>
-        public bool Success { get; set; }
-        /// <summary>
-        /// 业务码
-        /// </summary>
-        public int Code { get; set; }
-        /// <summary>
-        /// 提示信息
-        /// </summary>
-        public string Message { get; set; } = string.Empty;
         /// <summary>
         /// 访问令牌
         /// </summary>
         public string? Token { get; set; }
+
         /// <summary>
         /// 用户信息
         /// </summary>

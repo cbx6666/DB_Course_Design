@@ -19,8 +19,8 @@
             <!-- 头像显示 -->
             <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
               <img 
-                v-if="userInfo.image && userInfo.image !== ''" 
-                :src="userInfo.image" 
+                v-if="userInfo.avatar && userInfo.avatar !== ''" 
+                :src="userInfo.avatar" 
                 alt="用户头像" 
                 class="w-full h-full object-cover"
                 @error="handleImageError"
@@ -92,7 +92,7 @@ const userStore = useUserStore();
 const userInfo = ref({
   name: "",
   phoneNumber: 0,
-  image: ''
+  avatar: ''
 });
 
 onMounted(async () => {
@@ -117,7 +117,7 @@ async function loadUserInfo() {
     const result = await getUserInfo();
     if (result) {
       // 使用工具函数规范化头像URL
-      result.image = normalizeImageUrl(result.image);
+      result.avatar = normalizeImageUrl(result.avatar);
       userInfo.value = result;
     }
   } catch (error) {
@@ -129,7 +129,7 @@ async function loadUserInfo() {
 function handleAccountUpdate(updatedAccount: any) {
   // 更新本地用户信息
   userInfo.value.name = updatedAccount.name;
-  userInfo.value.image = updatedAccount.image;
+  userInfo.value.avatar = updatedAccount.avatar;
   // 重新加载用户信息以确保数据同步
   loadUserInfo();
 }

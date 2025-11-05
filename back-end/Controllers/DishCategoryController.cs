@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using BackEnd.DTOs.DishCategory;
+using BackEnd.DTOs.Common;
 using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Controllers
@@ -9,7 +10,8 @@ namespace BackEnd.Controllers
     /// </summary>
     [ApiController]
     [Route("api/dish-categories")]
-    public class DishCategoryController : ControllerBase
+    [Authorize]
+    public class DishCategoryController : BaseController
     {
         private readonly IDishCategoryService _dishCategoryService;
 
@@ -33,7 +35,7 @@ namespace BackEnd.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { code = 400, message = ex.Message });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
         }
 
@@ -49,7 +51,7 @@ namespace BackEnd.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(new { code = 400, message = "请求参数无效", errors = ModelState });
+                    return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "请求参数无效" });
                 }
 
                 var category = await _dishCategoryService.CreateCategoryAsync(dto);
@@ -57,7 +59,7 @@ namespace BackEnd.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { code = 400, message = ex.Message });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
         }
 
@@ -74,20 +76,20 @@ namespace BackEnd.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(new { code = 400, message = "请求参数无效", errors = ModelState });
+                    return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "请求参数无效" });
                 }
 
                 var category = await _dishCategoryService.UpdateCategoryAsync(categoryId, dto);
                 if (category == null)
                 {
-                    return NotFound(new { code = 404, message = "菜品种类不存在" });
+                    return NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "菜品种类不存在" });
                 }
 
                 return Ok(category);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { code = 400, message = ex.Message });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
         }
 
@@ -104,14 +106,14 @@ namespace BackEnd.Controllers
                 var result = await _dishCategoryService.DeleteCategoryAsync(categoryId);
                 if (!result)
                 {
-                    return NotFound(new { code = 404, message = "菜品种类不存在" });
+                    return NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "菜品种类不存在" });
                 }
 
-                return Ok(new { code = 200, message = "菜品种类删除成功" });
+                return Ok(new ApiResponseDto { Success = true, Code = 200, Message = "菜品种类删除成功" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { code = 400, message = ex.Message });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
         }
 
@@ -129,14 +131,14 @@ namespace BackEnd.Controllers
                 var result = await _dishCategoryService.AddCategoryToMenuAsync(categoryId, menuId);
                 if (!result)
                 {
-                    return BadRequest(new { code = 400, message = "菜品种类已存在于该菜单中" });
+                    return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "菜品种类已存在于该菜单中" });
                 }
 
-                return Ok(new { code = 200, message = "菜品种类已添加到菜单" });
+                return Ok(new ApiResponseDto { Success = true, Code = 200, Message = "菜品种类已添加到菜单" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { code = 400, message = ex.Message });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
         }
 
@@ -154,14 +156,14 @@ namespace BackEnd.Controllers
                 var result = await _dishCategoryService.RemoveCategoryFromMenuAsync(categoryId, menuId);
                 if (!result)
                 {
-                    return BadRequest(new { code = 400, message = "菜品种类不在该菜单中" });
+                    return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "菜品种类不在该菜单中" });
                 }
 
-                return Ok(new { code = 200, message = "菜品种类已从菜单中移除" });
+                return Ok(new ApiResponseDto { Success = true, Code = 200, Message = "菜品种类已从菜单中移除" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { code = 400, message = ex.Message });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
         }
     }

@@ -634,7 +634,7 @@ const selectCategory = (category: {value: number, label: string}) => {
 // 加载店铺种类选项
 const loadStoreCategories = async () => {
     try {
-        const response = await apiClient.get('/register/store-categories');
+        const response = await apiClient.get('/auth/store-categories');
         categories.value = response.data || [];
     } catch (error) {
         console.error('加载店铺种类失败:', error);

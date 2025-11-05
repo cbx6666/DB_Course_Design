@@ -282,7 +282,7 @@ onMounted(async () => {
 
 async function loadAddresses() {
   try {
-    const resp = await API.get('/user/profile/addresses')
+    const resp = await API.get('/customer/info/profile/addresses')
     const list = resp?.data as Array<{ deliveryInfoID: number; name: string; phoneNumber: string; address: string; gender?: string; isDefault: boolean }> | undefined
     if (Array.isArray(list)) {
       deliveryInfos.value = list.map(x => ({
@@ -396,7 +396,7 @@ async function updateAddress(index: number, payload: CreateAddressPayload) {
   const addressId = deliveryInfos.value[index].id
   if (!addressId) throw new Error('地址ID不存在')
   
-  await API.put(`/user/profile/account/address/update/${addressId}`, payload)
+  await API.put(`/customer/info/profile/account/address/update/${addressId}`, payload)
 }
 
 async function deleteAddress() {
@@ -406,7 +406,7 @@ async function deleteAddress() {
     const addressId = deliveryInfos.value[deletingIndex.value].id
     if (!addressId) throw new Error('地址ID不存在')
     
-    await API.delete(`/user/profile/account/address/delete/${addressId}`)
+    await API.delete(`/customer/info/profile/account/address/delete/${addressId}`)
     
     // 如果删除的是当前选中的地址，清空选择
     if (selectedAddress.value?.id === addressId) {

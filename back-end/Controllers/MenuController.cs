@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using BackEnd.DTOs.Menu;
+using BackEnd.DTOs.Common;
 using BackEnd.Services.Interfaces;
 
 namespace BackEnd.Controllers
@@ -9,7 +10,8 @@ namespace BackEnd.Controllers
     /// </summary>
     [ApiController]
     [Route("api/menus")]
-    public class MenuController : ControllerBase
+    [Authorize]
+    public class MenuController : BaseController
     {
         private readonly IMenuService _menuService;
 
@@ -33,7 +35,7 @@ namespace BackEnd.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { code = 400, message = ex.Message });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
         }
 
@@ -49,7 +51,7 @@ namespace BackEnd.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(new { code = 400, message = "请求参数无效", errors = ModelState });
+                    return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "请求参数无效" });
                 }
 
                 var menu = await _menuService.CreateMenuAsync(dto);
@@ -57,7 +59,7 @@ namespace BackEnd.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { code = 400, message = ex.Message });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
         }
 
@@ -74,20 +76,20 @@ namespace BackEnd.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(new { code = 400, message = "请求参数无效", errors = ModelState });
+                    return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "请求参数无效" });
                 }
 
                 var menu = await _menuService.UpdateMenuAsync(menuId, dto);
                 if (menu == null)
                 {
-                    return NotFound(new { code = 404, message = "菜单不存在" });
+                    return NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "菜单不存在" });
                 }
 
                 return Ok(menu);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { code = 400, message = ex.Message });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
         }
 
@@ -104,14 +106,14 @@ namespace BackEnd.Controllers
                 var result = await _menuService.DeleteMenuAsync(menuId);
                 if (!result)
                 {
-                    return NotFound(new { code = 404, message = "菜单不存在" });
+                    return NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "菜单不存在" });
                 }
 
-                return Ok(new { code = 200, message = "菜单删除成功" });
+                return Ok(new ApiResponseDto { Success = true, Code = 200, Message = "菜单删除成功" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { code = 400, message = ex.Message });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
         }
 
@@ -129,14 +131,14 @@ namespace BackEnd.Controllers
                 var result = await _menuService.SetActiveMenuAsync(menuId, sellerId);
                 if (!result)
                 {
-                    return NotFound(new { code = 404, message = "菜单不存在或不属于该商家" });
+                    return NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "菜单不存在或不属于该商家" });
                 }
 
-                return Ok(new { code = 200, message = "菜单已设置为活跃状态" });
+                return Ok(new ApiResponseDto { Success = true, Code = 200, Message = "菜单已设置为活跃状态" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { code = 400, message = ex.Message });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
         }
     }

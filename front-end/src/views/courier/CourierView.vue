@@ -597,7 +597,7 @@ interface Order {
     id: string;
     status: OrderStatus; // 使用我们更精确的类型
     restaurant: string;
-    pickupAddress: string;   // 取餐地址interface NewOrder
+    pickupAddress: string;   // 取餐地址
     deliveryAddress: string; // 送达地址
     customer: string;        // 顾客姓名
     fee: string;

@@ -1,15 +1,5 @@
 import { getData, postData, deleteData } from '@/api/multiuse_function'
 
-export interface CheckoutPayload {
-    cartId: number;
-    couponId?: number;
-    addressId: number;
-    remarks?: string;
-}
-
-export const getCheckoutSummary = (cartId: number) => getData<any>(`/user/checkout/${cartId}/summary`);
-export const submitCheckout = (payload: CheckoutPayload) => postData(`/user/checkout/submit`, payload);
-
 // 兼容旧购物车相关 API
 export interface ShoppingCartItem {
     itemId: number;
@@ -34,10 +24,10 @@ export interface MenuItem {
     categoryId?: number;
 }
 
-export const getMenuItem = (StoreID: string) => getData<MenuItem[]>("/store/dish", { params: { storeId: StoreID } });
-export const getShoppingCart = (StoreID: string, userId?: number) => getData<ShoppingCart>("/store/shoppingcart", { params: { storeId: StoreID } });
-export const addOrUpdateCartItem = (cartId: number, dishId: number, quantity: number) => postData<ShoppingCartItem>('/store/cart/change', { cartId, dishId, quantity });
-export const removeCartItem = (cartId: number, dishId: number) => deleteData<ShoppingCartItem>('/store/cart/remove', { cartId, dishId });
+export const getMenuItem = (StoreID: string) => getData<MenuItem[]>(`/store/${StoreID}/menu`);
+export const getShoppingCart = (StoreID: string, userId?: number) => getData<ShoppingCart>(`/cart/store/${StoreID}`);
+export const addOrUpdateCartItem = (cartId: number, dishId: number, quantity: number) => postData<ShoppingCartItem>('/cart/item/update', { cartId, dishId, quantity });
+export const removeCartItem = (cartId: number, dishId: number) => deleteData('/cart/item/remove', { cartId, dishId });
 
 export interface Order {
     paymentTime: Date;
@@ -61,10 +51,15 @@ export const submitOrder = (customerId: number, cartId: number, storeId: number,
     if (couponId && couponId > 0) {
         requestBody.CouponId = couponId;
     }
-    return postData<Order>('/store/order/create', requestBody);
+    return postData<Order>('/orders/create', requestBody);
 }
 
-export const useCoupon = (couponId: number | null) => {
-    if (couponId == null) return Promise.resolve();
-    return postData(`/user/checkout/coupon`, { couponId });
-}
+// 获取用户优惠券（用于结账页面选择）- 已迁移到 CustomerController
+// 请使用 CustomerController 的 /customer/home/couponInfo 端点
+// export const getUserCoupons = () => getData<any[]>('/user/coupons');
+
+// 使用优惠券功能已废弃，优惠券在创建订单时直接传递
+// export const useCoupon = (couponId: number | null) => {
+//     if (couponId == null) return Promise.resolve();
+//     return postData(`/user/checkout/coupon`, { couponId });
+// }

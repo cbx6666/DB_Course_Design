@@ -9,14 +9,17 @@ namespace BackEnd.DTOs.Order
         /// 订单ID
         /// </summary>
         public int OrderId { get; set; }
+
         /// <summary>
         /// 决策结果（"accepted" 或 "completed"）
         /// </summary>
         public string Decision { get; set; } = null!;
+
         /// <summary>
         /// 决策时间
         /// </summary>
         public string DecidedAt { get; set; } = null!;
+        
         /// <summary>
         /// 决策原因
         /// </summary>

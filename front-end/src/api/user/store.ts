@@ -43,11 +43,7 @@ export interface Category {
 }
 
 export async function getStoreInfo(StoreId: string): Promise<StoreInfo> {
-    return getData<StoreInfo>(`/user/store/storeInfo`, {
-        params: {
-            storeId: StoreId
-        }
-    });
+    return getData<StoreInfo>(`/store/${StoreId}/info`);
 }
 
 export function getDeliveryTasks(storeId?: string) {
@@ -83,27 +79,15 @@ export function getDeliveryTasks(storeId?: string) {
 }
 
 export async function getCommentList(StoreId: string) {
-    return getData<CommentList>("/user/store/commentList", {
-        params: {
-            storeId: StoreId
-        }
-    });
+    return getData<CommentList>(`/review/store/${StoreId}/comments`);
 }
 
 export async function getCommentStatus(StoreId: string): Promise<CommentStatus> {
-    return getData<CommentStatus>("/user/store/commentStatus", {
-        params: {
-            storeId: StoreId
-        }
-    });
+    return getData<CommentStatus>(`/review/store/${StoreId}/commentStatus`);
 }
 
 export async function getStoreCategories(storeId: string): Promise<Category[]> {
-    return getData<Category[]>(`/store/categories`, {
-        params: {
-            storeId: storeId
-        }
-    });
+    return getData<Category[]>(`/store/${storeId}/categories`);
 }
 
 

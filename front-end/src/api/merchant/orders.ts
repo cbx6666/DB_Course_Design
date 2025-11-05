@@ -91,19 +91,4 @@ export const markAsReady = async (orderId: number) => {
     await apiClient.post(`/orders/${orderId}/ready`);
 };
 
-// 发布配送任务
-export const publishDeliveryTask = async (orderId: number, estimatedArrivalTime: string, estimatedDeliveryTime: string) => {
-    const response = await apiClient.post('/delivery-tasks/publish', {
-        OrderId: orderId,
-        EstimatedArrivalTime: estimatedArrivalTime,
-        EstimatedDeliveryTime: estimatedDeliveryTime
-    });
-    return response.data;
-};
-
-// 获取订单配送信息
-export const getOrderDeliveryInfo = async (orderId: number) => {
-    const response = await apiClient.get(`/delivery-tasks/order/${orderId}`);
-    return response.data;
-};
 

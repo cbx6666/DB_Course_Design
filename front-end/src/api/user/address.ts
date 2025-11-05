@@ -9,10 +9,9 @@ export interface UserAddress {
     isDefault?: boolean;
 }
 
-export const getUserAddresses = () => getData<UserAddress[]>("/user/profile/addresses");
-export const createUserAddress = (payload: Omit<UserAddress, 'id'>) => postData("/user/profile/address", payload);
-export const updateUserAddress = (payload: UserAddress) => putData("/user/profile/address", payload);
+export const getUserAddresses = () => getData<UserAddress[]>("/customer/info/profile/addresses");
+export const createUserAddress = (payload: Omit<UserAddress, 'id'>) => postData("/customer/info/profile/account/address/create", payload);
+export const updateUserAddress = (payload: UserAddress) => putData(`/customer/info/profile/account/address/update/${payload.id}`, payload);
 
-// 兼容旧接口：获取默认/单个地址
+// 兼容旧接口：地址类型别名
 export type Address = UserAddress;
-export const getAddress = (userId?: number) => getData<UserAddress>("/user/profile/address");

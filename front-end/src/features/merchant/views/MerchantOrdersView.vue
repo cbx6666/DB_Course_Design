@@ -372,8 +372,8 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-3">配送状态</h3>
             <div class="bg-gray-50 rounded-lg p-4">
               <span
-                :class="[deliveryStatusMap[String(deliveryInfo?.deliveryTask?.status ?? -1)]?.colorClass || 'bg-gray-100 text-gray-600', 'px-4 py-2 rounded-full text-sm font-medium']">
-                {{ deliveryStatusMap[String(deliveryInfo?.deliveryTask?.status ?? -1)]?.label || '未知状态' }}
+                :class="[deliveryStatusMap[String(deliveryInfo?.status ?? -1)]?.colorClass || 'bg-gray-100 text-gray-600', 'px-4 py-2 rounded-full text-sm font-medium']">
+                {{ deliveryStatusMap[String(deliveryInfo?.status ?? -1)]?.label || '未知状态' }}
               </span>
                 </div>
               </div>
@@ -470,12 +470,14 @@ import {
   getOrders,
   acceptOrder as acceptOrderApi,
   markAsReady as markAsReadyApi,
-  publishDeliveryTask,
-  getOrderDeliveryInfo,
   type FoodOrder,
   type OrderItem,
   type OrderCouponInfo
 } from '@/api/merchant/orders';
+import {
+  publishDeliveryTask,
+  getOrderDeliveryInfo
+} from '@/api/merchant/delivery-tasks';
 
 import {
   getMerchantInfo,

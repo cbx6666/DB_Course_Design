@@ -1,4 +1,5 @@
 using BackEnd.DTOs.DishCategory;
+using BackEnd.DTOs.Common;
 using BackEnd.Models;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
@@ -22,12 +23,12 @@ namespace BackEnd.Services
         /// <summary>
         /// 根据菜单ID获取菜品种类列表
         /// </summary>
-        public async Task<DishCategoryListResponseDto> GetCategoriesByMenuIdAsync(int menuId)
+        public async Task<PageResultDto<DishCategoryDto>> GetCategoriesByMenuIdAsync(int menuId)
         {
             var categories = await _dishCategoryRepository.GetByMenuIdAsync(menuId);
             var categoryDtos = categories.Select(MapToDishCategoryDto).ToList();
 
-            return new DishCategoryListResponseDto
+            return new PageResultDto<DishCategoryDto>
             {
                 List = categoryDtos,
                 Total = categoryDtos.Count

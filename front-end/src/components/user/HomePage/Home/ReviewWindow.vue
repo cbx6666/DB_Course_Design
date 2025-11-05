@@ -68,7 +68,7 @@ import { ref, defineProps, defineEmits } from "vue";
 import { useUserStore } from "@/stores/user";
 
 import type { OrderInfo } from "@/api/user";
-import { postRiderComment, postStoreComment } from "@/api/user";
+import { postStoreComment } from "@/api/user";
 
 const userStore = useUserStore();
 const userId = userStore.getUserID();
@@ -134,13 +134,16 @@ async function submit() {
             await postStoreComment(userId, storeId, rating, content);
 
         } else if (selectedTarget.value === "rider") {
-            if (!riderComment.value.trim()) {
-                errorMsg.value = "请填写骑手评价内容";
-                return;
-            }
-            const content = riderComment.value.trim();
-            const orderId = props.order.orderID;
-            await postRiderComment(userId, orderId, content);
+            // 骑手评论功能暂未实现，后端暂无对应端点
+            errorMsg.value = "骑手评价功能暂未开放";
+            return;
+            // if (!riderComment.value.trim()) {
+            //     errorMsg.value = "请填写骑手评价内容";
+            //     return;
+            // }
+            // const content = riderComment.value.trim();
+            // const orderId = props.order.orderID;
+            // await postRiderComment(userId, orderId, content);
         }
 
         submitting.value = true;

@@ -1,5 +1,6 @@
 using BackEnd.Data;
-using BackEnd.DTOs.User;
+using BackEnd.DTOs.Customer;
+using BackEnd.DTOs.Store;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Models.Helpers;
@@ -195,12 +196,12 @@ namespace BackEnd.Repositories
         /// </summary>
         /// <param name="keyword">关键词</param>
         /// <returns>搜索结果</returns>
-        public async Task<IEnumerable<HomeSearchGetDto>> SearchStoresByNameAsync(string keyword)
+        public async Task<IEnumerable<ShowStoreDto>> SearchStoresByNameAsync(string keyword)
         {
             return await _context.Stores
                 .AsNoTracking()
                 .Where(s => s.StoreName.Contains(keyword)) // 在数据库中过滤
-                .Select(s => new HomeSearchGetDto // 直接投影
+                .Select(s => new ShowStoreDto // 直接投影
                 {
                     Id = s.StoreID,
                     Image = s.StoreImage ?? string.Empty,
@@ -216,7 +217,7 @@ namespace BackEnd.Repositories
         /// </summary>
         /// <param name="keyword">关键词</param>
         /// <returns>搜索结果</returns>
-        public async Task<IEnumerable<HomeSearchGetDto>> SearchStoresByDishNameAsync(string keyword)
+        public async Task<IEnumerable<ShowStoreDto>> SearchStoresByDishNameAsync(string keyword)
         {
             // 这个查询会找到所有菜品名包含关键字的店铺，且不重复
             return await _context.Dishes
@@ -224,7 +225,7 @@ namespace BackEnd.Repositories
                 .Where(d => d.DishName.Contains(keyword))
                 .SelectMany(d => d.DishCategory.MenuDishCategories.Select(mdc => mdc.Menu.Store))
                 .Distinct() // 关键：去重
-                .Select(store => new HomeSearchGetDto
+                .Select(store => new ShowStoreDto
                 {
                     Id = store.StoreID,
                     Image = store.StoreImage ?? string.Empty,

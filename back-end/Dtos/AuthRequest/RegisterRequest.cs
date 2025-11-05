@@ -126,23 +126,4 @@ namespace BackEnd.DTOs.AuthRequest
         /// </summary>
         public required StoreCategory Category { get; set; }
     }
-
-    /// <summary>
-    /// 注册结果
-    /// </summary>
-    public class RegisterResult
-    {
-        /// <summary>
-        /// 是否成功
-        /// </summary>
-        public bool Success { get; set; }
-        /// <summary>
-        /// 业务码
-        /// </summary>
-        public int Code { get; set; }
-        /// <summary>
-        /// 提示信息
-        /// </summary>
-        public string Message { get; set; } = "";
-    }
 }

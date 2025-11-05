@@ -104,37 +104,63 @@ builder.Services.AddScoped<ISupervise_Repository, Supervise_Repository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IMerchantRepository, MerchantRepository>();
 
-// 注册 Service 层
-builder.Services.AddScoped<IUserInStoreService, UserInStoreService>();
-builder.Services.AddScoped<IUserCheckoutService, UserCheckoutService>();
-builder.Services.AddScoped<IUserHomepageService, UserHomepageService>();
-builder.Services.AddScoped<IUserProfileService, UserProfileService>();
-// builder.Services.AddScoped<IUserDebugService, UserDebugService>(); // 已移除调试服务
-builder.Services.AddScoped<IUserPlaceOrderService, UserPlaceOrderService>();
-builder.Services.AddScoped<IRegisterService, RegisterService>();
-builder.Services.AddScoped<ILoginService, LoginService>();
-builder.Services.AddScoped<ICourierService, CourierService>();
-builder.Services.AddScoped<IAdministratorService, AdministratorService>();
-builder.Services.AddScoped<IEvaluate_AfterSaleService, Evaluate_AfterSaleService>();
-builder.Services.AddScoped<IEvaluate_DeliveryComplaintService, Evaluate_DeliveryComplaintService>();
-builder.Services.AddScoped<ISupervise_Service, Supervise_Service>();
-builder.Services.AddScoped<IReview_CommentService, Review_CommentService>();
-builder.Services.AddScoped<IMerchantService, MerchantService>(); ;
-builder.Services.AddHostedService<MonthlyCommissionResetService>();
-builder.Services.AddHostedService<MonthlySalesUpdateService>();
-builder.Services.AddScoped<ICouponService, CouponService>();
-builder.Services.AddScoped<IMerchantInformationService, MerchantInformationService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IDishService, DishService>();
-builder.Services.AddScoped<IDeliveryTaskService, DeliveryTaskService>();
-builder.Services.AddScoped<IPenaltyService, PenaltyService>();
-builder.Services.AddScoped<IReviewService, ReviewService>();
-builder.Services.AddScoped<IAfterSaleService, AfterSaleService>();
-builder.Services.AddScoped<ICreateApplicationService, CreateApplicationService>();
-builder.Services.AddScoped<ICreateComplaintService, CreateComplaintService>();
+// 注册 Service 层（按DTO分类和角色重构后的服务）
+// ========== 基础服务（用户信息管理） ==========
+builder.Services.AddScoped<ICustomerInfoService, CustomerInfoService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICourierInfoService, CourierInfoService>();
+builder.Services.AddScoped<IMerchantInfoService, MerchantInfoService>();  // 商家信息管理
+builder.Services.AddScoped<IAdminInfoService, AdminInfoService>();
+
+// ========== 售后申请服务（按角色分类） ==========
+builder.Services.AddScoped<ICustomerAfterSaleService, CustomerAfterSaleService>();
+builder.Services.AddScoped<IMerchantAfterSaleService, MerchantAfterSaleService>();
+builder.Services.AddScoped<IAdminAfterSaleService, AdminAfterSaleService>();
+
+// ========== 评论服务（按角色分类） ==========
+builder.Services.AddScoped<ICustomerCommentService, CustomerCommentService>();
+builder.Services.AddScoped<IMerchantCommentService, MerchantCommentService>();
+builder.Services.AddScoped<IAdminCommentService, AdminCommentService>();
+
+// ========== 店铺举报惩罚服务（按角色分类） ==========
+builder.Services.AddScoped<ICustomerPenaltyService, CustomerPenaltyService>();
+builder.Services.AddScoped<IMerchantPenaltyService, MerchantPenaltyService>();
+builder.Services.AddScoped<IAdminPenaltyService, AdminPenaltyService>();
+
+// ========== 配送投诉服务（按角色分类） ==========
+builder.Services.AddScoped<ICustomerDeliveryComplaintService, CustomerDeliveryComplaintService>();
+builder.Services.AddScoped<ICourierDeliveryComplaintService, CourierDeliveryComplaintService>();
+builder.Services.AddScoped<IAdminDeliveryComplaintService, AdminDeliveryComplaintService>();
+
+// ========== 订单服务（按角色分类） ==========
+builder.Services.AddScoped<ICustomerOrderService, CustomerOrderService>();
+builder.Services.AddScoped<IMerchantOrderService, MerchantOrderService>();
+
+// ========== 菜品服务（按角色分类） ==========
+builder.Services.AddScoped<IMerchantDishService, MerchantDishService>();
+builder.Services.AddScoped<ICustomerDishService, CustomerDishService>();
+
+// ========== 优惠券服务（按角色分类） ==========
+builder.Services.AddScoped<IMerchantCouponService, MerchantCouponService>();
+builder.Services.AddScoped<ICustomerCouponService, CustomerCouponService>();
+
+// ========== 店铺服务（按角色分类） ==========
+builder.Services.AddScoped<ICustomerStoreService, CustomerStoreService>();
+builder.Services.AddScoped<IMerchantStoreService, MerchantStoreService>();
+
+// ========== 配送任务服务（按角色分类） ==========
+builder.Services.AddScoped<IMerchantDeliveryTaskService, MerchantDeliveryTaskService>();
+builder.Services.AddScoped<ICourierDeliveryTaskService, CourierDeliveryTaskService>();
+
+// ========== 其他服务 ==========
 builder.Services.AddScoped<IGeoHelper, GeoHelper>();
 builder.Services.AddScoped<IMenuService, MenuService>();
 builder.Services.AddScoped<IDishCategoryService, DishCategoryService>();
+
+// ========== 后台任务服务 ==========
+builder.Services.AddHostedService<MonthlyCommissionResetService>();
+builder.Services.AddHostedService<MonthlySalesUpdateService>();
 var app = builder.Build();
 
 // 如果是开发环境，启用 Swagger UI 来浏览 API 接口文档

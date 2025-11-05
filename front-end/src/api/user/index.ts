@@ -1,7 +1,6 @@
 export * from './account';
 export * from './address';
 export * from './checkout';
-export * from './store-info';
 export * from './home';
 export * from './store';
 export * from './coupon';

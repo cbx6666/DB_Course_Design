@@ -22,7 +22,7 @@
 
             <!-- 订单列表 -->
             <div v-else class="space-y-4">
-                <div v-for="order in filteredOrders" :key="order.orderID"
+                <div v-for="order in filteredOrders" :key="order.orderId"
                     class="bg-white rounded-lg shadow-md p-6 text-left">
 
                     <!-- 顶部商家信息 -->
@@ -38,7 +38,7 @@
                             </div>
                         </div>
                         <span :class="{
-                            'text-gray-500': order.orderStatus === 0,
+                            'text-gray-500': order.orderState === 0,
                             'text-orange-500': order.deliveryStatus === 1 || order.deliveryStatus === 2,
                             'text-green-500': order.deliveryStatus === 3,
                         }" class="font-medium">
@@ -101,7 +101,7 @@
                             <p class="font-bold text-lg">¥{{ getActualAmount(order).toFixed(2) }}</p>
 
                             <!-- 未接单 -->
-                            <div v-if="order.orderStatus === 0" class="flex justify-end gap-2 mt-2">
+                            <div v-if="order.orderState === 0" class="flex justify-end gap-2 mt-2">
                                 <button @click="dialogVisibleMerchant = true"
                                     class="bg-orange-500 hover:bg-orange-600 text-white w-8 h-8 rounded-full text-sm transition-colors cursor-pointer"
                                     title="联系商家">
@@ -114,7 +114,7 @@
                             </div>
 
                             <!-- 已接单（已接单但还未开始配送） -->
-                            <div v-if="order.orderStatus !== 0 && (order.deliveryStatus === null || order.deliveryStatus === undefined || order.deliveryStatus === 0)" 
+                            <div v-if="order.orderState !== 0 && (order.deliveryStatus === null || order.deliveryStatus === undefined || order.deliveryStatus === 0)" 
                                 class="flex justify-end gap-2 mt-2">
                                 <button @click="dialogVisibleMerchant = true"
                                     class="bg-orange-500 hover:bg-orange-600 text-white w-8 h-8 rounded-full text-sm transition-colors cursor-pointer"
@@ -162,14 +162,14 @@
                             <!-- 已完成 -->
                             <div v-if="order.deliveryStatus === 3" class="flex justify-end gap-2 mt-2">
                                 <!-- 售后按钮 -->
-                                <button @click="openAfterSale(order.orderID)"
+                                <button @click="openAfterSale(order.orderId)"
                                     class="relative w-8 h-8 flex items-center justify-center cursor-pointer"
                                     title="提起售后">
                                     <i class="fas fa-headset text-orange-500 hover:text-orange-600 text-2xl"></i>
                                 </button>
 
                                 <!-- 举报按钮 -->
-                                <button @click="openReportWindow(order.orderID)"
+                                <button @click="openReportWindow(order.orderId)"
                                     class="relative w-8 h-8 flex items-center justify-center cursor-pointer"
                                     title="对此订单有意见">
                                     <i
@@ -177,18 +177,18 @@
                                 </button>
 
                                 <!-- 评价按钮 -->
-                                <button @click="openReviewWindow(order.orderID)"
+                                <button @click="openReviewWindow(order.orderId)"
                                     class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded text-sm transition-colors cursor-pointer whitespace-nowrap">
                                     评价
                                 </button>
 
                                 <!-- 弹窗们 -->
-                                <AfterSaleWindow :visible="showAfterSale[order.orderID]" :order="order"
-                                    @close="showAfterSale[order.orderID] = false" />
-                                <ReportWindow :visible="showReportWindow[order.orderID]" :order="order"
-                                    @close="showReportWindow[order.orderID] = false" />
-                                <ReviewWindow :visible="showReviewWindow[order.orderID]" :order="order"
-                                    @close="showReviewWindow[order.orderID] = false" />
+                                <AfterSaleWindow :visible="showAfterSale[order.orderId]" :order="order"
+                                    @close="showAfterSale[order.orderId] = false" />
+                                <ReportWindow :visible="showReportWindow[order.orderId]" :order="order"
+                                    @close="showReportWindow[order.orderId] = false" />
+                                <ReviewWindow :visible="showReviewWindow[order.orderId]" :order="order"
+                                    @close="showReviewWindow[order.orderId] = false" />
                             </div>
                         </div>
                     </div>
@@ -237,7 +237,7 @@ onMounted(() => {
 
 const getOrderStatusText = (order: OrderInfo) => {
     // 未接单：订单状态为 Pending (0)
-    if (order.orderStatus === 0) {
+    if (order.orderState === 0) {
         return "未接单";
     }
     
@@ -277,11 +277,11 @@ const filteredOrders = computed(() => {
         switch (activeOrderStatus.value) {
             case "unaccepted":
                 // 未接单：订单状态为 Pending (0)
-                return order.orderStatus === 0;
+                return order.orderState === 0;
             
             case "accepted":
                 // 已接单：订单已接单（orderStatus !== 0）且（没有配送任务 或 配送状态是 To_Be_Taken=0）
-                return order.orderStatus !== 0 && 
+                return order.orderState !== 0 && 
                        (order.deliveryStatus === null || 
                         order.deliveryStatus === undefined || 
                         order.deliveryStatus === 0);

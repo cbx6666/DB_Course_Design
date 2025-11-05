@@ -1,4 +1,5 @@
 using BackEnd.DTOs.Menu;
+using BackEnd.DTOs.Common;
 
 namespace BackEnd.Services.Interfaces
 {
@@ -12,7 +13,7 @@ namespace BackEnd.Services.Interfaces
         /// </summary>
         /// <param name="sellerId">商家ID</param>
         /// <returns>菜单列表</returns>
-        Task<MenuListResponseDto> GetMenusBySellerIdAsync(int sellerId);
+        Task<PageResultDto<MenuDto>> GetMenusBySellerIdAsync(int sellerId);
 
         /// <summary>
         /// 创建菜单

@@ -1,4 +1,5 @@
-using BackEnd.DTOs.User;
+using BackEnd.DTOs.Customer;
+using BackEnd.DTOs.Store;
 using BackEnd.Models;
 
 namespace BackEnd.Repositories.Interfaces
@@ -88,14 +89,14 @@ namespace BackEnd.Repositories.Interfaces
         /// </summary>
         /// <param name="keyword">关键词</param>
         /// <returns>店铺展示DTO集合</returns>
-        Task<IEnumerable<HomeSearchGetDto>> SearchStoresByNameAsync(string keyword);
+        Task<IEnumerable<ShowStoreDto>> SearchStoresByNameAsync(string keyword);
 
         /// <summary>
         /// 按菜品名称搜索店铺
         /// </summary>
         /// <param name="keyword">关键词</param>
         /// <returns>店铺展示DTO集合</returns>
-        Task<IEnumerable<HomeSearchGetDto>> SearchStoresByDishNameAsync(string keyword);
+        Task<IEnumerable<ShowStoreDto>> SearchStoresByDishNameAsync(string keyword);
 
         /// <summary>
         /// 获取运营中的店铺

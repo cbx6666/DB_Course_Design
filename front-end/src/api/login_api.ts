@@ -8,18 +8,18 @@ interface RegistrationData { /* ... */ }
 
 export default {
   register(data: RegistrationData | FormData) {
-    return apiClient.post('/register', data);
+    return apiClient.post('/auth/register', data);
   },
 
   login(data: UserData) {
-    return apiClient.post('/login', data);
+    return apiClient.post('/auth/login', data);
   },
 
   /**
    * 登出接口 (需要认证)
    */
   logout() {
-    // 路径与后端 LoginController 中的 [HttpPost("logout")] 匹配
-    return apiClient.post('/login/logout');
+    // 路径与后端 AuthController 中的 [HttpPost("logout")] 匹配
+    return apiClient.post('/auth/logout');
   }
 };

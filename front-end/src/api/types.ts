@@ -44,17 +44,6 @@ export interface Order {
     isReadyForPickup: boolean;
 }
 
-export interface NewOrder {
-    id: string;
-    restaurantName: string;
-    restaurantAddress: string;
-    customerName: string;
-    customerAddress: string;
-    distance: string;
-    fee: number;
-    mapImageUrl: string;
-}
-
 export interface LocationInfo {
     area: string;
 }

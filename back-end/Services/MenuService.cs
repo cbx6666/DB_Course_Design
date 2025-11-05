@@ -1,4 +1,5 @@
 using BackEnd.DTOs.Menu;
+using BackEnd.DTOs.Common;
 using BackEnd.Models;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
@@ -24,12 +25,12 @@ namespace BackEnd.Services
         /// </summary>
         /// <param name="sellerId">商家ID</param>
         /// <returns>菜单列表</returns>
-        public async Task<MenuListResponseDto> GetMenusBySellerIdAsync(int sellerId)
+        public async Task<PageResultDto<MenuDto>> GetMenusBySellerIdAsync(int sellerId)
         {
             var menus = await _menuRepository.GetBySellerIdAsync(sellerId);
             var menuDtos = menus.Select(MapToMenuDto).ToList();
 
-            return new MenuListResponseDto
+            return new PageResultDto<MenuDto>
             {
                 List = menuDtos,
                 Total = menuDtos.Count

@@ -18,8 +18,8 @@
                             <div class="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-gray-400 text-2xl font-bold mb-2 cursor-pointer hover:ring-2 hover:ring-[#F9771C]"
                                 @click="triggerFileInput">
                                 <img 
-                                    v-if="formData.image && formData.image !== ''" 
-                                    :src="formData.image" 
+                                    v-if="formData.avatar && formData.avatar !== ''" 
+                                    :src="formData.avatar" 
                                     alt="用户头像" 
                                     class="w-full h-full object-cover"
                                     @error="handleImageError"
@@ -75,7 +75,7 @@ const userID = userStore.getUserID();
 // 用户信息
 const accountInfo = ref({
     name: "",
-    image: ""
+    avatar: ""
 });
 
 const props = defineProps<{
@@ -90,7 +90,7 @@ const emit = defineEmits<{
 const formData = reactive<AccountInfo>({
     id: userID,
     name: '',
-    image: ''
+    avatar: ''
 })
 
 // 添加文件引用
@@ -101,8 +101,8 @@ onMounted(async () => {
         const result = await getAccountInfo();
         accountInfo.value = result;
         // 确保头像URL是完整的URL
-        if (result.image && !result.image.startsWith('http') && !result.image.startsWith('data:')) {
-            result.image = `http://localhost:5250${result.image}`;
+        if (result.avatar && !result.avatar.startsWith('http') && !result.avatar.startsWith('data:')) {
+            result.avatar = `http://localhost:5250${result.avatar}`;
         }
     } catch (error) {
         console.error('获取账户信息失败:', error);
@@ -115,9 +115,9 @@ watch(
         if (visible && accountInfo.value) {
             formData.name = accountInfo.value.name;
             // 确保头像URL是完整的URL
-            formData.image = accountInfo.value.image && !accountInfo.value.image.startsWith('http') && !accountInfo.value.image.startsWith('data:')
-                ? `http://localhost:5250${accountInfo.value.image}`
-                : accountInfo.value.image;
+            formData.avatar = accountInfo.value.avatar && !accountInfo.value.avatar.startsWith('http') && !accountInfo.value.avatar.startsWith('data:')
+                ? `http://localhost:5250${accountInfo.value.avatar}`
+                : accountInfo.value.avatar;
         }
     },
 );
@@ -156,9 +156,9 @@ async function saveAccount() {
                 const updatedInfo = await getAccountInfo();
                 accountInfo.value = updatedInfo;
                 // 确保头像URL是完整的URL
-                formData.image = updatedInfo.image.startsWith('http') 
-                    ? updatedInfo.image 
-                    : `http://localhost:5250${updatedInfo.image}`;
+                formData.avatar = updatedInfo.avatar.startsWith('http') 
+                    ? updatedInfo.avatar 
+                    : `http://localhost:5250${updatedInfo.avatar}`;
             } catch (error) {
                 console.error('获取更新后的用户信息失败:', error);
             }
@@ -185,7 +185,7 @@ function onAvatarChange(event: Event) {
         
         // 生成预览URL用于显示
         const previewUrl = URL.createObjectURL(file);
-        formData.image = previewUrl;
+        formData.avatar = previewUrl;
     }
 }
 
