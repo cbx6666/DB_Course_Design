@@ -105,7 +105,7 @@ namespace BackEnd.Controllers
                 var stores = await _customerService.GetAllStoresAsync();
                 return Ok(stores);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "获取商店信息时发生错误" });
             }
@@ -144,7 +144,7 @@ namespace BackEnd.Controllers
                 var coupons = await _customerCouponService.GetAvailableCouponsAsync(userId.Value);
                 return Ok(coupons);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "获取可领取优惠券失败" });
             }
@@ -174,7 +174,7 @@ namespace BackEnd.Controllers
                     return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "优惠券领取失败，可能已领取过或已领完" });
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "领取优惠券失败" });
             }
@@ -253,7 +253,7 @@ namespace BackEnd.Controllers
             {
                 return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "服务器内部错误，创建收货地址失败" });
             }
@@ -281,7 +281,7 @@ namespace BackEnd.Controllers
             {
                 return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "服务器内部错误，更新收货地址失败" });
             }
@@ -306,7 +306,7 @@ namespace BackEnd.Controllers
             {
                 return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "服务器内部错误，删除收货地址失败" });
             }
@@ -331,7 +331,7 @@ namespace BackEnd.Controllers
             {
                 return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "服务器内部错误，设置默认收货地址失败" });
             }

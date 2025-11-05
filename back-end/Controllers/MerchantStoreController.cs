@@ -131,8 +131,8 @@ namespace BackEnd.Controllers
                 var sellerId = GetCurrentUserId();
                 var result = await _storeService.UploadStoreImageAsync(sellerId, imageFile);
                 return result.Success
-                    ? Ok(new ApiResponseDto<string> { Success = true, Code = 200, Message = "图片上传成功", Data = result.ImageUrl })
-                    : BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = result.Message });
+                    ? Ok(new ApiResponseDto<string> { Success = true, Code = 200, Message = "图片上传成功", Data = result.ImageUrl ?? string.Empty })
+                    : BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = result.Message ?? "上传失败" });
             }
             catch (Exception ex)
             {
@@ -176,6 +176,7 @@ namespace BackEnd.Controllers
             {
                 var options = BackEnd.Models.Helpers.StoreCategoryHelper.GetCategoryOptions()
                     .Select(kvp => new { value = kvp.Key, label = kvp.Value })
+                    .Cast<object>()
                     .ToList();
                 return Ok(new ApiResponseDto<List<object>> { Success = true, Code = 200, Message = "获取成功", Data = options });
             }

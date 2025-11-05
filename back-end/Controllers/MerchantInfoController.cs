@@ -55,8 +55,8 @@ namespace BackEnd.Controllers
             var sellerId = GetCurrentUserId();
             var result = await _merchantService.UpdateMerchantInfoAsync(sellerId, dto);
             return result.Success
-                ? Ok(new ApiResponseDto<MerchantUpdateResultDto> { Success = true, Code = 200, Message = result.Message, Data = result.Data })
-                : BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = result.Message });
+                ? Ok(new ApiResponseDto<MerchantUpdateResultDto> { Success = true, Code = 200, Message = result.Message ?? "更新成功", Data = result.Data })
+                : BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = result.Message ?? "更新失败" });
         }
 
         /// <summary>
@@ -68,8 +68,8 @@ namespace BackEnd.Controllers
             var sellerId = GetCurrentUserId();
             var result = await _merchantService.UpdateMerchantAvatarAsync(sellerId, dto.AvatarFile);
             return result.Success
-                ? Ok(new ApiResponseDto<string> { Success = true, Code = 200, Message = "头像更新成功", Data = result.AvatarUrl })
-                : BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = result.Message });
+                ? Ok(new ApiResponseDto<string> { Success = true, Code = 200, Message = "头像更新成功", Data = result.AvatarUrl ?? string.Empty })
+                : BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = result.Message ?? "更新失败" });
         }
 
     }

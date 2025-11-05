@@ -63,7 +63,7 @@ namespace BackEnd.Controllers
                     Data = result
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto<PageResultDto<MerchantCouponDto>>
                 {
@@ -96,7 +96,7 @@ namespace BackEnd.Controllers
                     Data = result
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto<CouponStatsDto>
                 {
@@ -179,7 +179,7 @@ namespace BackEnd.Controllers
                     Message = ex.Message
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto<int>
                 {
@@ -245,7 +245,7 @@ namespace BackEnd.Controllers
                     Message = ex.Message
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto<object>
                 {
@@ -288,7 +288,7 @@ namespace BackEnd.Controllers
                     Message = ex.Message
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto<object>
                 {
@@ -343,7 +343,7 @@ namespace BackEnd.Controllers
                     Message = ex.Message
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto<int>
                 {

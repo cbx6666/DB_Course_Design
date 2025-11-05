@@ -118,7 +118,7 @@ namespace BackEnd.Controllers
             try
             {
                 var result = await _merchantDishService.ToggleSoldOutAsync(dishId, dto.IsSoldOut);
-                return !result.Success ? BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = result.Message }) : Ok(result.Data);
+                return !result.Success ? BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = result.Message ?? "操作失败" }) : Ok(result.Data ?? new object());
             }
             catch (Exception ex)
             {
@@ -156,8 +156,8 @@ namespace BackEnd.Controllers
 
                 var result = await _merchantDishService.UploadDishImageAsync(imageFile);
                 return result.Success
-                    ? Ok(new ApiResponseDto<string> { Success = true, Code = 200, Message = "图片上传成功", Data = result.ImageUrl })
-                    : BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = result.Message });
+                    ? Ok(new ApiResponseDto<string> { Success = true, Code = 200, Message = "图片上传成功", Data = result.ImageUrl ?? string.Empty })
+                    : BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = result.Message ?? "上传失败" });
             }
             catch (Exception ex)
             {

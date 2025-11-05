@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using BackEnd.DTOs.DishCategory;
 using BackEnd.DTOs.Common;
 using BackEnd.Services.Interfaces;

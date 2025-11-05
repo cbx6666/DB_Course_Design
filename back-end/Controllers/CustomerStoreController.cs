@@ -102,7 +102,7 @@ namespace BackEnd.Controllers
             {
                 return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "提交投诉时发生错误" });
             }

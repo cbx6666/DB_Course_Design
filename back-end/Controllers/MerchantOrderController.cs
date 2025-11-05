@@ -15,11 +15,11 @@ namespace BackEnd.Controllers
     public class MerchantOrderController : BaseController
     {
         private readonly IMerchantOrderService _merchantOrderService;
-        private readonly IDeliveryTaskService _deliveryService;
+        private readonly IMerchantDeliveryTaskService _deliveryService;
 
         public MerchantOrderController(
             IMerchantOrderService merchantOrderService,
-            IDeliveryTaskService deliveryService)
+            IMerchantDeliveryTaskService deliveryService)
         {
             _merchantOrderService = merchantOrderService;
             _deliveryService = deliveryService;

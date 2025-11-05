@@ -16,7 +16,7 @@ namespace BackEnd.Services
         /// 构造函数
         /// </summary>
         /// <param name="administratorRepository">管理员仓储</param>
-        public AdministratorService(IAdministratorRepository administratorRepository)
+        public AdminInfoService(IAdministratorRepository administratorRepository)
         {
             _administratorRepository = administratorRepository;
         }

@@ -47,7 +47,7 @@ namespace BackEnd.Controllers
             {
                 return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "获取购物车信息时发生错误" });
             }
@@ -74,7 +74,7 @@ namespace BackEnd.Controllers
             {
                 return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "更新购物车项时发生错误" });
             }
@@ -101,7 +101,7 @@ namespace BackEnd.Controllers
             {
                 return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "删除购物车项时发生错误" });
             }

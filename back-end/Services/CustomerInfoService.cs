@@ -25,7 +25,7 @@ namespace BackEnd.Services
         private readonly IWebHostEnvironment _env;
         private readonly string _avatarFolder;
 
-        public CustomerService(
+        public CustomerInfoService(
             IStoreRepository storeRepository,
             IUserRepository userRepository,
             IFoodOrderRepository foodOrderRepository,
