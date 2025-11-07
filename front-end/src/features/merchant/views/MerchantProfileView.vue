@@ -151,7 +151,7 @@ const toggleEdit = (field: 'username' | 'phone' | 'email') => {
 // 获取商家信息
 const fetchMerchantInfo = async () => {
   try {
-    const response = await apiClient.get('/merchant/profile');
+    const response = await apiClient.get('/merchant/info');
     merchantInfo.value = response.data.data;
     // 规范化头像 URL（将后端返回的相对路径转换为可访问的绝对地址）
     if (merchantInfo.value && (merchantInfo.value as any).avatar) {

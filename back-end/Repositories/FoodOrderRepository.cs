@@ -96,6 +96,7 @@ namespace BackEnd.Repositories
                                  .Include(fo => fo.Customer)
                                  .Include(fo => fo.Cart)
                                  .Include(fo => fo.Store)
+                                 .Include(fo => fo.DeliveryInfo)
                                  .Include(fo => fo.Coupons)
                                  .Include(fo => fo.AfterSaleApplications)
                                  .Include(fo => fo.Comments)

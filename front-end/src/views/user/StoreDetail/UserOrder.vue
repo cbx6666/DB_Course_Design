@@ -64,6 +64,7 @@ const storeInfo = ref<StoreInfo>()
 const categories = ref<Category[]>([])
 const selectedCategoryId = ref<number | null>(null)
 const allMenuItems = ref<MenuItem[]>([])
+const isLoading = ref<boolean>(false) // 添加加载状态
 
 const cart = ref<ShoppingCart>({
   cartId: 3,
@@ -76,6 +77,17 @@ const pendingRequests = ref<Set<number>>(new Set());
 
 // 过滤后的菜品列表
 const filteredMenuItems = computed(() => {
+  // 如果正在加载数据，返回空数组，避免显示全部菜品
+  if (isLoading.value) {
+    return []
+  }
+  
+  // 如果分类数据还没加载完成（但菜品数据已加载），返回空数组
+  // 这样可以避免在分类加载完成前显示全部菜品
+  if (allMenuItems.value.length > 0 && categories.value.length === 0) {
+    return []
+  }
+  
   // 如果没有分类，显示所有菜品
   if (categories.value.length === 0) {
     return allMenuItems.value
@@ -185,16 +197,33 @@ async function loadCart() {
 
 // 获取数据
 async function loadData(storeId: string) {
-  storeInfo.value = await getStoreInfo(storeId)
-  allMenuItems.value = await getMenuItem(storeId)
-  categories.value = await getStoreCategories(storeId)
-  
-  // 如果有分类，默认选中第一个
-  if (categories.value.length > 0) {
-    selectedCategoryId.value = categories.value[0].id
+  isLoading.value = true
+  try {
+    // 先重置状态，避免显示旧数据
+    allMenuItems.value = []
+    categories.value = []
+    selectedCategoryId.value = null
+    
+    // 并行加载所有数据
+    const [storeInfoData, menuItemsData, categoriesData] = await Promise.all([
+      getStoreInfo(storeId),
+      getMenuItem(storeId),
+      getStoreCategories(storeId)
+    ])
+    
+    storeInfo.value = storeInfoData
+    allMenuItems.value = menuItemsData
+    categories.value = categoriesData
+    
+    // 如果有分类，默认选中第一个
+    if (categories.value.length > 0) {
+      selectedCategoryId.value = categories.value[0].id
+    }
+    
+    await loadCart()
+  } finally {
+    isLoading.value = false
   }
-  
-  await loadCart()
 }
 
 // 生命周期

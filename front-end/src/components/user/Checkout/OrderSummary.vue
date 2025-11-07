@@ -60,7 +60,7 @@ const discount = computed(() => {
   
   const coupon = props.selectedCoupon;
   
-  // 满减券：discountAmount 就是优惠金额
+  // 满减券：discountAmount 就是优惠金额（单位：元）
   if (coupon.couponType === 'fixed') {
     return coupon.discountAmount;
   }
@@ -68,13 +68,23 @@ const discount = computed(() => {
   // 折扣券：discountAmount 是折扣比例（0-1），需要计算优惠金额
   // 例如：discountAmount = 0.8 表示8折，优惠金额 = subtotal * (1 - 0.8) = subtotal * 0.2
   if (coupon.couponType === 'discount') {
-    const discountRatio = coupon.discountAmount; // 已经是 0-1 的比例
+    const discountRatio = coupon.discountAmount; // 已经是 0-1 的比例（例如 0.8 表示 8 折）
     const discountAmount = props.subtotal * (1 - discountRatio);
     // 确保优惠金额不超过订单总额
     return Math.min(discountAmount, props.subtotal);
   }
   
-  // 兼容旧数据（如果没有 couponType）
+  // 兼容旧数据：如果没有 couponType，根据 discountAmount 的值判断
+  // 如果 discountAmount <= 1，可能是折扣比例（0-1），否则是满减金额
+  // 但这种方式不可靠，建议后端返回 couponType
+  if (coupon.discountAmount <= 1 && coupon.discountAmount > 0) {
+    // 可能是折扣券，按折扣比例计算
+    console.warn('优惠券缺少 couponType 字段，按折扣券处理');
+    const discountAmount = props.subtotal * (1 - coupon.discountAmount);
+    return Math.min(discountAmount, props.subtotal);
+  }
+  
+  // 默认当作满减券处理
   return coupon.discountAmount;
 });
 

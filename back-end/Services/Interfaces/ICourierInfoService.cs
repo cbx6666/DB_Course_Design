@@ -1,4 +1,5 @@
 using BackEnd.DTOs.Courier;
+using Microsoft.AspNetCore.Http;
 
 namespace BackEnd.Services.Interfaces
 {
@@ -44,6 +45,13 @@ namespace BackEnd.Services.Interfaces
         Task<decimal> GetMonthlyIncomeAsync(int courierId);
 
         /// <summary>
+        /// 获取今日收入（已完成订单的配送费总和）
+        /// </summary>
+        /// <param name="courierId">配送员ID</param>
+        /// <returns>今日收入</returns>
+        Task<decimal> GetTodayIncomeAsync(int courierId);
+
+        /// <summary>
         /// 更新配送员位置
         /// </summary>
         /// <param name="courierId">配送员ID</param>
@@ -66,5 +74,13 @@ namespace BackEnd.Services.Interfaces
         /// <param name="courierId">配送员ID</param>
         /// <returns>编辑用档案信息</returns>
         Task<UpdateProfileDto?> GetProfileForEditAsync(int courierId);
+
+        /// <summary>
+        /// 更新配送员头像（表单上传）
+        /// </summary>
+        /// <param name="courierId">配送员ID</param>
+        /// <param name="avatarFile">头像文件</param>
+        /// <returns>头像URL</returns>
+        Task<(bool Success, string? Message, string? AvatarUrl)> UpdateCourierAvatarAsync(int courierId, IFormFile avatarFile);
     }
 }

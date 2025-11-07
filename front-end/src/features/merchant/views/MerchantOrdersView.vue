@@ -24,7 +24,7 @@
                 'bg-orange-50 text-[#F9771C] border-r-3 border-[#F9771C]': $route.name === item.routeName,
                 'text-gray-700 hover:bg-gray-50': $route.name !== item.routeName
               }"
-              class="flex items-center px-4 py-3 rounded-l-lg cursor-pointer transition-colors whitespace-nowrap !rounded-button">
+              class="flex items-center px-4 py-3 rounded-l-lg cursor-pointer transition-colors whitespace-nowrap">
               <el-icon class="mr-3 text-lg">
                 <component :is="item.icon" />
               </el-icon>
@@ -357,7 +357,7 @@
           class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
                 <div>
             <div class="text-xl font-bold text-gray-900">配送信息</div>
-            <div class="text-sm text-blue-600 font-medium">订单ID: {{ deliveryInfo?.order?.orderId }}</div>
+            <div class="text-sm text-blue-600 font-medium">配送任务ID: {{ deliveryInfo?.taskId || deliveryInfo?.TaskId || '-' }}</div>
           </div>
           <button @click="closeDeliveryInfoDialog" class="btn-icon text-gray-400 hover:text-gray-600">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -411,25 +411,60 @@
               </div>
               <div class="flex items-center text-gray-700">
                 <span class="font-medium mr-2">交通工具：</span>
-                <span>{{ deliveryInfo.courier.vehicleType }}</span>
+                <span>{{ getVehicleTypeLabel(deliveryInfo.courier.vehicleType) }}</span>
               </div>
               <div class="flex items-center text-gray-700">
                 <span class="font-medium mr-2">评分：</span>
-                <span>{{ deliveryInfo.courier.averageRating?.toFixed(1) || '0.0' }} 分</span>
+                <span>{{ deliveryInfo.courier.averageRating && deliveryInfo.courier.averageRating > 0 ? deliveryInfo.courier.averageRating.toFixed(1) + ' 分' : '暂未获得评价' }}</span>
               </div>
               
-              <!-- 骑手位置 -->
-              <div class="border-t border-gray-200 pt-3">
-                <div class="flex items-start text-gray-700">
-                  <span class="font-medium mr-2">实时位置：</span>
-                  <div class="flex-1">
-                    <div v-if="deliveryInfo.courier.longitude && deliveryInfo.courier.latitude">
-                      经度：{{ deliveryInfo.courier.longitude }}，纬度：{{ deliveryInfo.courier.latitude }}
-                    </div>
-                    <div v-else class="text-gray-400">
-                      位置信息未提供
-                    </div>
-                  </div>
+              <!-- 配送时间信息 -->
+              <div class="border-t border-gray-200 pt-3 space-y-2">
+                <div class="flex items-center text-gray-700">
+                  <span class="font-medium mr-2">骑手接单时间：</span>
+                  <span>{{ deliveryInfo.acceptTime || '未接单' }}</span>
+                </div>
+                <div class="flex items-center text-gray-700">
+                  <span class="font-medium mr-2">预计到店时间：</span>
+                  <span>{{ deliveryInfo.estimatedArrivalTime || '-' }}</span>
+                </div>
+                <div v-if="deliveryInfo.actualPickupTime" class="flex items-center">
+                  <span class="font-medium mr-2 text-gray-700">实际到店时间：</span>
+                  <span class="text-green-600 font-medium">{{ deliveryInfo.actualPickupTime }}</span>
+                </div>
+                <div class="flex items-center text-gray-700">
+                  <span class="font-medium mr-2">预计送达时间：</span>
+                  <span>{{ deliveryInfo.estimatedDeliveryTime || '-' }}</span>
+                </div>
+                <div v-if="deliveryInfo.actualDeliveryTime" class="flex items-center">
+                  <span class="font-medium mr-2 text-gray-700">实际送达时间：</span>
+                  <span class="text-green-600 font-medium">{{ deliveryInfo.actualDeliveryTime }}</span>
+                </div>
+              </div>
+              
+              <!-- 骑手位置地图 -->
+              <div v-if="deliveryInfo.status !== 3 && deliveryInfo.courier.longitude && deliveryInfo.courier.latitude" class="border-t border-gray-200 pt-3">
+                <div class="mb-2">
+                  <span class="font-medium text-gray-700">实时位置：</span>
+                </div>
+                <div class="w-full h-64 rounded-lg overflow-hidden">
+                  <iframe
+                    class="w-full h-full"
+                    frameborder="0"
+                    style="border:0"
+                    :src="getCourierMapUrl(deliveryInfo.courier.latitude, deliveryInfo.courier.longitude)"
+                    allowfullscreen="true"
+                  ></iframe>
+                </div>
+              </div>
+              <div v-else-if="deliveryInfo.status === 3" class="border-t border-gray-200 pt-3">
+                <div class="text-gray-500 text-sm text-center py-2">
+                  配送已完成，不再显示位置信息
+                </div>
+              </div>
+              <div v-else class="border-t border-gray-200 pt-3">
+                <div class="text-gray-400 text-sm text-center py-2">
+                  位置信息未提供
                 </div>
               </div>
             </div>
@@ -707,7 +742,13 @@ const deliveryInfo = ref<any>(null);
 const openDeliveryInfo = async (order: FoodOrder) => {
   try {
     const info = await getOrderDeliveryInfo(order.orderId);
-    console.log('配送信息：', info);
+    
+    // 检查返回的配送信息是否有效（后端可能返回空对象）
+    if (!info || (!info.taskId && !info.TaskId)) {
+      ElMessage.warning('未找到配送任务信息，请重新发布配送');
+      return;
+    }
+    
     deliveryInfo.value = {
       ...info,
       order: order
@@ -881,6 +922,25 @@ const formatDate = (dateString: string) => {
     minute: '2-digit',
     hour12: false // 使用24小时制
   });
+};
+
+// 车辆类型映射：将英文值转换为中文显示
+const getVehicleTypeLabel = (vehicleType?: string): string => {
+  const vehicleTypeMap: Record<string, string> = {
+    'electric_bike': '电动自行车',
+    'motorcycle': '摩托车',
+    'car': '小型汽车'
+  };
+  return vehicleTypeMap[vehicleType || ''] || vehicleType || '未知';
+};
+
+// 生成骑手位置的 Google Maps URL
+const getCourierMapUrl = (latitude?: number, longitude?: number): string => {
+  if (!latitude || !longitude) {
+    // 默认位置：同济大学嘉定校区
+    return 'https://maps.google.com/maps?q=31.281553,121.213517&z=15&output=embed';
+  }
+  return `https://maps.google.com/maps?q=${latitude},${longitude}&z=15&output=embed`;
 };
 
 // 登出功能

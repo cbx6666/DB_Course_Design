@@ -43,7 +43,7 @@ export interface Category {
 }
 
 export async function getStoreInfo(StoreId: string): Promise<StoreInfo> {
-    return getData<StoreInfo>(`/store/${StoreId}/info`);
+    return getData<StoreInfo>(`/customer/stores/${StoreId}/info`);
 }
 
 export function getDeliveryTasks(storeId?: string) {
@@ -79,15 +79,15 @@ export function getDeliveryTasks(storeId?: string) {
 }
 
 export async function getCommentList(StoreId: string) {
-    return getData<CommentList>(`/review/store/${StoreId}/comments`);
+    return getData<CommentList>(`/customer/comments/store/${StoreId}/comments`);
 }
 
 export async function getCommentStatus(StoreId: string): Promise<CommentStatus> {
-    return getData<CommentStatus>(`/review/store/${StoreId}/commentStatus`);
+    return getData<CommentStatus>(`/customer/comments/store/${StoreId}/commentStatus`);
 }
 
 export async function getStoreCategories(storeId: string): Promise<Category[]> {
-    return getData<Category[]>(`/store/${storeId}/categories`);
+    return getData<Category[]>(`/customer/stores/${storeId}/categories`);
 }
 
 

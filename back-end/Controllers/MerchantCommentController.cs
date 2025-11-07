@@ -43,11 +43,11 @@ namespace BackEnd.Controllers
             var sellerId = GetUserIdFromToken();
             if (sellerId == null)
             {
-                return Unauthorized("无效的Token");
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "无效的Token" });
             }
 
             var result = await _merchantCommentService.GetReviewsAsync(sellerId.Value, page, pageSize, keyword);
-            return Ok(result);
+            return Ok(new ApiResponseDto<object> { Success = true, Code = 200, Message = "获取成功", Data = result });
         }
 
         /// <summary>

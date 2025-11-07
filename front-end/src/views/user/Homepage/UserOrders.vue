@@ -39,6 +39,7 @@
                         </div>
                         <span :class="{
                             'text-gray-500': order.orderState === 0,
+                            'text-yellow-500': (order.orderState !== 0 && (order.deliveryStatus === null || order.deliveryStatus === undefined || order.deliveryStatus === 0)),
                             'text-orange-500': order.deliveryStatus === 1 || order.deliveryStatus === 2,
                             'text-green-500': order.deliveryStatus === 3,
                         }" class="font-medium">
@@ -100,96 +101,105 @@
                             <!-- 实付金额 -->
                             <p class="font-bold text-lg">¥{{ getActualAmount(order).toFixed(2) }}</p>
 
-                            <!-- 未接单 -->
-                            <div v-if="order.orderState === 0" class="flex justify-end gap-2 mt-2">
-                                <button @click="dialogVisibleMerchant = true"
-                                    class="bg-orange-500 hover:bg-orange-600 text-white w-8 h-8 rounded-full text-sm transition-colors cursor-pointer"
-                                    title="联系商家">
+                            <!-- 统一的操作按钮区域 -->
+                            <div class="flex justify-end gap-2 mt-2 flex-wrap">
+                                <!-- 联系商家按钮 -->
+                                <button @click="openMerchantDialog(order.orderId)"
+                                    class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded text-sm transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1">
                                     <i class="fas fa-store"></i>
+                                    <span>联系商家</span>
                                 </button>
-                                <!-- 联系商家对话框 -->
-                                <ReplyDialog v-model="dialogVisibleMerchant" title="联系商家" identity="user"
-                                    :chatMessages="merchantChat" :quickPhrases="['您好，有什么能帮您？', '请稍等一下']"
-                                    :emojis="['😊', '👍', '❤️', '🎉']" @submit="handleMerchantReply" />
+
+                                <!-- 订单售后按钮（仅已完成订单可点击） -->
+                                <button 
+                                    @click="openOrderDetail(order.orderId)"
+                                    :disabled="order.deliveryStatus !== 3"
+                                    :title="order.deliveryStatus !== 3 ? '订单完成后才可以进行售后服务' : '订单售后'"
+                                    :class="{
+                                        'bg-gray-300 cursor-not-allowed': order.deliveryStatus !== 3,
+                                        'bg-blue-500 hover:bg-blue-600 cursor-pointer': order.deliveryStatus === 3
+                                    }"
+                                    class="text-white px-3 py-1.5 rounded text-sm transition-colors whitespace-nowrap flex items-center gap-1">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>订单售后</span>
+                                </button>
+
+                                <!-- 查看配送信息按钮 -->
+                                <button 
+                                    @click="openDeliveryInfo(order.orderId)"
+                                    :disabled="order.deliveryStatus === null || order.deliveryStatus === undefined || order.deliveryStatus === 0"
+                                    :title="(order.deliveryStatus === null || order.deliveryStatus === undefined || order.deliveryStatus === 0) ? '暂时没有骑手接单，接单后可查看配送信息' : '查看配送信息'"
+                                    :class="{
+                                        'bg-gray-300 cursor-not-allowed': order.deliveryStatus === null || order.deliveryStatus === undefined || order.deliveryStatus === 0,
+                                        'bg-green-500 hover:bg-green-600 cursor-pointer': order.deliveryStatus !== null && order.deliveryStatus !== undefined && order.deliveryStatus !== 0
+                                    }"
+                                    class="text-white px-3 py-1.5 rounded text-sm transition-colors whitespace-nowrap flex items-center gap-1">
+                                    <i class="fas fa-truck"></i>
+                                    <span>查看配送信息</span>
+                                </button>
+
+                                <!-- 再来一单按钮 -->
+                                <button @click="reorder(order)"
+                                    class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded text-sm transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1">
+                                    <i class="fas fa-redo"></i>
+                                    <span>再来一单</span>
+                                </button>
                             </div>
 
-                            <!-- 已接单（已接单但还未开始配送） -->
-                            <div v-if="order.orderState !== 0 && (order.deliveryStatus === null || order.deliveryStatus === undefined || order.deliveryStatus === 0)" 
-                                class="flex justify-end gap-2 mt-2">
-                                <button @click="dialogVisibleMerchant = true"
-                                    class="bg-orange-500 hover:bg-orange-600 text-white w-8 h-8 rounded-full text-sm transition-colors cursor-pointer"
-                                    title="联系商家">
-                                    <i class="fas fa-store"></i>
-                                </button>
-                                <!-- 联系商家对话框 -->
-                                <ReplyDialog v-model="dialogVisibleMerchant" title="联系商家" identity="user"
-                                    :chatMessages="merchantChat" :quickPhrases="['您好，有什么能帮您？', '请稍等一下']"
-                                    :emojis="['😊', '👍', '❤️', '🎉']" @submit="handleMerchantReply" />
-                            </div>
+                            <!-- 联系商家对话框（每个订单独立） -->
+                            <ReplyDialog 
+                                :model-value="!!dialogVisibleMerchant[order.orderId]"
+                                @update:model-value="dialogVisibleMerchant[order.orderId] = $event"
+                                title="联系商家" 
+                                identity="user"
+                                :chatMessages="merchantChat" 
+                                :quickPhrases="['您好，有什么能帮您？', '请稍等一下']"
+                                :emojis="['😊', '👍', '❤️', '🎉']" 
+                                @submit="handleMerchantReply" />
 
-                            <!-- 配送中 -->
-                            <div v-if="order.deliveryStatus === 1 || order.deliveryStatus === 2" class="flex justify-end gap-2 mt-2">
-                                <button @click="dialogVisibleMerchant = true"
-                                    class="bg-orange-500 hover:bg-orange-600 text-white w-8 h-8 rounded-full text-sm transition-colors cursor-pointer"
-                                    title="联系商家">
-                                    <i class="fas fa-store"></i>
-                                </button>
-                                <button @click="dialogVisibleRider = true"
-                                    class="bg-orange-500 hover:bg-orange-600 text-white w-8 h-8 rounded-full text-sm transition-colors cursor-pointer"
-                                    title="联系骑手">
-                                    <i class="fas fa-motorcycle"></i>
-                                </button>
-                                <button @click="openRevealDelivery()"
-                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded text-sm transition-colors cursor-pointer whitespace-nowrap">
-                                    查看物流
-                                </button>
+                            <!-- 联系骑手对话框（配送中时显示） -->
+                            <ReplyDialog 
+                                v-if="order.deliveryStatus === 1 || order.deliveryStatus === 2"
+                                :model-value="!!dialogVisibleRider[order.orderId]"
+                                @update:model-value="dialogVisibleRider[order.orderId] = $event"
+                                title="联系骑手" 
+                                identity="user"
+                                :chatMessages="riderChat" 
+                                :quickPhrases="['请尽快送达哦', '麻烦放到门口，谢谢']"
+                                :emojis="['🚴', '🙏', '😁', '👌']" 
+                                @submit="handleRiderReply" />
 
-                                <!-- 联系商家 -->
-                                <ReplyDialog v-model="dialogVisibleMerchant" title="联系商家" identity="user"
-                                    :chatMessages="merchantChat" :quickPhrases="['您好，有什么能帮您？', '请稍等一下']"
-                                    :emojis="['😊', '👍', '❤️', '🎉']" @submit="handleMerchantReply" />
+                            <!-- 订单详情弹窗 -->
+                            <OrderDetailWindow 
+                                :visible="!!showOrderDetail[order.orderId]" 
+                                :order="order"
+                                @close="showOrderDetail[order.orderId] = false"
+                                @afterSale="() => openAfterSale(order.orderId)"
+                                @report="() => openReportWindow(order.orderId)"
+                                @review="() => openReviewWindow(order.orderId)" />
 
-                                <!-- 联系骑手 -->
-                                <ReplyDialog v-model="dialogVisibleRider" title="联系骑手" identity="user"
-                                    :chatMessages="riderChat" :quickPhrases="['请尽快送达哦', '麻烦放到门口，谢谢']"
-                                    :emojis="['🚴', '🙏', '😁', '👌']" @submit="handleRiderReply" />
+                            <!-- 配送信息弹窗 -->
+                            <RevealDelivery 
+                                :visible="!!showRevealDelivery[order.orderId]"
+                                :order="order"
+                                @close="showRevealDelivery[order.orderId] = false" />
 
-                                <!-- 显示物流弹窗 -->
-                                <RevealDelivery :visible="showRevealDelivery"
-                                    @close="showRevealDelivery = false" />
-                            </div>
-
-                            <!-- 已完成 -->
-                            <div v-if="order.deliveryStatus === 3" class="flex justify-end gap-2 mt-2">
-                                <!-- 售后按钮 -->
-                                <button @click="openAfterSale(order.orderId)"
-                                    class="relative w-8 h-8 flex items-center justify-center cursor-pointer"
-                                    title="提起售后">
-                                    <i class="fas fa-headset text-orange-500 hover:text-orange-600 text-2xl"></i>
-                                </button>
-
-                                <!-- 举报按钮 -->
-                                <button @click="openReportWindow(order.orderId)"
-                                    class="relative w-8 h-8 flex items-center justify-center cursor-pointer"
-                                    title="对此订单有意见">
-                                    <i
-                                        class="fas fa-exclamation-circle text-orange-500 hover:text-orange-600 text-2xl"></i>
-                                </button>
-
-                                <!-- 评价按钮 -->
-                                <button @click="openReviewWindow(order.orderId)"
-                                    class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded text-sm transition-colors cursor-pointer whitespace-nowrap">
-                                    评价
-                                </button>
-
-                                <!-- 弹窗们 -->
-                                <AfterSaleWindow :visible="showAfterSale[order.orderId]" :order="order"
-                                    @close="showAfterSale[order.orderId] = false" />
-                                <ReportWindow :visible="showReportWindow[order.orderId]" :order="order"
-                                    @close="showReportWindow[order.orderId] = false" />
-                                <ReviewWindow :visible="showReviewWindow[order.orderId]" :order="order"
-                                    @close="showReviewWindow[order.orderId] = false" />
-                            </div>
+                            <!-- 其他弹窗（已完成订单时显示） -->
+                            <AfterSaleWindow 
+                                v-if="order.deliveryStatus === 3"
+                                :visible="!!showAfterSale[order.orderId]" 
+                                :order="order"
+                                @close="showAfterSale[order.orderId] = false" />
+                            <ReportWindow 
+                                v-if="order.deliveryStatus === 3"
+                                :visible="!!showReportWindow[order.orderId]" 
+                                :order="order"
+                                @close="showReportWindow[order.orderId] = false" />
+                            <ReviewWindow 
+                                v-if="order.deliveryStatus === 3"
+                                :visible="!!showReviewWindow[order.orderId]" 
+                                :order="order"
+                                @close="showReviewWindow[order.orderId] = false" />
                         </div>
                     </div>
                 </div>
@@ -200,8 +210,10 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, computed } from "vue";
+import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/user";
 import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils'
+import { ElMessage } from 'element-plus';
 
 import type { OrderInfo } from "@/api/user";
 import { getOrderInfo } from "@/api/user";
@@ -211,7 +223,9 @@ import ReviewWindow from "@/components/user/HomePage/Home/ReviewWindow.vue";
 import AfterSaleWindow from "@/components/user/HomePage/Home/AfterSaleWindow.vue";
 import RevealDelivery from "@/components/user/HomePage/Home/RevealDelivery.vue";
 import ReplyDialog from "@/components/user/HomePage/Home/ReplyDialog.vue";
+import OrderDetailWindow from "@/components/user/HomePage/Home/OrderDetailWindow.vue";
 
+const router = useRouter();
 const userStore = useUserStore();
 const userID = userStore.getUserID();
 
@@ -221,7 +235,10 @@ const showLoading = ref(true);
 const showReviewWindow = ref<Record<number, boolean>>({});
 const showReportWindow = ref<Record<number, boolean>>({});
 const showAfterSale = ref<Record<number, boolean>>({});
-const showRevealDelivery = ref(false);
+const showRevealDelivery = ref<Record<number, boolean>>({});
+const showOrderDetail = ref<Record<number, boolean>>({});
+const dialogVisibleMerchant = ref<Record<number, boolean>>({});
+const dialogVisibleRider = ref<Record<number, boolean>>({});
 
 const orderStatuses = [
     { key: "all", label: "全部订单" },
@@ -338,12 +355,27 @@ function openReportWindow(orderID: number) {
 function openAfterSale(orderID: number) {
     showAfterSale.value[orderID] = true;
 }
-function openRevealDelivery() {
-    showRevealDelivery.value = true;
+function openDeliveryInfo(orderID: number) {
+    showRevealDelivery.value[orderID] = true;
+}
+function openOrderDetail(orderID: number) {
+    showOrderDetail.value[orderID] = true;
+}
+function openMerchantDialog(orderID: number) {
+    dialogVisibleMerchant.value[orderID] = true;
+}
+function openRiderDialog(orderID: number) {
+    dialogVisibleRider.value[orderID] = true;
 }
 
-const dialogVisibleMerchant = ref(false);
-const dialogVisibleRider = ref(false);
+// 再来一单：跳转到店铺页面
+function reorder(order: OrderInfo) {
+    router.push({ 
+        name: 'InStore', 
+        params: { id: order.storeId.toString() } 
+    });
+    ElMessage.success('正在跳转到店铺页面...');
+}
 
 const merchantChat = ref([
     { sender: "user", content: "你好，有优惠吗？", time: "14:00" },

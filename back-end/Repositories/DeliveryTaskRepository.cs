@@ -68,6 +68,8 @@ namespace BackEnd.Repositories
                                     .ThenInclude(o => o.Customer)
                                  .Include(dt => dt.Order)
                                  .ThenInclude(o => o.Store)
+                                 .Include(dt => dt.Order)
+                                 .ThenInclude(o => o.DeliveryInfo)
                                  .Include(dt => dt.Courier)
                                     .ThenInclude(c => c!.User)
                                  .Include(dt => dt.DeliveryComplaints)

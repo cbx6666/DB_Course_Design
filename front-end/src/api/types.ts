@@ -5,6 +5,7 @@ export type OrderStatus = 'to_be_taken' | 'pending' | 'delivering' | 'completed'
 
 export interface UserProfile {
     name: string;
+    fullName?: string; // 真实姓名
     id: string;
     registerDate: string;
     rating: number;

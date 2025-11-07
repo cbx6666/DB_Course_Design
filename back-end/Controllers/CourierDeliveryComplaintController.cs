@@ -26,17 +26,17 @@ namespace BackEnd.Controllers
         /// </summary>
         /// <returns>投诉列表</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CourierComplaintDto>>> GetComplaints()
+        public async Task<IActionResult> GetComplaints()
         {
             try
             {
                 var courierId = GetCurrentUserId();
                 var complaints = await _complaintService.GetComplaintsAsync(courierId);
-                return Ok(complaints);
+                return Ok(new ApiResponseDto<IEnumerable<CourierComplaintDto>> { Success = true, Code = 200, Message = "获取成功", Data = complaints });
             }
             catch (UnauthorizedAccessException)
             {
-                return Unauthorized();
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "未授权" });
             }
             catch (Exception ex)
             {

@@ -24,7 +24,7 @@ namespace BackEnd.Data.EntityConfigs
             // 基础属性配置
             builder.Property(c => c.CourierRegistrationTime).HasColumnName("COURIERREGISTRATIONTIME").IsRequired();
             builder.Property(c => c.VehicleType).HasColumnName("VEHICLETYPE").IsRequired().HasMaxLength(20);
-            builder.Property(c => c.ReputationPoints).HasColumnName("REPUTATIONPOINTS").HasDefaultValue(0);
+            builder.Property(c => c.ReputationPoints).HasColumnName("REPUTATIONPOINTS").HasDefaultValue(100);
             builder.Property(c => c.TotalDeliveries).HasColumnName("TOTALDELIVERIES").HasDefaultValue(0);
             builder.Property(c => c.AvgDeliveryTime).HasColumnName("AVGDELIVERYTIME").HasDefaultValue(0);
             builder.Property(c => c.AverageRating).HasColumnName("AVERAGERATING").HasColumnType("decimal(3,2)").HasDefaultValue(0.00m);

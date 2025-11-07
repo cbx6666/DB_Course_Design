@@ -65,7 +65,7 @@ async function submit() {
             errorMsg.value = '请输入售后内容'
         }
 
-        await postAfterSaleApplication(props.order.orderID, afterSaleReport.value);
+        await postAfterSaleApplication(props.order.orderId, afterSaleReport.value);
 
         submitting.value = true;
         close();

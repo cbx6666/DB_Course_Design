@@ -24,5 +24,10 @@ namespace BackEnd.DTOs.Dish
         /// </summary>
         [Required]
         public int Quantity { get; set; }
+
+        /// <summary>
+        /// 单价
+        /// </summary>
+        public decimal Price { get; set; }
     }
 }

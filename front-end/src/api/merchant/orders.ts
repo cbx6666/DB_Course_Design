@@ -41,7 +41,9 @@ export interface OrderItem {
 }
 
 export const getOrders = async (params?: { sellerId?: number; storeId?: number }) => {
-    const response = await apiClient.get('/orders', { params });
+    const response = await apiClient.get('/merchant/orders', { params });
+    // 后端返回 ApiResponseDto<FoodOrder[]>，需要提取 data
+    const data = response.data?.data ?? response.data ?? [];
     const mapItem = (it: any): OrderItem => ({
         dishId: it?.dishId ?? it?.dish?.id ?? 0,
         quantity: it?.quantity ?? 0,
@@ -52,7 +54,7 @@ export const getOrders = async (params?: { sellerId?: number; storeId?: number }
         } : undefined,
     });
 
-    const list = (response.data || []).map((o: any) => ({
+    const list = (Array.isArray(data) ? data : []).map((o: any) => ({
         orderId: o.orderId,
         paymentTime: o.paymentTime,
         remarks: o.remarks,
@@ -83,12 +85,12 @@ export const getOrders = async (params?: { sellerId?: number; storeId?: number }
 };
 
 export const acceptOrder = async (orderId: number) => {
-    await apiClient.post(`/orders/${orderId}/accept`);
+    await apiClient.post(`/merchant/orders/${orderId}/accept`);
 };
 
 // 标记为已准备（出餐）
 export const markAsReady = async (orderId: number) => {
-    await apiClient.post(`/orders/${orderId}/ready`);
+    await apiClient.post(`/merchant/orders/${orderId}/ready`);
 };
 
 

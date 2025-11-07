@@ -147,14 +147,15 @@ namespace BackEnd.Controllers
                 }
                 else if (request.Type == "discount")
                 {
-                    // 折扣券：折扣比例必须在0.01-1之间
-                    if (request.Value < 0.01m || request.Value > 1m)
+                    // 折扣券：前端发送的是0-10的值（例如8表示8折），后端会转换为0-1存储
+                    // 所以验证时应该验证0.1-10（对应存储后的0.01-1）
+                    if (request.Value < 0.1m || request.Value > 10m)
                     {
                         return BadRequest(new ApiResponseDto<int>
                         {
                             Success = false,
                             Code = 400,
-                            Message = "折扣券的折扣比例必须在0.01-1之间"
+                            Message = "折扣券的折扣比例必须在0.1-10之间（例如8表示8折）"
                         });
                     }
                 }
@@ -214,6 +215,35 @@ namespace BackEnd.Controllers
                         Code = 400,
                         Message = $"请求数据验证失败: {string.Join(", ", errors)}"
                     });
+                }
+
+                // 自定义验证：根据优惠券类型验证value字段
+                if (request.Type == "fixed")
+                {
+                    // 满减券：优惠金额必须在0.01-999999.99之间
+                    if (request.Value < 0.01m || request.Value > 999999.99m)
+                    {
+                        return BadRequest(new ApiResponseDto<object>
+                        {
+                            Success = false,
+                            Code = 400,
+                            Message = "满减券的优惠金额必须在0.01-999999.99之间"
+                        });
+                    }
+                }
+                else if (request.Type == "discount")
+                {
+                    // 折扣券：前端发送的是0-10的值（例如8表示8折），后端会转换为0-1存储
+                    // 所以验证时应该验证0.1-10（对应存储后的0.01-1）
+                    if (request.Value < 0.1m || request.Value > 10m)
+                    {
+                        return BadRequest(new ApiResponseDto<object>
+                        {
+                            Success = false,
+                            Code = 400,
+                            Message = "折扣券的折扣比例必须在0.1-10之间（例如8表示8折）"
+                        });
+                    }
                 }
 
                 request.Id = id;

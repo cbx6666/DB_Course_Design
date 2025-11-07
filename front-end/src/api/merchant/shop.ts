@@ -21,7 +21,14 @@ export const getShopInfo = async () => {
 
 export const getMerchantInfo = async (): Promise<MerchantInfo> => {
     const response = await apiClient.get('/merchant/info');
-    return response.data.data as MerchantInfo;
+    // 后端返回 MerchantProfileDto，包含 Id (string), Username, Avatar 等
+    // 前端需要转换为 MerchantInfo，将 Id 转换为 sellerId (number)
+    const data = response.data.data;
+    return {
+        username: data.username || data.Username || '',
+        sellerId: data.sellerId || (data.id ? parseInt(data.id) : parseInt(data.Id || '0')),
+        avatar: data.avatar || data.Avatar
+    };
 };
 
 export const toggleBusinessStatus = async (status: boolean) => {

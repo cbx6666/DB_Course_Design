@@ -74,13 +74,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils'
 
 import { useUserStore } from "@/stores/user";
 import { getUserInfo } from "@/api/user";
-import { restoreUserState, getCurrentUserId } from "@/utils/auth";
-import { devLog } from "@/utils/logger";
+import { restoreUserState } from "@/utils/auth";
 
 import AddrSetting from "./PersonalTransition/AddrSetting.vue";
 import CouponSetting from "./PersonalTransition/CouponSetting.vue";
@@ -100,14 +99,15 @@ onMounted(async () => {
     // 恢复用户状态
     restoreUserState();
     
-    // 获取当前用户ID
-    const currentUserID = getCurrentUserId();
+    // 检查是否有 Token（即使 userID 为 0，也可能有 Token）
+    const token = localStorage.getItem('authToken');
     
-    if (currentUserID > 0) {
+    // 如果有 Token，尝试加载用户信息（后端会从 Token 中获取用户ID）
+    if (token) {
       await loadUserInfo();
     }
   } catch (error) {
-    console.error('获取用户信息失败:', error);
+    // 静默处理错误，避免影响用户体验
   }
 });
 
@@ -115,13 +115,20 @@ onMounted(async () => {
 async function loadUserInfo() {
   try {
     const result = await getUserInfo();
+    
     if (result) {
       // 使用工具函数规范化头像URL
-      result.avatar = normalizeImageUrl(result.avatar);
-      userInfo.value = result;
+      const normalizedAvatar = normalizeImageUrl(result.avatar || '');
+      
+      // 确保字段映射正确（后端返回 camelCase: name, phoneNumber, avatar）
+      userInfo.value = {
+        name: result.name || '',
+        phoneNumber: result.phoneNumber || 0,
+        avatar: normalizedAvatar
+      };
     }
   } catch (error) {
-    console.error('加载用户信息失败:', error);
+    // 静默处理错误，避免影响用户体验
   }
 }
 

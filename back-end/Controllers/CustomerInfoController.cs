@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using BackEnd.Services.Interfaces;
 using BackEnd.DTOs.Customer;
 using BackEnd.DTOs.Common;
-using BackEnd.DTOs.Coupon;
 using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
 
@@ -17,65 +16,10 @@ namespace BackEnd.Controllers
     public class CustomerInfoController : BaseController
     {
         private readonly ICustomerInfoService _customerService;
-        private readonly ICustomerCouponService _customerCouponService;
 
-        public CustomerInfoController(
-            ICustomerInfoService customerService,
-            ICustomerCouponService customerCouponService)
+        public CustomerInfoController(ICustomerInfoService customerService)
         {
             _customerService = customerService;
-            _customerCouponService = customerCouponService;
-        }
-
-        /// <summary>
-        /// 获取推荐商家
-        /// </summary>
-        [HttpGet("home/recommend")]
-        public async Task<IActionResult> GetRecommendedStores()
-        {
-            var result = await _customerService.GetRecommendedStoresAsync();
-            return result == null ? NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "There's No Recommend Store For User." }) : Ok(result);
-        }
-
-        /// <summary>
-        /// 搜索商家和菜品
-        /// </summary>
-        [HttpGet("home/search")]
-        public async Task<IActionResult> Search([FromQuery] HomeSearchDto searchDto)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "Invalid request" });
-            }
-
-            var (stores, dishes) = await _customerService.SearchAsync(searchDto);
-
-            if (stores == null && dishes == null)
-            {
-                return NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "There's No Search results." });
-            }
-
-            var searchStores = new List<object>();
-            if (stores?.Any() == true) searchStores.AddRange(stores);
-            if (dishes?.Any() == true) searchStores.AddRange(dishes);
-
-            return Ok(new ApiResponseDto<object> { Success = true, Code = 200, Message = "搜索成功", Data = new { searchStores } });
-        }
-
-        /// <summary>
-        /// 获取用户历史订单
-        /// </summary>
-        [HttpGet("home/orders")]
-        public async Task<IActionResult> GetOrderHistory()
-        {
-            var userId = GetUserIdFromToken();
-            if (userId == null)
-            {
-                return Unauthorized("无效的Token");
-            }
-
-            var orderHistory = await _customerService.GetOrderHistoryAsync(userId.Value);
-            return orderHistory == null ? NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "There's No OrderHistory For User." }) : Ok(orderHistory);
         }
 
         /// <summary>
@@ -87,97 +31,16 @@ namespace BackEnd.Controllers
             var userId = GetUserIdFromToken();
             if (userId == null)
             {
-                return Unauthorized("无效的Token");
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "无效的Token" });
             }
 
             var userInfo = await _customerService.GetUserProfileAsync(userId.Value);
-            return userInfo == null ? NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "User not found" }) : Ok(userInfo);
-        }
-
-        /// <summary>
-        /// 获取所有商家
-        /// </summary>
-        [HttpGet("home/stores")]
-        public async Task<ActionResult<StoresResponseDto>> GetAllStores()
-        {
-            try
+            if (userInfo == null)
             {
-                var stores = await _customerService.GetAllStoresAsync();
-                return Ok(stores);
+                return NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "User not found" });
             }
-            catch (Exception)
-            {
-                return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "获取商店信息时发生错误" });
-            }
-        }
-
-        /// <summary>
-        /// 获取用户优惠券信息（我的优惠券页面）
-        /// </summary>
-        [HttpGet("home/couponInfo")]
-        public async Task<IActionResult> GetUserCoupons()
-        {
-            var userId = GetUserIdFromToken();
-            if (userId == null)
-            {
-                return Unauthorized("无效的Token");
-            }
-
-            var coupons = await _customerCouponService.GetUserCouponListAsync(userId.Value);
-            return coupons?.Any() != true ? NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "There's No Coupon For User." }) : Ok(coupons);
-        }
-
-        /// <summary>
-        /// 获取所有可领取的优惠券
-        /// </summary>
-        [HttpGet("home/available-coupons")]
-        public async Task<IActionResult> GetAvailableCoupons()
-        {
-            var userId = GetUserIdFromToken();
-            if (userId == null)
-            {
-                return Unauthorized("无效的Token");
-            }
-
-            try
-            {
-                var coupons = await _customerCouponService.GetAvailableCouponsAsync(userId.Value);
-                return Ok(coupons);
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "获取可领取优惠券失败" });
-            }
-        }
-
-        /// <summary>
-        /// 领取优惠券
-        /// </summary>
-        [HttpPost("home/claim-coupon/{couponManagerId}")]
-        public async Task<IActionResult> ClaimCoupon(int couponManagerId)
-        {
-            var userId = GetUserIdFromToken();
-            if (userId == null)
-            {
-                return Unauthorized("无效的Token");
-            }
-
-            try
-            {
-                var success = await _customerCouponService.ClaimCouponAsync(userId.Value, couponManagerId);
-                if (success)
-                {
-                    return Ok(new ApiResponseDto { Success = true, Code = 200, Message = "优惠券领取成功" });
-                }
-                else
-                {
-                    return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "优惠券领取失败，可能已领取过或已领完" });
-                }
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "领取优惠券失败" });
-            }
+            
+            return Ok(new ApiResponseDto<UserProfileDto> { Success = true, Code = 200, Message = "获取成功", Data = userInfo });
         }
 
         /// <summary>

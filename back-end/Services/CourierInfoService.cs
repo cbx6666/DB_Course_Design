@@ -4,6 +4,8 @@ using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace BackEnd.Services
@@ -16,6 +18,7 @@ namespace BackEnd.Services
         private readonly IUserRepository _userRepository;
         private readonly ICourierRepository _courierRepository;
         private readonly AppDbContext _context;
+        private readonly string _avatarFolder;
 
         /// <summary>
         /// 构造函数
@@ -23,14 +26,18 @@ namespace BackEnd.Services
         /// <param name="userRepository">用户仓储</param>
         /// <param name="courierRepository">配送员仓储</param>
         /// <param name="context">数据库上下文</param>
+        /// <param name="env">Web主机环境</param>
         public CourierInfoService(
             IUserRepository userRepository,
             ICourierRepository courierRepository,
-            AppDbContext context)
+            AppDbContext context,
+            IWebHostEnvironment env)
         {
             _userRepository = userRepository;
             _courierRepository = courierRepository;
             _context = context;
+            _avatarFolder = Path.Combine(env.WebRootPath ?? env.ContentRootPath, "avatars");
+            Directory.CreateDirectory(_avatarFolder);
         }
 
         /// <summary>
@@ -54,10 +61,12 @@ namespace BackEnd.Services
             {
                 Id = user.UserID.ToString(),
                 Name = user.Username,
+                FullName = user.FullName,
                 RegisterDate = user.AccountCreationTime.ToString("yyyy-MM-dd"),
                 Rating = user.Courier?.AverageRating ?? 0,
                 CreditScore = user.Courier?.ReputationPoints ?? 0,
-                Avatar = user.Avatar
+                Avatar = string.IsNullOrWhiteSpace(user.Avatar) ? "/images/default-avatar.jpg" : user.Avatar,
+                Gender = user.Gender
             };
         }
 
@@ -128,6 +137,30 @@ namespace BackEnd.Services
 
             decimal totalMonthlyIncome = courier.MonthlySalary + courier.CommissionThisMonth;
             return totalMonthlyIncome;
+        }
+
+        /// <summary>
+        /// 获取今日收入（已完成订单的配送费总和）
+        /// </summary>
+        /// <param name="courierId">配送员ID</param>
+        /// <returns>今日收入</returns>
+        public async Task<decimal> GetTodayIncomeAsync(int courierId)
+        {
+            var today = DateTime.UtcNow.Date;
+            var tomorrow = today.AddDays(1);
+
+            // 查询今日已完成的配送任务
+            var todayCompletedTasks = await _context.DeliveryTasks
+                .Where(dt => dt.CourierID == courierId
+                    && dt.Status == DeliveryStatus.Completed
+                    && dt.CompletionTime.HasValue
+                    && dt.CompletionTime.Value >= today
+                    && dt.CompletionTime.Value < tomorrow)
+                .ToListAsync();
+
+            // 计算今日收入：每单配送费 + 5元
+            decimal todayIncome = todayCompletedTasks.Sum(task => task.DeliveryFee + 5);
+            return todayIncome;
         }
 
         /// <summary>
@@ -207,11 +240,45 @@ namespace BackEnd.Services
             return new UpdateProfileDto
             {
                 Name = user.Username,
+                FullName = user.FullName,
                 Gender = user.Gender,
                 Birthday = user.Birthday,
                 Avatar = user.Avatar,
                 VehicleType = user.Courier.VehicleType
             };
+        }
+
+        /// <summary>
+        /// 更新配送员头像（表单上传）
+        /// </summary>
+        /// <param name="courierId">配送员ID</param>
+        /// <param name="avatarFile">头像文件</param>
+        /// <returns>头像URL</returns>
+        public async Task<(bool Success, string? Message, string? AvatarUrl)> UpdateCourierAvatarAsync(int courierId, IFormFile avatarFile)
+        {
+            var user = await _context.Users.FindAsync(courierId);
+            if (user == null)
+                return (false, "用户不存在", null);
+
+            if (avatarFile == null || avatarFile.Length <= 0)
+                return (false, "文件不能为空", null);
+
+            var fileExtension = Path.GetExtension(avatarFile.FileName);
+            var fileName = $"{courierId}_{Guid.NewGuid()}{fileExtension}";
+            var filePath = Path.Combine(_avatarFolder, fileName);
+
+            Directory.CreateDirectory(_avatarFolder);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await avatarFile.CopyToAsync(stream);
+            }
+
+            var avatarUrl = $"/avatars/{fileName}";
+            user.Avatar = avatarUrl;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return (true, null, avatarUrl);
         }
     }
 }

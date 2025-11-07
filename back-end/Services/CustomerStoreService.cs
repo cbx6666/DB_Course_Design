@@ -1,6 +1,7 @@
 using BackEnd.DTOs.Menu;
 using BackEnd.DTOs.DishCategory;
 using BackEnd.DTOs.Store;
+using BackEnd.DTOs.Customer;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Models.Helpers;
@@ -22,6 +23,43 @@ namespace BackEnd.Services
         public CustomerStoreService(IStoreRepository storeRepository)
         {
             _storeRepository = storeRepository;
+        }
+
+        /// <summary>
+        /// 获取推荐店铺
+        /// </summary>
+        public async Task<HomeRecmDto> GetRecommendedStoresAsync()
+        {
+            var topStores = await _storeRepository.GetTopRatedStoresForHomepageAsync(10);
+            var random = new Random();
+            var recommended = topStores
+                .OrderBy(s => random.Next())
+                .Take(4);
+
+            return new HomeRecmDto
+            {
+                RecomStore = recommended
+            };
+        }
+
+        /// <summary>
+        /// 搜索店铺和菜品
+        /// </summary>
+        public async Task<(IEnumerable<ShowStoreDto> Stores, IEnumerable<ShowStoreDto> Dishes)> SearchAsync(HomeSearchDto searchDto)
+        {
+            var storeResults = await _storeRepository.SearchStoresByNameAsync(searchDto.Keyword);
+            var dishResults = await _storeRepository.SearchStoresByDishNameAsync(searchDto.Keyword);
+
+            return (storeResults, dishResults);
+        }
+
+        /// <summary>
+        /// 获取所有店铺
+        /// </summary>
+        public async Task<StoresResponseDto> GetAllStoresAsync()
+        {
+            var operationalStores = await _storeRepository.GetOperationalStoresAsync();
+            return new StoresResponseDto { AllStores = operationalStores.ToList() };
         }
 
         /// <summary>

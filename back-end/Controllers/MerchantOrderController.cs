@@ -37,7 +37,7 @@ namespace BackEnd.Controllers
             try
             {
                 var orders = await _merchantOrderService.GetOrdersAsync(sellerId, storeId);
-                return Ok(orders);
+                return Ok(new ApiResponseDto<object> { Success = true, Code = 200, Message = "获取成功", Data = orders });
             }
             catch (Exception ex)
             {

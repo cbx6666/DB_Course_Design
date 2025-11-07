@@ -1,3 +1,5 @@
+using BackEnd.DTOs.Dish;
+
 namespace BackEnd.DTOs.DeliveryTask
 {
     // ========== 骑手侧 ==========
@@ -48,9 +50,14 @@ namespace BackEnd.DTOs.DeliveryTask
         public string Distance { get; set; } = null!;
 
         /// <summary>
-        /// 时间
+        /// 时间（预计配送时间）
         /// </summary>
         public string Time { get; set; } = null!;
+
+        /// <summary>
+        /// 发布时间（商家发布配送任务的时间）
+        /// </summary>
+        public string PublishTime { get; set; } = null!;
     }
 
     /// <summary>
@@ -74,14 +81,44 @@ namespace BackEnd.DTOs.DeliveryTask
         public string Address { get; set; } = string.Empty;
 
         /// <summary>
+        /// 取餐地址
+        /// </summary>
+        public string PickupAddress { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 配送地址
+        /// </summary>
+        public string DeliveryAddress { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 客户
+        /// </summary>
+        public string Customer { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 客户电话
+        /// </summary>
+        public string? CustomerPhone { get; set; }
+
+        /// <summary>
+        /// 商家电话
+        /// </summary>
+        public string? RestaurantPhone { get; set; }
+
+        /// <summary>
         /// 配送费
         /// </summary>
         public string Fee { get; set; } = string.Empty;
 
         /// <summary>
-        /// 时间
+        /// 时间（发布时间或完成时间）
         /// </summary>
         public string Time { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 完成时间（仅已完成订单）
+        /// </summary>
+        public string? CompletionTime { get; set; }
 
         /// <summary>
         /// 状态
@@ -97,6 +134,15 @@ namespace BackEnd.DTOs.DeliveryTask
         /// 是否准备取餐
         /// </summary>
         public bool IsReadyForPickup { get; set; }
+
+        /// <summary>
+        /// 订单备注
+        /// </summary>
+        public string? Remarks { get; set; }
+
+        /// <summary>
+        /// 菜品列表
+        /// </summary>
+        public List<OrderDishDto> DishDetails { get; set; } = new List<OrderDishDto>();
     }
 }
-

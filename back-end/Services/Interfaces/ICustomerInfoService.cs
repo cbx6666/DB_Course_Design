@@ -11,26 +11,6 @@ namespace BackEnd.Services.Interfaces
     public interface ICustomerInfoService
     {
         /// <summary>
-        /// 获取推荐商家
-        /// </summary>
-        /// <returns>推荐商家信息</returns>
-        Task<HomeRecmDto> GetRecommendedStoresAsync();
-
-        /// <summary>
-        /// 搜索商家和菜品
-        /// </summary>
-        /// <param name="searchDto">搜索请求</param>
-        /// <returns>商家和菜品搜索结果</returns>
-        Task<(IEnumerable<ShowStoreDto> Stores, IEnumerable<ShowStoreDto> Dishes)> SearchAsync(HomeSearchDto searchDto);
-
-        /// <summary>
-        /// 获取订单历史
-        /// </summary>
-        /// <param name="userId">用户ID</param>
-        /// <returns>订单历史列表</returns>
-        Task<List<CustomerOrderViewDto>> GetOrderHistoryAsync(int userId);
-
-        /// <summary>
         /// 获取用户档案
         /// </summary>
         /// <param name="userId">用户ID</param>
@@ -68,11 +48,5 @@ namespace BackEnd.Services.Interfaces
         /// 设置默认收货地址
         /// </summary>
         Task<ApiResponseDto> SetDefaultAddressAsync(int userId, int addressId);
-
-        /// <summary>
-        /// 获取所有店铺
-        /// </summary>
-        /// <returns>店铺列表</returns>
-        Task<StoresResponseDto> GetAllStoresAsync();
     }
 }

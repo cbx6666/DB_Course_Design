@@ -34,7 +34,10 @@ export interface CouponListResponse {
 
 export const getCoupons = async (page = 1, pageSize = 10): Promise<CouponListResponse> => {
     const response = await apiClient.get('/merchant/coupons', { params: { page, pageSize } });
-    return response.data.data || response.data;
+    // 后端返回 ApiResponseDto<PageResultDto<MerchantCouponDto>>，需要提取 data
+    // PageResultDto 包含 list 和 total 属性（camelCase 序列化后）
+    const data = response.data?.data ?? response.data;
+    return data as CouponListResponse;
 };
 
 export const createCoupon = async (couponData: CreateCouponRequest) => {

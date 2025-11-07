@@ -25,13 +25,15 @@ export const getReviewList = async (params: {
         sellerId: params.sellerId.toString(),
         ...(params.keyword && { keyword: params.keyword })
     };
-    const response = await apiClient.get('/reviews', { params: requestParams });
-    return response.data;
+    const response = await apiClient.get('/merchant/comments', { params: requestParams });
+    // 后端返回 ApiResponseDto<PageResult<Review>>，需要提取 data
+    return (response.data?.data ?? response.data) as PageResult<Review>;
 };
 
 export const replyReview = async (id: number, content: string) => {
-    const response = await apiClient.post(`/reviews/${id}/reply`, { content });
-    return response.data;
+    const response = await apiClient.post(`/merchant/comments/${id}/reply`, { content });
+    // 后端返回 ApiResponseDto，需要提取 data
+    return response.data?.data ?? response.data;
 };
 
 export interface PenaltyRecord {
@@ -43,18 +45,21 @@ export interface PenaltyRecord {
 }
 
 export const getPenaltyList = async (params?: { keyword?: string }) => {
-    const response = await apiClient.get('/penalties', { params: { ...(params?.keyword && { keyword: params.keyword }) } });
-    return response.data as PenaltyRecord[];
+    const response = await apiClient.get('/merchant/penalties', { params: { ...(params?.keyword && { keyword: params.keyword }) } });
+    // 后端返回 ApiResponseDto<PenaltyRecord[]>，需要提取 data
+    return (response.data?.data ?? response.data) as PenaltyRecord[];
 };
 
 export const getPenaltyDetail = async (id: string) => {
-    const response = await apiClient.get(`/penalties/${id}`);
-    return response.data as PenaltyRecord;
+    const response = await apiClient.get(`/merchant/penalties/${id}`);
+    // 后端返回 ApiResponseDto<PenaltyRecord>，需要提取 data
+    return (response.data?.data ?? response.data) as PenaltyRecord;
 };
 
 export const appealPenalty = async (id: string, reason: string) => {
-    const response = await apiClient.post(`/penalties/${id}/appeal`, { reason });
-    return response.data;
+    const response = await apiClient.post(`/merchant/penalties/${id}/appeal`, { reason });
+    // 后端返回 ApiResponseDto，需要提取 data
+    return response.data?.data ?? response.data;
 };
 
 

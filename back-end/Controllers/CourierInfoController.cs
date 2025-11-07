@@ -30,21 +30,23 @@ namespace BackEnd.Controllers
         /// <returns>配送员个人资料</returns>
         [HttpGet("profile")]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public async Task<ActionResult<CourierProfileDto>> GetProfile()
+        public async Task<IActionResult> GetProfile()
         {
             try
             {
                 var courierId = GetCurrentUserId();
                 var profileDto = await _courierService.GetProfileAsync(courierId);
-                return profileDto == null ? NotFound("骑手资料未找到") : Ok(profileDto);
+                return profileDto == null 
+                    ? NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "骑手资料未找到" }) 
+                    : Ok(new ApiResponseDto<CourierProfileDto> { Success = true, Code = 200, Message = "获取成功", Data = profileDto });
             }
             catch (UnauthorizedAccessException)
             {
-                return Unauthorized();
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "未授权" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"服务器内部错误: {ex.Message}");
+                return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = $"服务器内部错误: {ex.Message}" });
             }
         }
 
@@ -63,11 +65,11 @@ namespace BackEnd.Controllers
             }
             catch (UnauthorizedAccessException)
             {
-                return Unauthorized();
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "未授权" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"服务器内部错误: {ex.Message}");
+                return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = $"服务器内部错误: {ex.Message}" });
             }
         }
 
@@ -86,7 +88,7 @@ namespace BackEnd.Controllers
             }
             catch (UnauthorizedAccessException)
             {
-                return Unauthorized();
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "未授权" });
             }
             catch (Exception ex)
             {
@@ -110,7 +112,7 @@ namespace BackEnd.Controllers
             }
             catch (UnauthorizedAccessException)
             {
-                return Unauthorized();
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "未授权" });
             }
             catch (Exception ex)
             {
@@ -129,11 +131,34 @@ namespace BackEnd.Controllers
             {
                 var courierId = GetCurrentUserId();
                 var monthlyIncome = await _courierService.GetMonthlyIncomeAsync(courierId);
-                return Content(monthlyIncome.ToString("F2"), "text/plain");
+                return Ok(new ApiResponseDto<decimal> { Success = true, Code = 200, Message = "获取成功", Data = monthlyIncome });
             }
             catch (UnauthorizedAccessException)
             {
-                return Unauthorized();
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "未授权" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = $"服务器内部错误: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 获取今日收入
+        /// </summary>
+        /// <returns>今日收入</returns>
+        [HttpGet("income/today")]
+        public async Task<IActionResult> GetTodayIncome()
+        {
+            try
+            {
+                var courierId = GetCurrentUserId();
+                var todayIncome = await _courierService.GetTodayIncomeAsync(courierId);
+                return Ok(new ApiResponseDto<decimal> { Success = true, Code = 200, Message = "获取成功", Data = todayIncome });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "未授权" });
             }
             catch (Exception ex)
             {
@@ -157,11 +182,11 @@ namespace BackEnd.Controllers
             }
             catch (UnauthorizedAccessException)
             {
-                return Unauthorized();
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "未授权" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"服务器内部错误: {ex.Message}");
+                return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = $"服务器内部错误: {ex.Message}" });
             }
         }
 
@@ -175,7 +200,7 @@ namespace BackEnd.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "请求参数无效" });
             }
 
             try
@@ -203,17 +228,39 @@ namespace BackEnd.Controllers
         /// </summary>
         /// <returns>个人资料信息</returns>
         [HttpGet("profile/for-edit")]
-        public async Task<ActionResult<UpdateProfileDto>> GetProfileForEdit()
+        public async Task<IActionResult> GetProfileForEdit()
         {
             try
             {
                 var courierId = GetCurrentUserId();
                 var profileData = await _courierService.GetProfileForEditAsync(courierId);
-                return profileData == null ? NotFound("无法获取用于编辑的用户资料。") : Ok(profileData);
+                return profileData == null 
+                    ? NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "无法获取用于编辑的用户资料" }) 
+                    : Ok(new ApiResponseDto<UpdateProfileDto> { Success = true, Code = 200, Message = "获取成功", Data = profileData });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"服务器内部错误: {ex.Message}");
+                return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = $"服务器内部错误: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 更新配送员头像
+        /// </summary>
+        [HttpPut("profile/avatar")]
+        public async Task<IActionResult> UpdateCourierAvatar([FromForm] UpdateCourierAvatarDto dto)
+        {
+            try
+            {
+                var courierId = GetCurrentUserId();
+                var result = await _courierService.UpdateCourierAvatarAsync(courierId, dto.AvatarFile);
+                return result.Success
+                    ? Ok(new ApiResponseDto<string> { Success = true, Code = 200, Message = "头像更新成功", Data = result.AvatarUrl ?? string.Empty })
+                    : BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = result.Message ?? "更新失败" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = $"服务器内部错误: {ex.Message}" });
             }
         }
     }

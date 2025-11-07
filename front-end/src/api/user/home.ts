@@ -26,6 +26,7 @@ export interface OrderDish {
     dishName: string
     dishImage: string
     quantity: number
+    price: number
 }
 
 export interface OrderCouponInfo {
@@ -68,15 +69,15 @@ export interface AfterSale {
 }
 
 export async function getAllStore() {
-    return getData<AllStore>(`/customer/info/home/stores`);
+    return getData<AllStore>(`/customer/stores`);
 }
 
 export async function getRecomStore() {
-    return getData<RecomStore>(`/customer/info/home/recommend`);
+    return getData<RecomStore>(`/customer/stores/recommend`);
 }
 
 export async function getSearchStore(UserID: number, Address: string, Keyword: string) {
-    return getData<SearchStore>(`/customer/info/home/search`, {
+    return getData<SearchStore>(`/customer/stores/search`, {
         params: {
             userId: UserID,
             address: Address,
@@ -86,7 +87,7 @@ export async function getSearchStore(UserID: number, Address: string, Keyword: s
 }
 
 export async function getOrderInfo() {
-    return getData<OrderInfo[]>(`/customer/info/home/orders`);
+    return getData<OrderInfo[]>(`/customer/orders`);
 }
 
 export async function getUserInfo() {
@@ -98,6 +99,15 @@ export async function postAfterSaleApplication(orderId: number, description: str
         orderId,
         description
     })
+}
+
+/**
+ * 获取订单配送信息
+ * @param orderId 订单ID
+ */
+export async function getOrderDeliveryInfo(orderId: number) {
+    // getData 会自动处理 ApiResponseDto 格式，返回 data 字段
+    return getData<any>(`/customer/orders/${orderId}/delivery-info`);
 }
 
 

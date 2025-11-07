@@ -34,9 +34,9 @@ namespace BackEnd.Models
         public string VehicleType { get; set; } = null!;
 
         /// <summary>
-        /// 信誉积分
+        /// 信誉积分（默认满分100分）
         /// </summary>
-        public int ReputationPoints { get; set; } = 0;
+        public int ReputationPoints { get; set; } = 100;
 
         /// <summary>
         /// 总配送次数

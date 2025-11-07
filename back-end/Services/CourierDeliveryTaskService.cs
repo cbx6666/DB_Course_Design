@@ -50,23 +50,92 @@ namespace BackEnd.Services
                 .Where(t => t.CourierID == courierId && t.Status == targetStatus)
                 .Include(t => t.Order)
                 .ThenInclude(o => o.Store)
+                .ThenInclude(s => s.Seller)
+                .ThenInclude(s => s.User)
                 .Include(t => t.Order)
-                .ThenInclude(o => o.Customer);
+                .ThenInclude(o => o.Customer)
+                .Include(t => t.Order)
+                .ThenInclude(o => o.DeliveryInfo)
+                .Include(t => t.Order)
+                .ThenInclude(o => o.Cart)
+                .ThenInclude(c => c!.ShoppingCartItems!)
+                .ThenInclude(sci => sci.Dish);
 
             var tasks = await tasksQuery
                 .OrderByDescending(t => t.PublishTime)
                 .ToListAsync();
 
-            var taskDtos = tasks.Select(task => new CourierTaskListItemDto
+            var taskDtos = tasks.Select(task =>
             {
-                Id = task.TaskID.ToString(),
-                Status = task.Status.ToString().ToLower(),
-                Restaurant = task.Order.Store?.StoreName ?? "未知商家",
-                Address = task.Order.Customer?.DeliveryInfos.FirstOrDefault(di => di.IsDefault == 1)?.Address ?? "未知地址",
-                Fee = task.DeliveryFee.ToString("F2"),
-                StatusText = GetStatusText(task.Status),
-                IsReadyForPickup = task.Order != null && task.Order.FoodOrderState == FoodOrderState.Completed,
-                Time = task.PublishTime.ToString("yyyy-MM-dd HH:mm")
+                // 构建客户显示名称：姓氏 + 性别（如：张先生）
+                var deliveryName = task.Order.DeliveryInfo?.Name;
+                var gender = task.Order.DeliveryInfo?.Gender;
+
+                string customerDisplayName;
+                if (string.IsNullOrEmpty(deliveryName))
+                {
+                    customerDisplayName = "未知";
+                }
+                else
+                {
+                    // 提取姓氏（第一个字符）
+                    var surname = deliveryName.Length > 0 ? deliveryName[0].ToString() : "";
+
+                    // Gender 字段存储的是 "先生" 或 "女士"，直接拼接
+                    if (!string.IsNullOrEmpty(gender))
+                    {
+                        customerDisplayName = $"{surname}{gender}";
+                    }
+                    else
+                    {
+                        customerDisplayName = surname; // 没有性别只显示姓氏
+                    }
+                }
+
+                // 获取配送地址
+                var deliveryAddress = task.Order.DeliveryInfo?.Address ?? "地址未提供";
+                var pickupAddress = task.Order.Store?.StoreAddress ?? "地址未提供";
+
+                // 获取电话号码
+                var customerPhone = task.Order.DeliveryInfo?.PhoneNumber;
+                var restaurantPhone = task.Order.Store?.Seller?.User?.PhoneNumber.ToString();
+
+                // 获取菜品列表
+                var dishDetails = new List<DTOs.Dish.OrderDishDto>();
+                if (task.Order.Cart?.ShoppingCartItems != null)
+                {
+                    dishDetails = task.Order.Cart.ShoppingCartItems
+                        .Where(sci => sci.Dish != null)
+                        .Select(sci => new DTOs.Dish.OrderDishDto
+                        {
+                            DishName = sci.Dish.DishName,
+                            DishImage = sci.Dish.DishImage ?? "",
+                            Quantity = sci.Quantity
+                        })
+                        .ToList();
+                }
+
+                return new CourierTaskListItemDto
+                {
+                    Id = task.TaskID.ToString(),
+                    Status = task.Status.ToString().ToLower(),
+                    Restaurant = task.Order.Store?.StoreName ?? "未知商家",
+                    Address = deliveryAddress,
+                    PickupAddress = pickupAddress,
+                    DeliveryAddress = deliveryAddress,
+                    Customer = customerDisplayName,
+                    CustomerPhone = customerPhone,
+                    RestaurantPhone = restaurantPhone,
+                    Fee = task.DeliveryFee.ToString("F2"),
+                    StatusText = GetStatusText(task.Status),
+                    IsReadyForPickup = task.Order != null && task.Order.FoodOrderState == FoodOrderState.Completed,
+                    Time = task.PublishTime.ToString("yyyy-MM-dd HH:mm"),
+                    CompletionTime = task.CompletionTime.HasValue 
+                        ? task.CompletionTime.Value.ToString("yyyy-MM-dd HH:mm") 
+                        : null,
+                    Remarks = task.Order?.Remarks,
+                    DishDetails = dishDetails
+                };
             }).ToList();
 
             return taskDtos;
@@ -88,59 +157,56 @@ namespace BackEnd.Services
                 .ThenInclude(order => order.Store)
                 .Include(task => task.Order)
                     .ThenInclude(order => order.Customer)
-                        .ThenInclude(customer => customer.User);
+                        .ThenInclude(customer => customer.User)
+                .Include(task => task.Order)
+                    .ThenInclude(order => order.DeliveryInfo);
 
             var allTasks = await tasksQuery.ToListAsync();
 
-            // 获取骑手位置（优先使用传入的参数，否则从数据库获取）
-            decimal courierLat, courierLng;
-            if (latitude.HasValue && longitude.HasValue)
+            var random = new Random();
+            var resultDtos = allTasks.Select(task => 
             {
-                courierLat = latitude.Value;
-                courierLng = longitude.Value;
-            }
-            else
-            {
-                var courier = await _context.Couriers
-                    .FirstOrDefaultAsync(c => c.UserID == courierId);
-
-                if (courier == null || !courier.CourierLatitude.HasValue || !courier.CourierLongitude.HasValue)
+                // 构建客户显示名称：姓氏 + 性别（如：张先生）
+                var deliveryName = task.Order.DeliveryInfo?.Name;
+                var gender = task.Order.DeliveryInfo?.Gender;
+                
+                string customerDisplayName;
+                if (string.IsNullOrEmpty(deliveryName))
                 {
-                    return Enumerable.Empty<CourierAvailableTaskDto>();
+                    customerDisplayName = "未知";
                 }
-
-                courierLat = courier.CourierLatitude.Value;
-                courierLng = courier.CourierLongitude.Value;
-            }
-
-            var nearbyTasks = new List<DeliveryTask>();
-            foreach (var task in allTasks)
-            {
-                if (task.Order.Store?.Latitude.HasValue == true && task.Order.Store?.Longitude.HasValue == true)
+                else
                 {
-                    var distanceToStore = _geoHelper.CalculateDistance(
-                        courierLat, courierLng,
-                        task.Order.Store.Latitude.Value, task.Order.Store.Longitude.Value
-                    );
-
-                    if (distanceToStore <= (double)maxDistance)
+                    // 提取姓氏（第一个字符）
+                    var surname = deliveryName.Length > 0 ? deliveryName[0].ToString() : "";
+                    
+                    // Gender 字段存储的是 "先生" 或 "女士"，直接拼接
+                    if (!string.IsNullOrEmpty(gender))
                     {
-                        nearbyTasks.Add(task);
+                        customerDisplayName = $"{surname}{gender}";
+                    }
+                    else
+                    {
+                        customerDisplayName = surname; // 没有性别只显示姓氏
                     }
                 }
-            }
-
-            var resultDtos = nearbyTasks.Select(task => new CourierAvailableTaskDto
-            {
-                Id = task.TaskID.ToString(),
-                Status = "to_be_taken",
-                Restaurant = task.Order.Store.StoreName,
-                PickupAddress = task.Order.Store.StoreAddress,
-                Customer = task.Order.Customer.User.Username,
-                Fee = task.DeliveryFee.ToString("F2"),
-                DeliveryAddress = "接单后可见详细地址",
-                Distance = "2.5",
-                Time = "15"
+                
+                // 获取配送地址
+                var deliveryAddress = task.Order.DeliveryInfo?.Address ?? "地址未提供";
+                
+                return new CourierAvailableTaskDto
+                {
+                    Id = task.TaskID.ToString(),
+                    Status = "to_be_taken",
+                    Restaurant = task.Order.Store?.StoreName ?? "未知商家",
+                    PickupAddress = task.Order.Store?.StoreAddress ?? "地址未提供",
+                    Customer = customerDisplayName,
+                    Fee = task.DeliveryFee.ToString("F2"),
+                    DeliveryAddress = deliveryAddress,
+                    Distance = (random.NextDouble() * 9 + 1).ToString("F1"), // 1-10km 随机数
+                    Time = random.Next(10, 31).ToString(), // 10-30分钟 随机数
+                    PublishTime = task.PublishTime.ToString("yyyy-MM-dd HH:mm") // 发布时间
+                };
             }).ToList();
 
             return resultDtos;
@@ -186,6 +252,7 @@ namespace BackEnd.Services
             }
 
             task.Status = DeliveryStatus.Delivering;
+            task.PickupTime = DateTime.UtcNow; // 记录实际到店时间
             await _deliveryTaskRepository.UpdateAsync(task);
             await _deliveryTaskRepository.SaveAsync();
             return true;
@@ -216,7 +283,8 @@ namespace BackEnd.Services
                 var courier = await _courierRepository.GetByIdAsync(courierId);
                 if (courier != null)
                 {
-                    courier.CommissionThisMonth += task.DeliveryFee;
+                    // 骑手每单收入 = 配送费 + 5元
+                    courier.CommissionThisMonth += task.DeliveryFee + 5;
                     await _courierRepository.UpdateAsync(courier);
                 }
 

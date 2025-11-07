@@ -7,9 +7,9 @@
 
                 <!-- 左侧品牌展示区 -->
                 <div
-                    class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-orange-500 to-orange-600 relative overflow-hidden">
+                    class="flex w-1/2 bg-gradient-to-br from-orange-500 to-orange-600 relative overflow-hidden">
                     <div class="absolute inset-0 bg-black bg-opacity-20"></div>
-                    <img src="@/assets/food-delivery-login.jpg" alt="外卖配送服务"
+                    <img :src="loginImage" alt="外卖配送服务"
                         class="w-full h-full object-cover object-top" />
                     <div class="absolute inset-0 flex flex-col justify-center items-center text-white p-12 z-10">
                         <div class="text-center">
@@ -35,7 +35,7 @@
 
 
                 <!-- 右侧登录注册区 -->
-                <div class="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col">
+                <div class="w-1/2 p-8 lg:p-12 flex flex-col">
                     <div class="max-w-md mx-auto w-full overflow-y-auto">
 
                         <!-- Logo -->
@@ -400,6 +400,7 @@ import api from '@/api/login_api'; // 导入我们的 API 服务
 import apiClient from '@/api/client'; // 导入 API 客户端
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import loginImage from '@/assets/food-delivery-login.jpg';
 
 const router = useRouter();
 

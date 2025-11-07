@@ -22,7 +22,7 @@
                     <div class="text-center">
                         <div class="relative inline-block cursor-pointer" @click="handleAvatarClick">
                             <div class="w-24 h-24 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center mx-auto mb-3 overflow-hidden">
-                                <img v-if="avatarPreviewUrl || profileData.avatar" :src="avatarPreviewUrl || profileData.avatar" alt="头像" class="w-full h-full object-cover" />
+                                <img v-if="avatarPreviewUrl || profileData.avatar" :src="avatarPreviewUrl || normalizeImageUrl(profileData.avatar)" alt="头像" class="w-full h-full object-cover" @error="(e) => handleImageError(e)" />
                                 <span v-else class="text-white text-2xl font-medium">{{ profileData.name ? profileData.name.substring(0, 2) : '...' }}</span>
                             </div>
                             <div class="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -36,13 +36,21 @@
 
                 <!-- 信息编辑表单 -->
                 <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <!-- 姓名 -->
+                    <!-- 用户名（可修改） -->
                     <div class="p-4 border-b border-gray-100">
                         <div class="flex items-center justify-between">
-                            <div class="text-sm font-medium text-gray-900 mb-2">姓名</div>
+                            <div class="text-sm font-medium text-gray-900 mb-2">用户姓名</div>
                             <div class="text-xs text-red-500">* 必填</div>
                         </div>
-                        <input v-model="profileData.name" type="text" placeholder="请输入姓名" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white" />
+                        <input v-model="profileData.name" type="text" placeholder="请输入用户姓名" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white" />
+                    </div>
+
+                    <!-- 真实姓名（只读） -->
+                    <div class="p-4 border-b border-gray-100">
+                        <div class="text-sm font-medium text-gray-900 mb-2">真实姓名</div>
+                        <div class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-600">
+                            {{ profileData.fullName || '未设置' }}
+                        </div>
                     </div>
 
                     <!-- 车辆类型 -->
@@ -51,7 +59,13 @@
                             <div class="text-sm font-medium text-gray-900 mb-2">车辆类型</div>
                             <div class="text-xs text-red-500">* 必填</div>
                         </div>
-                        <input v-model="profileData.vehicleType" type="text" placeholder="请输入车辆类型" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white" />
+                        <select v-model="profileData.vehicleType"
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white">
+                            <option value="">请选择车辆类型</option>
+                            <option value="electric_bike">电动自行车</option>
+                            <option value="motorcycle">摩托车</option>
+                            <option value="car">小型汽车</option>
+                        </select>
                     </div>
 
                     <!-- 性别 -->
@@ -102,6 +116,7 @@ import { ArrowLeft, Camera } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';   
 import type { UpdateProfilePayload } from '@/api/rider_api';
+import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils';
 
 import { fetchProfileForEdit, updateUserProfile, uploadAvatarAPI } from '@/api/rider_api';
 // --- 响应式变量 ---
@@ -111,12 +126,13 @@ const fileInput = ref<HTMLInputElement>();
 const avatarPreviewUrl = ref('');
 const newAvatarFile = ref<File | null>(null);
 
-const profileData = ref<UpdateProfilePayload>({
+const profileData = ref<UpdateProfilePayload & { fullName?: string }>({
     name: '',
+    fullName: '',
     gender: '保密',
     birthday: '',
     avatar: '',
-    vehicleType: '电动车'
+    vehicleType: ''
 });
 
 const originalProfileData = ref<UpdateProfilePayload | null>(null);
@@ -127,15 +143,17 @@ onMounted(async () => {
     try {
         // **【修正点 2】**：调用为编辑页专门创建的 API 函数
         const res = await fetchProfileForEdit(); 
-        const fetchedData = res.data;
+        // 后端返回 camelCase 格式：{ success, code, message, data }
+        const fetchedData = res.data?.data;
         
         // 填充表单数据
         profileData.value = {
             name: fetchedData.name || '',
+            fullName: (fetchedData as any).fullName || '',
             gender: fetchedData.gender || '保密',
             birthday: fetchedData.birthday ? fetchedData.birthday.split('T')[0] : '',
             avatar: fetchedData.avatar || '',
-            vehicleType: fetchedData.vehicleType || '电动车',
+            vehicleType: fetchedData.vehicleType || '',
         };
 
         // 创建原始数据的深拷贝，用于比较
@@ -188,16 +206,22 @@ const handleSave = async () => {
         // --- 真实的头像上传逻辑 ---
         if (newAvatarFile.value) {
             ElMessage.info("正在上传新头像...");
-            // 1. 调用上传 API
-            const uploadRes = await uploadAvatarAPI(newAvatarFile.value);
+            try {
+                // 1. 调用上传 API
+                const uploadRes = await uploadAvatarAPI(newAvatarFile.value);
 
-            // 2. 从响应中获取真实的 URL
-            const newAvatarUrl = uploadRes.data.url;
-
-            // 3. 将真实的 URL 赋值给 payload
-            payload.avatar = newAvatarUrl;
-
-            ElMessage.success("头像上传成功！");
+                // 2. 从响应中获取真实的 URL（后端返回 camelCase 格式：{ success, code, message, data }）
+                if (uploadRes.data?.success && uploadRes.data?.data) {
+                    payload.avatar = uploadRes.data.data;
+                    ElMessage.success("头像上传成功！");
+                } else {
+                    throw new Error(uploadRes.data?.message || "头像上传失败");
+                }
+            } catch (error: any) {
+                console.error("头像上传错误:", error);
+                const errorMessage = error?.response?.data?.message || error?.message || "头像上传失败";
+                throw new Error(errorMessage);
+            }
         }
         // --------------------------
 

@@ -135,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineProps, defineEmits } from 'vue';
+import { ref, computed, onMounted, watch, defineProps, defineEmits } from 'vue';
 
 import { CouponInfo, getCouponInfo } from '@/api/user';
 import { useUserStore } from '@/stores/user';
@@ -159,20 +159,42 @@ onMounted(async () => {
   coupons.value = await getCouponInfo(userID);
 });
 
-// 可用优惠券，选中的放最前面
-const availableCoupons = computed(() => {
-  const list = coupons.value.filter(c => props.totalAmount >= c.minimumSpend);
-  if (!props.selectedCoupon) return list;
-  return [
-    props.selectedCoupon,
-    ...list.filter(c => c.couponID !== props.selectedCoupon?.couponID)
-  ];
+// 监听总金额变化，如果已选中的优惠券不满足最低消费，自动取消选择
+watch(() => props.totalAmount, (newAmount) => {
+  if (props.selectedCoupon && newAmount < props.selectedCoupon.minimumSpend) {
+    emit('update:selectedCoupon', null);
+  }
 });
 
-// 不可用优惠券
-const unavailableCoupons = computed(() =>
-  coupons.value.filter(c => props.totalAmount < c.minimumSpend)
-);
+// 可用优惠券，选中的放最前面
+const availableCoupons = computed(() => {
+  // 过滤出满足最低消费的优惠券
+  const list = coupons.value.filter(c => props.totalAmount >= c.minimumSpend);
+  
+  // 如果已选中的优惠券满足条件，放在最前面
+  if (props.selectedCoupon && props.totalAmount >= props.selectedCoupon.minimumSpend) {
+    return [
+      props.selectedCoupon,
+      ...list.filter(c => c.couponID !== props.selectedCoupon?.couponID)
+    ];
+  }
+  
+  return list;
+});
+
+// 不可用优惠券（排除已选中的优惠券，避免重复显示）
+const unavailableCoupons = computed(() => {
+  // 过滤出不满足最低消费的优惠券
+  const unavailable = coupons.value.filter(c => props.totalAmount < c.minimumSpend);
+  
+  // 如果已选中的优惠券满足条件，从不可用列表中排除（避免重复显示）
+  if (props.selectedCoupon && props.totalAmount >= props.selectedCoupon.minimumSpend) {
+    return unavailable.filter(c => c.couponID !== props.selectedCoupon?.couponID);
+  }
+  
+  // 如果已选中的优惠券不满足条件，它应该出现在不可用列表中（但不会在可用列表中）
+  return unavailable;
+});
 
 function selectCoupon(coupon: CouponInfo | null) {
   emit('update:selectedCoupon', coupon);

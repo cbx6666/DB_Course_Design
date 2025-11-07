@@ -52,18 +52,27 @@ namespace BackEnd.Services
             if (store?.SellerID != sellerId)
                 throw new UnauthorizedAccessException("无权操作此订单");
 
+            // 检查是否已存在配送任务
+            var existingTask = await _deliveryRepo.GetByOrderIdAsync(dto.OrderId);
+            if (existingTask != null)
+            {
+                throw new InvalidOperationException("该订单已存在配送任务，无法重复发布");
+            }
+
             // 创建配送任务
             var task = new DeliveryTask
             {
                 OrderID = dto.OrderId,
                 EstimatedArrivalTime = DateTime.Parse(dto.EstimatedArrivalTime),
                 EstimatedDeliveryTime = DateTime.Parse(dto.EstimatedDeliveryTime),
-                PublishTime = DateTime.Now,
+                PublishTime = DateTime.UtcNow,
+                AcceptTime = DateTime.MinValue, // 接单时间初始化为最小值，骑手接单时再更新
                 Status = DeliveryStatus.To_Be_Taken,
                 DeliveryFee = order.DeliveryFee
             };
 
             await _deliveryRepo.AddAsync(task);
+            await _deliveryRepo.SaveAsync(); 
             return true;
         }
 
@@ -87,7 +96,13 @@ namespace BackEnd.Services
             // 构建返回数据（只包含前端需要的字段）
             var result = new OrderDeliveryInfoDto
             {
+                TaskId = task.TaskID,
                 Status = (int)task.Status,
+                AcceptTime = task.AcceptTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                EstimatedArrivalTime = task.EstimatedArrivalTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                ActualPickupTime = task.PickupTime?.ToString("yyyy-MM-dd HH:mm:ss"),
+                EstimatedDeliveryTime = task.EstimatedDeliveryTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                ActualDeliveryTime = task.CompletionTime?.ToString("yyyy-MM-dd HH:mm:ss"),
                 Courier = courier == null ? null : new CourierSummaryDto
                 {
                     UserId = courier.UserID,
@@ -102,6 +117,12 @@ namespace BackEnd.Services
                     PhoneNumber = courier.User?.PhoneNumber,
                     Longitude = courier.CourierLongitude,
                     Latitude = courier.CourierLatitude
+                },
+                Order = task.Order?.DeliveryInfo == null ? null : new OrderDeliveryDetailDto
+                {
+                    DeliveryName = task.Order.DeliveryInfo.Name,
+                    DeliveryPhone = task.Order.DeliveryInfo.PhoneNumber,
+                    DeliveryAddress = task.Order.DeliveryInfo.Address
                 }
             };
 

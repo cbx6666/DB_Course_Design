@@ -33,11 +33,11 @@ namespace BackEnd.Controllers
             {
                 var courierId = GetCurrentUserId();
                 var tasks = await _deliveryTaskService.GetTasksAsync(courierId, status);
-                return Ok(tasks);
+                return Ok(new ApiResponseDto<IEnumerable<CourierTaskListItemDto>> { Success = true, Code = 200, Message = "获取成功", Data = tasks });
             }
             catch (UnauthorizedAccessException)
             {
-                return Unauthorized();
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "未授权" });
             }
             catch (Exception ex)
             {
@@ -53,7 +53,7 @@ namespace BackEnd.Controllers
         /// <param name="maxDistance">最大距离（可选，默认10公里）</param>
         /// <returns>可接配送任务列表</returns>
         [HttpGet("available")]
-        public async Task<ActionResult<IEnumerable<CourierAvailableTaskDto>>> GetAvailableTasks(
+        public async Task<IActionResult> GetAvailableTasks(
             [FromQuery] decimal? latitude = null,
             [FromQuery] decimal? longitude = null,
             [FromQuery] decimal maxDistance = 10)
@@ -62,11 +62,11 @@ namespace BackEnd.Controllers
             {
                 var courierId = GetCurrentUserId();
                 var availableTasks = await _deliveryTaskService.GetAvailableTasksAsync(courierId, latitude, longitude, maxDistance);
-                return Ok(availableTasks);
+                return Ok(new ApiResponseDto<IEnumerable<CourierAvailableTaskDto>> { Success = true, Code = 200, Message = "获取成功", Data = availableTasks });
             }
             catch (UnauthorizedAccessException)
             {
-                return Unauthorized();
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "未授权" });
             }
             catch (ArgumentException ex)
             {

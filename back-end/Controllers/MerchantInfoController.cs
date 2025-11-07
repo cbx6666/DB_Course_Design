@@ -26,7 +26,7 @@ namespace BackEnd.Controllers
         /// 获取商家信息
         /// </summary>
         /// <returns>商家信息</returns>
-        [HttpGet("info")]
+        [HttpGet]
         public async Task<ActionResult<MerchantProfileDto>> GetMerchantInfo()
         {
             try
@@ -49,7 +49,7 @@ namespace BackEnd.Controllers
         /// <summary>
         /// 更新商家信息
         /// </summary>
-        [HttpPut("info")]
+        [HttpPut]
         public async Task<IActionResult> UpdateMerchantInfo([FromBody] UpdateMerchantProfileDto dto)
         {
             var sellerId = GetCurrentUserId();
@@ -62,7 +62,7 @@ namespace BackEnd.Controllers
         /// <summary>
         /// 更新商家头像
         /// </summary>
-        [HttpPut("info/avatar")]
+        [HttpPut("avatar")]
         public async Task<IActionResult> UpdateMerchantAvatar([FromForm] UpdateMerchantAvatarDto dto)
         {
             var sellerId = GetCurrentUserId();

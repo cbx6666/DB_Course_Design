@@ -1,12 +1,54 @@
 <template>
     <div class="min-h-screen bg-gray-50">
+        <!-- 顶部导航栏 - 始终显示 -->
+        <div
+            class="fixed top-0 left-0 right-0 z-50 px-4 py-4"
+            style="background: linear-gradient(to right, #f97316, #fb923c);">
+            <div class="flex items-center justify-between relative">
+                <!-- 左侧：头像和姓名 -->
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                        <el-icon class="text-white text-xl">
+                            <User />
+                        </el-icon>
+                    </div>
+                    <div>
+                        <div class="text-lg font-semibold text-white">
+                            {{ userProfile?.name || '加载中...' }}
+                        </div>
+                        <div v-if="userProfile?.fullName && userProfile?.gender" class="text-xs text-white opacity-80 mt-0.5">
+                            {{ getHonorificName(userProfile) }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 中间：今日收入 -->
+                <div class="absolute left-1/2 transform -translate-x-1/2 text-center">
+                    <div class="text-lg font-bold text-white">
+                        今日收入 ¥{{ todayIncome.toFixed(2) }}
+                    </div>
+                </div>
+
+                <!-- 右侧：只保留通知铃铛图标 -->
+                <div class="flex items-center">
+                    <div
+                        class="w-9 h-9 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                        <el-icon class="text-white text-xl cursor-pointer">
+                            <Bell />
+                        </el-icon>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 状态一: 加载中 -->
-        <div v-if="isLoading" class="flex flex-col justify-center items-center h-screen">
+        <div v-if="isLoading" class="flex flex-col justify-center items-center h-screen pt-16">
             <p class="text-gray-500">正在拼命加载数据中...</p>
         </div>
 
         <!-- 状态二: 加载失败 -->
-        <div v-else-if="errorState" class="flex flex-col justify-center items-center h-screen space-y-4">
+        <div v-else-if="errorState" class="flex flex-col justify-center items-center h-screen space-y-4 pt-16">
             <el-icon class="text-red-500 text-5xl">
                 <CircleCloseFilled />
             </el-icon>
@@ -22,39 +64,6 @@
 
             <!-- 主要内容区域 -->
             <div class="min-h-screen bg-gray-50">
-
-                <!-- 顶部导航栏 (已移除今日收入) -->
-                <div v-if="userProfile"
-                    class="fixed top-0 left-0 right-0 bg-gradient-to-r from-orange-500 to-orange-400 z-50 px-4 py-4">
-                    <div class="flex items-center justify-between">
-                        <!-- 左侧：头像和姓名 -->
-                        <div class="flex items-center space-x-3">
-                            <div
-                                class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                                <el-icon class="text-white text-xl">
-                                    <User />
-                                </el-icon>
-                            </div>
-                            <div>
-                                <div class="text-base font-medium text-white">
-                                    {{ userProfile.name }}
-                                </div>
-                                <div class="text-xs text-white/80">ID: {{ userProfile.id }}</div>
-                            </div>
-                        </div>
-
-                        <!-- 右侧：只保留通知铃铛图标 -->
-                        <div class="flex items-center">
-                            <div
-                                class="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                                <el-icon class="text-white text-xl cursor-pointer">
-                                    <Bell />
-                                </el-icon>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="pt-24 pb-20">
                     <!-- 工作台页面 -->
                     <div v-if="currentTab === 'home'">
@@ -74,14 +83,16 @@
                             <div class="flex items-center justify-center mb-10">
                                 <div class="relative">
                                     <div class="w-24 h-24 rounded-3xl flex items-center justify-center cursor-pointer shadow-lg transition-all duration-300 transform hover:scale-105"
-                                        :class="workStatus.isOnline ? 'bg-gradient-to-br from-orange-500 to-orange-400' : 'bg-gradient-to-br from-gray-400 to-gray-500'"
+                                        :style="workStatus.isOnline 
+                                            ? 'background: linear-gradient(to bottom right, #f97316, #fb923c);' 
+                                            : 'background: linear-gradient(to bottom right, #9ca3af, #6b7280);'"
                                         @click="toggleWorkStatus">
                                         <el-icon class="text-white text-3xl">
                                             <Switch />
                                         </el-icon>
                                     </div>
                                     <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-base font-medium"
-                                        :class="workStatus.isOnline ? 'text-orange-500' : 'text-gray-500'">
+                                        :style="workStatus.isOnline ? 'color: #f97316;' : 'color: #6b7280;'">
                                         {{ workStatus.isOnline ? '开工中' : '已收工' }}
                                     </div>
                                 </div>
@@ -136,8 +147,8 @@
                             <div v-for="order in availableOrders" :key="order.id"
                                 class="bg-white border rounded-lg p-3 shadow-sm space-y-3">
                                 <div class="flex items-center justify-between">
-                                    <div class="text-sm font-medium text-gray-900">#{{ order.id }}</div>
-                                    <div class="text-sm font-medium text-orange-500">¥{{ order.fee }}</div>
+                                    <div class="text-sm font-medium text-gray-900">配送号: {{ order.id }}</div>
+                                    <div class="text-sm font-medium text-orange-500">¥{{ getCourierIncome(order.fee) }}</div>
                                 </div>
                                 <div class="space-y-3">
                                     <div class="flex items-start space-x-3">
@@ -154,7 +165,7 @@
                                     </div>
                                     <div class="flex items-start space-x-3">
                                         <div
-                                            class="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center text-white">
+                                            class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
                                             <el-icon>
                                                 <User />
                                             </el-icon>
@@ -162,6 +173,9 @@
                                         <div class="flex-1">
                                             <div class="font-medium text-gray-900">{{ order.customer }}</div>
                                             <div class="text-sm text-gray-500">{{ order.deliveryAddress }}</div>
+                                            <div v-if="order.publishTime" class="text-xs text-gray-400 text-center mt-1">
+                                                发布时间: {{ order.publishTime }}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -215,93 +229,168 @@
                                     <p>当前分类下没有订单哦</p>
                                 </div>
                                 <div v-else v-for="order in filteredOrders" :key="order.id"
-                                    class="border rounded-lg p-3 space-y-3">
-                                    <div class="flex items-center justify-between">
-                                        <div class="text-sm font-medium text-gray-900">#{{ order.id }}</div>
-                                        <div class="text-xs px-2 py-1 rounded-full"
-                                            :class="getOrderStatusClass(order.status)">
-                                            {{ getOrderStatusText(order.status) }}
+                                    class="bg-white border-2 rounded-xl p-4 mb-4 shadow-md hover:shadow-lg transition-shadow"
+                                    :class="{
+                                        'border-orange-300': order.status === 'pending',
+                                        'border-blue-300': order.status === 'delivering',
+                                        'border-green-300': order.status === 'completed'
+                                    }">
+                                    <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="text-base font-bold text-gray-900">配送号: {{ order.id }}</div>
+                                            <div class="text-xs px-2 py-1 rounded-full font-medium"
+                                                :class="getOrderStatusClass(order.status)">
+                                                {{ getOrderStatusText(order.status) }}
+                                            </div>
+                                        </div>
+                                        <div v-if="order.status === 'completed' && order.completionTime" 
+                                            class="text-xs text-gray-500">
+                                            送达时间: {{ order.completionTime }}
                                         </div>
                                     </div>
-                                    <div class="space-y-2">
-                                        <div class="flex items-start space-x-3">
+                                    <div class="space-y-3 mb-3">
+                                        <div class="flex items-start space-x-3 p-2 bg-orange-50 rounded-lg">
                                             <div
-                                                class="mt-1 flex-shrink-0 w-5 h-5 flex items-center justify-center bg-orange-500 rounded-full text-white">
-                                                <el-icon :size="12">
+                                                class="mt-1 flex-shrink-0 w-6 h-6 flex items-center justify-center bg-orange-500 rounded-full text-white shadow-sm">
+                                                <el-icon :size="14">
                                                     <Shop />
                                                 </el-icon>
                                             </div>
                                             <div class="flex-1">
-                                                <div class="font-medium text-sm text-gray-900">{{ order.restaurant }}
+                                                <div class="font-semibold text-sm text-gray-900 mb-1">{{ order.restaurant }}
                                                 </div>
-                                                <div class="text-xs text-gray-500">{{ order.pickupAddress }}</div>
+                                                <div class="text-xs text-gray-600 mb-1">{{ order.pickupAddress }}</div>
+                                                <a v-if="order.restaurantPhone" 
+                                                    :href="`tel:${order.restaurantPhone}`"
+                                                    class="text-xs text-orange-600 hover:text-orange-700 font-medium flex items-center gap-1">
+                                                    <el-icon :size="12">
+                                                        <Phone />
+                                                    </el-icon>
+                                                    {{ order.restaurantPhone }}
+                                                </a>
                                             </div>
                                         </div>
-                                        <div class="flex items-start space-x-3">
+                                        <div class="flex items-start space-x-3 p-2 bg-green-50 rounded-lg">
                                             <div
-                                                class="mt-1 flex-shrink-0 w-5 h-5 flex items-center justify-center bg-green-500 rounded-full text-white">
-                                                <el-icon :size="12">
+                                                class="mt-1 flex-shrink-0 w-6 h-6 flex items-center justify-center bg-green-500 rounded-full text-white shadow-sm">
+                                                <el-icon :size="14">
                                                     <User />
                                                 </el-icon>
                                             </div>
                                             <div class="flex-1">
-                                                <div class="font-medium text-sm text-gray-900">{{ order.customer }}
+                                                <div class="font-semibold text-sm text-gray-900 mb-1">{{ order.customer }}
                                                 </div>
-                                                <div class="text-xs text-gray-500">{{ order.deliveryAddress }}</div>
+                                                <div class="text-xs text-gray-600 mb-1">{{ order.deliveryAddress }}</div>
+                                                <a v-if="order.customerPhone" 
+                                                    :href="`tel:${order.customerPhone}`"
+                                                    class="text-xs text-green-600 hover:text-green-700 font-medium flex items-center gap-1">
+                                                    <el-icon :size="12">
+                                                        <Phone />
+                                                    </el-icon>
+                                                    {{ order.customerPhone }}
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- ▼▼▼ 替换为这个新的按钮区域代码 ▼▼▼ -->
-                                    <!-- 底部操作区，pt-3 增加一点与上方内容的间距 -->
-                                    <div class="pt-3">
+
+                                    <!-- 菜品列表 -->
+                                    <div v-if="order.dishDetails && order.dishDetails.length > 0" class="mt-3 pt-3 border-t">
+                                        <div class="text-xs font-medium text-gray-700 mb-2">配送菜品</div>
+                                        <div class="overflow-x-auto pb-2">
+                                            <div class="flex space-x-3 min-w-max">
+                                                <div v-for="(dish, index) in order.dishDetails.slice(0, 3)" 
+                                                    :key="index"
+                                                    class="flex-shrink-0 flex flex-col items-center"
+                                                    style="width: 60px;">
+                                                    <img :src="normalizeImageUrl(dish.dishImage)"
+                                                        :alt="dish.dishName"
+                                                        class="w-12 h-12 rounded-lg object-cover mb-1"
+                                                        @error="handleImageError" />
+                                                    <div class="w-12 text-center">
+                                                        <div class="text-xs font-medium text-gray-900 truncate" 
+                                                            :title="dish.dishName">
+                                                            {{ dish.dishName }}
+                                                        </div>
+                                                        <div class="text-xs text-gray-500 truncate" 
+                                                            :title="`x${dish.quantity}`">
+                                                            x{{ dish.quantity }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div v-if="order.dishDetails.length > 3"
+                                                    class="flex-shrink-0 flex flex-col items-center justify-center"
+                                                    style="width: 60px;">
+                                                    <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center mb-1">
+                                                        <span class="text-xs text-gray-400">+{{ order.dishDetails.length - 3 }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 text-center">
+                                            <button @click="openDishDetailDialog(order)"
+                                                class="text-xs text-orange-500 hover:text-orange-600 font-medium">
+                                                查看详细信息
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- 订单备注 -->
+                                    <div v-if="order.remarks" class="mt-3 pt-3 border-t border-gray-200">
+                                        <div class="text-xs font-medium text-gray-700 mb-1">订单备注</div>
+                                        <div class="text-sm text-gray-600 bg-gray-50 rounded-lg p-2">
+                                            {{ order.remarks }}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 底部操作区 -->
+                                    <div class="pt-4 border-t border-gray-200 mt-4">
                                         <!-- 待取单状态 (pending) 的按钮 -->
-                                        <div v-if="order.status === 'pending'" class="text-center">
-                                            <button @click="handlePickupOrder(order.id)"
+                                        <template v-if="order.status === 'pending'">
+                                            <button 
+                                                @click="handlePickupOrder(order.id)"
                                                 :disabled="!order.isReadyForPickup"
-                                                class="w-full text-white px-4 py-2.5 text-sm font-semibold rounded-lg shadow-md transition-all duration-300 transform"
-                                                :class="{
-                                                    'bg-gradient-to-r from-orange-500 to-yellow-500 hover:shadow-lg hover:-translate-y-0.5': order.isReadyForPickup,
-                                                    'bg-gray-400 cursor-not-allowed shadow-none': !order.isReadyForPickup
-                                                }">
-                                                <!-- 按钮内联flex布局，用于放置图标 -->
-                                                <div class="flex items-center justify-center">
-                                                    <!-- 准备就绪时显示摩托车图标 -->
-                                                    <el-icon v-if="order.isReadyForPickup" class="mr-2">
+                                                type="button"
+                                                class="w-full py-3 px-4 rounded-lg font-medium text-white transition-all"
+                                                :class="order.isReadyForPickup 
+                                                    ? 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700' 
+                                                    : 'bg-gray-400 cursor-not-allowed'">
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <el-icon v-if="order.isReadyForPickup">
                                                         <MostlyCloudy />
                                                     </el-icon>
-                                                    <!-- 等待时显示沙漏图标 -->
-                                                    <el-icon v-else class="mr-2">
+                                                    <el-icon v-else>
                                                         <Timer />
                                                     </el-icon>
-
                                                     <span>{{ order.isReadyForPickup ? '我已取餐' : '等待商家出餐' }}</span>
                                                 </div>
                                             </button>
-                                            <p v-if="!order.isReadyForPickup"
-                                                class="text-xs text-center text-gray-500 mt-2">
+                                            <p v-if="!order.isReadyForPickup" class="text-xs text-center text-gray-500 mt-2">
                                                 商家正在努力备餐中，请稍候...
                                             </p>
-                                        </div>
+                                        </template>
 
                                         <!-- 配送中状态 (delivering) 的按钮 -->
-                                        <div v-if="order.status === 'delivering'" class="text-center">
-                                            <button @click="handleDeliverOrder(order.id)"
-                                                class="w-full text-white px-4 py-2.5 text-sm font-semibold rounded-lg shadow-md transition-all duration-300 transform bg-gradient-to-r from-green-500 to-teal-500 hover:shadow-lg hover:-translate-y-0.5">
-                                                <div class="flex items-center justify-center">
-                                                    <el-icon class="mr-2">
+                                        <template v-else-if="order.status === 'delivering'">
+                                            <button 
+                                                @click="handleDeliverOrder(order.id)"
+                                                type="button"
+                                                class="w-full py-3 px-4 rounded-lg font-medium text-white transition-all bg-green-500 hover:bg-green-600 active:bg-green-700">
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <el-icon>
                                                         <Position />
                                                     </el-icon>
                                                     <span>我已送达</span>
                                                 </div>
                                             </button>
-                                        </div>
+                                        </template>
 
                                         <!-- 费用信息，移到了按钮下方，作为补充信息 -->
                                         <div class="text-center text-xs text-gray-400 mt-2">
-                                            配送费: <span class="font-semibold text-gray-600">¥{{ order.fee }}</span>
+                                            配送费: <span class="font-semibold text-gray-600">¥{{ getCourierIncome(order.fee) }}</span>
                                         </div>
                                     </div>
-                                    <!-- ▲▲▲ 替换结束 ▲▲▲ -->
+                                    
+                                    <!-- 地图区域 -->
                                     <div v-if="order.status === 'pending' || order.status === 'delivering'"
                                         class="mt-3">
                                         <div class="relative">
@@ -408,8 +497,8 @@
                                 <div
                                     class="w-16 h-16 rounded-full flex items-center justify-center bg-gray-200 overflow-hidden">
                                     <!-- 如果 userProfile.avatar 存在 (是一个有效的URL)，就显示图片 -->
-                                    <img v-if="userProfile.avatar" :src="userProfile.avatar" alt="用户头像"
-                                        class="w-full h-full object-cover" />
+                                    <img v-if="userProfile.avatar" :src="normalizeImageUrl(userProfile.avatar)" alt="用户头像"
+                                        class="w-full h-full object-cover" @error="(e) => handleImageError(e)" />
                                     <!-- 否则，显示一个默认的 Element Plus 用户图标 -->
                                     <el-icon v-else class="text-gray-500 text-3xl">
                                         <User />
@@ -419,18 +508,30 @@
 
                                 <!-- 其他部分保持完全不变 -->
                                 <div>
-                                    <div class="text-lg font-semibold text-gray-900">{{ userProfile.name }}</div>
-                                    <div class="text-sm text-gray-500">ID: {{ userProfile.id }}</div>
-                                    <div class="text-xs text-gray-400">注册时间: {{ userProfile.registerDate }}</div>
+                                    <div class="text-xl font-semibold text-gray-900">{{ userProfile.name }}</div>
+                                    <div v-if="userProfile.fullName && userProfile.gender" class="text-sm text-gray-500 mt-0.5">
+                                        {{ getHonorificName(userProfile) }}
+                                    </div>
+                                    <div class="text-xs text-gray-400 mt-1">注册时间: {{ userProfile.registerDate }}</div>
                                 </div>
                             </div>
                             <div class="grid grid-cols-3 gap-4">
                                 <div class="bg-gray-50 rounded-lg p-3 text-center">
-                                    <div class="text-lg font-semibold text-gray-900">{{ userProfile.rating }}</div>
+                                    <div class="text-lg font-semibold text-gray-900">
+                                        <span v-if="userProfile.rating && userProfile.rating > 0">{{ userProfile.rating.toFixed(1) }}</span>
+                                        <span v-else class="text-sm font-normal text-gray-500 whitespace-nowrap">暂未获得评价</span>
+                                    </div>
                                     <div class="text-xs text-gray-500">获评均分</div>
                                 </div>
                                 <div class="bg-gray-50 rounded-lg p-3 text-center">
-                                    <div class="text-lg font-semibold text-gray-900">{{ userProfile.creditScore }}</div>
+                                    <div class="text-lg font-semibold"
+                                        :class="{
+                                            'text-green-600': userProfile.creditScore >= 80 && userProfile.creditScore <= 100,
+                                            'text-yellow-600': userProfile.creditScore >= 60 && userProfile.creditScore < 80,
+                                            'text-red-600': userProfile.creditScore < 60
+                                        }">
+                                        {{ userProfile.creditScore }}
+                                    </div>
                                     <div class="text-xs text-gray-500">信誉积分</div>
                                 </div>
                                 <div class="bg-gray-50 rounded-lg p-3 text-center">
@@ -503,6 +604,58 @@
                         </div>
                     </div>
                 </div>
+                <!-- 菜品详情弹窗 -->
+                <div v-if="showDishDetailDialog"
+                    class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+                    @click.self="closeDishDetailDialog">
+                    <div class="bg-white rounded-2xl w-[90%] max-w-md max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+                        <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-yellow-50">
+                            <div>
+                                <div class="text-lg font-bold text-gray-900">菜品详情</div>
+                                <div class="text-sm text-orange-600 font-medium">配送号: {{ selectedDishOrder?.id }}</div>
+                            </div>
+                            <button @click="closeDishDetailDialog" class="text-gray-400 hover:text-gray-600">
+                                <el-icon class="text-xl">
+                                    <Close />
+                                </el-icon>
+                            </button>
+                        </div>
+
+                        <div class="flex-1 p-4 overflow-y-auto">
+                            <div v-if="selectedDishOrder?.dishDetails && selectedDishOrder.dishDetails.length > 0" class="space-y-3">
+                                <div v-for="(dish, index) in selectedDishOrder.dishDetails" :key="index"
+                                    class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                    <img :src="normalizeImageUrl(dish.dishImage)"
+                                        :alt="dish.dishName"
+                                        class="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                                        @error="handleImageError" />
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm font-medium text-gray-900 mb-1">
+                                            {{ dish.dishName }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            数量: x{{ dish.quantity }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-gray-200 text-center text-sm text-gray-600">
+                                    共 {{ selectedDishOrder.dishDetails.length }} 种菜品
+                                </div>
+                            </div>
+                            <div v-else class="text-center py-8 text-gray-400">
+                                <div class="text-lg mb-2">暂无菜品信息</div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 border-t border-gray-200 flex justify-end">
+                            <button @click="closeDishDetailDialog"
+                                class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                                关闭
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 导航弹窗 -->
                 <div v-if="showNavigationModal"
                     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -559,16 +712,18 @@ import {
     User, Bell, Switch, Location, CircleCloseFilled,
     HomeFilled, DocumentCopy, Coin, UserFilled, Close, Shop, List, Refresh, Warning, Edit,
 
-    // ▼▼▼ 新增/补全的图标 ▼▼▼
-    ArrowRight,     // 用于个人中心菜单的右箭头
-    SwitchButton,   // 用于退出登录按钮
-    MostlyCloudy,   // 用于“我已取餐”按钮
-    Timer,          // 用于“等待出餐”按钮
-    Position        // 用于“我已送达”按钮
+    ArrowRight,
+    SwitchButton,
+    MostlyCloudy,
+    Timer,
+    Position,
+    Phone
 } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
 import loginApi from '@/api/login_api';      // 导入我们定义好的通用认证API
 import { removeToken } from '@/utils/jwt'; 
+import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils';
+import { API_CONFIG } from '@/config';
 // ===================================================================
 //  API导入
 // ===================================================================
@@ -581,18 +736,70 @@ const router = useRouter();
 // --- 接口定义 ---
 export interface UserProfile {
     name: string;
+    fullName?: string; // 真实姓名
     id: string;
     registerDate: string;
     rating: number;
     creditScore: number;
 
-    // --- 新增的可选属性 ---
     gender?: string;
     birthday?: string; // 通常是 ISO 格式的日期字符串，如 '2024-01-15T00:00:00'
     avatar?: string;   // 头像的 URL
     vehicleType?: string;
     // -----------------------
 }
+
+// 计算显示名称：用户姓名 + 姓氏+性别（例如"陈先生"）
+const getDisplayName = (profile: UserProfile): string => {
+    let displayName = profile.name || '';
+    
+    // 如果有真实姓名，提取姓氏并添加性别称谓
+    if (profile.fullName && profile.fullName.length > 0) {
+        const surname = profile.fullName.charAt(0); // 取第一个字符作为姓氏
+        const gender = profile.gender || '';
+        
+        // 根据性别添加称谓
+        let honorific = '';
+        if (gender === '男') {
+            honorific = '先生';
+        } else if (gender === '女') {
+            honorific = '女士';
+        } else {
+            honorific = ''; // 保密或未知性别不显示称谓
+        }
+        
+        if (honorific) {
+            displayName = `${displayName} ${surname}${honorific}`;
+        }
+    }
+    
+    return displayName;
+};
+
+// 获取姓氏+性别称谓（例如"陈先生"）
+const getHonorificName = (profile: UserProfile): string => {
+    if (!profile.fullName || profile.fullName.length === 0) {
+        return '';
+    }
+    
+    const surname = profile.fullName.charAt(0); // 取第一个字符作为姓氏
+    const gender = profile.gender || '';
+    
+    // 根据性别添加称谓
+    if (gender === '男') {
+        return `${surname}先生`;
+    } else if (gender === '女') {
+        return `${surname}女士`;
+    } else {
+        return ''; // 保密或未知性别不显示称谓
+    }
+};
+interface OrderDish {
+    dishName: string;
+    dishImage: string;
+    quantity: number;
+}
+
 interface Order {
     id: string;
     status: OrderStatus; // 使用我们更精确的类型
@@ -603,7 +810,13 @@ interface Order {
     fee: string;
     distance: string;        // 配送距离
     time: string;            // 预计时间
+    publishTime?: string;    // 发布时间
+    completionTime?: string; // 完成时间（仅已完成订单）
+    customerPhone?: string;  // 客户电话
+    restaurantPhone?: string; // 商家电话
     isReadyForPickup: boolean;
+    remarks?: string;        // 订单备注
+    dishDetails?: OrderDish[]; // 菜品列表
 }
 
 interface Complaint {
@@ -619,7 +832,6 @@ interface Complaint {
 }
 
 // --- 状态定义 ---
-// 新增一个类型别名，让代码更清晰
 type OrderStatus = 'to_be_taken' | 'pending' | 'delivering' | 'completed';
 const userProfile = ref<UserProfile | null>(null);
 const locationInfo = ref<any | null>(null);
@@ -653,6 +865,10 @@ const selectedOrder = ref<Order | null>(null); // Order 是您已有的订单接
 
 const isRefreshing = ref(false); // 用于控制刷新按钮的加载状态
 
+// 菜品详情弹窗
+const showDishDetailDialog = ref(false);
+const selectedDishOrder = ref<Order | null>(null);
+
 // --- 静态数据 ---
 const tabs = [
     { key: 'home', label: '工作台', icon: HomeFilled },
@@ -661,7 +877,6 @@ const tabs = [
     { key: 'complaints', label: '投诉', icon: Warning },
     { key: 'profile', label: '我的', icon: UserFilled }
 ];
-// 修改 orderTabs 的 label
 const orderTabs = [
     { key: 'pending', label: '待取单' },
     { key: 'delivering', label: '配送中' },
@@ -685,23 +900,53 @@ const filteredComplaints = computed(() => {
 });
 
 const todayIncome = computed(() => {
-    // 如果月收入还没加载出来，就显示0
-    if (!income.value) {
-        return 0;
-    }
-    // 简单估算：假设今日收入是月收入的 1/25 (可以随便调整)
-    const estimatedDaily = income.value / 25;
-    // 为了让数字看起来更真实，我们再加一点随机性
-    // 比如在估算值的 80% 到 120% 之间随机
-    return estimatedDaily * (0.8 + Math.random() * 0.4);
+    // 直接使用后端返回的今日收入
+    return income.value || 0;
 });
+
+// 计算骑手实际收入：配送费 + 5元
+const getCourierIncome = (fee: string | number): string => {
+    const feeNum = typeof fee === 'string' ? parseFloat(fee) || 0 : fee;
+    const totalIncome = feeNum + 5;
+    return totalIncome.toFixed(2);
+};
 
 /** 刷新当前标签页的订单列表 */
 const refreshOrderList = async () => {
     const loadingInstance = ElLoading.service({ target: '.order-list-container', text: '刷新中...' });
     try {
-        const res = await api.fetchOrders(activeOrderTab.value) as { data: Order[] };
-        orders.value = res.data;
+        const res = await api.fetchOrders(activeOrderTab.value) as any;
+        // 后端返回 camelCase 格式：{ success, code, message, data }
+        const rawOrders = res.data?.data ?? [];
+        // 映射后端数据到前端期望的格式（后端已统一返回 camelCase）
+        // 确保 status 正确映射，后端返回的是小写字符串
+        orders.value = rawOrders.map((order: any) => {
+            // 后端返回的 status 可能是 "delivering"，需要确保匹配
+            let orderStatus: OrderStatus = activeOrderTab.value;
+            if (order.status) {
+                const statusLower = order.status.toLowerCase();
+                if (statusLower === 'pending' || statusLower === 'delivering' || statusLower === 'completed') {
+                    orderStatus = statusLower as OrderStatus;
+                }
+            }
+            return {
+                id: order.id || '',
+                status: orderStatus,
+                restaurant: order.restaurant || '未知商家',
+                pickupAddress: order.pickupAddress || order.address || '地址未提供',
+                deliveryAddress: order.deliveryAddress || order.address || '地址未提供',
+                customer: order.customer || '未知客户',
+                fee: order.fee || '0.00',
+                distance: order.distance || '0',
+                time: order.time || '',
+                completionTime: order.completionTime || undefined,
+                customerPhone: order.customerPhone || undefined,
+                restaurantPhone: order.restaurantPhone || undefined,
+                isReadyForPickup: order.isReadyForPickup ?? false,
+                remarks: order.remarks || '',
+                dishDetails: order.dishDetails || []
+            };
+        });
     } catch (error) {
         ElMessage.error("订单列表刷新失败");
     } finally {
@@ -712,10 +957,7 @@ const refreshOrderList = async () => {
 
 
 
-// 注意：订单取消功能已移除，配送状态不再支持 Cancelled
-// 如果订单需要取消，配送任务状态将改回 To_Be_Taken，让其他骑手可以接单
-
-/** 处理“取单”操作 */
+/** 处理"取单"操作 */
 const handlePickupOrder = async (orderId: string) => {
     try {
         await api.pickupOrderAPI(orderId);
@@ -747,35 +989,43 @@ const refreshAvailableOrders = async () => {
 
     try {
         // 专门只调用获取可接订单的 API
-        const res = await (api as any).fetchAvailableOrders() as { data: Order[] }; 
-        availableOrders.value = res.data;
+        const res = await (api as any).fetchAvailableOrders() as any; 
+        // 后端返回 camelCase 格式：{ success, code, message, data }
+        availableOrders.value = res.data?.data ?? [];
         ElMessage.success('订单列表已更新！');
     } catch (error) {
         console.error("刷新可接订单失败:", error);
         ElMessage.error('刷新失败，请稍后重试');
     } finally {
-        // 无论成功还是失败，最后都要结束刷新状态
         isRefreshing.value = false;
     }
 };
 
 
-// 新增导航相关函数
 const showNavigation = (order: Order) => {
-    selectedOrder.value = order; // 将点击的订单信息存起来
-    showNavigationModal.value = true; // 打开弹窗
+    selectedOrder.value = order;
+    showNavigationModal.value = true;
 };
-
 
 const closeNavigation = () => {
     showNavigationModal.value = false;
-    selectedOrder.value = null; // 最好在关闭时清空，是个好习惯
+    selectedOrder.value = null;
+};
+
+// 打开菜品详情弹窗
+const openDishDetailDialog = (order: Order) => {
+    selectedDishOrder.value = order;
+    showDishDetailDialog.value = true;
+};
+
+// 关闭菜品详情弹窗
+const closeDishDetailDialog = () => {
+    showDishDetailDialog.value = false;
+    selectedDishOrder.value = null;
 };
 
 
 const startNavigation = () => {
-    // 这里可以放跳转到地图APP的逻辑
-    // 目前，我们先给一个提示并关闭弹窗
     ElMessage.success('正在为您规划路线...');
     closeNavigation();
 };
@@ -785,54 +1035,86 @@ const loadDashboardData = async () => {
     errorState.value = null;
     const loadingInstance = ElLoading.service({ fullscreen: true, text: '加载中...' });
     try {
-        // ▼▼▼ 修改 Promise.all，让它获取所有状态的订单 ▼▼▼
         const [
             profileRes,
             statusRes,
             incomeRes,
-            pendingOrdersRes,     // 获取待取单列表
-            deliveringOrdersRes,  // 获取配送中列表
-            completedOrdersRes,   // 获取已送达列表
+            pendingOrdersRes,
+            deliveringOrdersRes,
+            completedOrdersRes,
             locationRes,
             complaintsRes
         ] = (await Promise.all([
             api.fetchUserProfile(),
             api.fetchWorkStatus(),
             api.fetchIncomeData(),
-            api.fetchOrders('pending'),     // API 调用 1
-            api.fetchOrders('delivering'),  // API 调用 2
-            api.fetchOrders('completed'),   // API 调用 3
+            api.fetchOrders('pending'),
+            api.fetchOrders('delivering'),
+            api.fetchOrders('completed'),
             api.fetchLocationInfo(),
-            api.fetchComplaints() // <-- 新增 API 调用
-        ])) as [
-                { data: any },         // 1. 对应 profileRes
-                { data: any },         // 2. 对应 statusRes
-                { data: any },         // 3. 对应 incomeRes
-                { data: any[] },       // 4. 对应 pendingOrdersRes
-                { data: any[] },       // 5. 对应 deliveringOrdersRes
-                { data: any[] },       // 6. 对应 completedOrdersRes
-                { data: any },         // 7. 对应 locationRes
-                { data: Complaint[] }
+            api.fetchComplaints()
+        ])) as unknown as [
+                { data: { success: boolean; code: number; message: string; data: any } },
+                { data: { success: boolean; code: number; message: string; data: boolean } },
+                { data: { success: boolean; code: number; message: string; data: number } },
+                { data: { success: boolean; code: number; message: string; data: Order[] } },
+                { data: { success: boolean; code: number; message: string; data: Order[] } },
+                { data: { success: boolean; code: number; message: string; data: Order[] } },
+                { data: { success: boolean; code: number; message: string; data: any } },
+                { data: { success: boolean; code: number; message: string; data: Complaint[] } }
             ];
-        // ▲▲▲ 修改结束 ▲▲▲
+        
+        // 提取用户资料
+        if (profileRes.data?.success && profileRes.data?.data) {
+            userProfile.value = profileRes.data.data;
+        } else {
+            console.warn('获取用户资料失败:', profileRes.data);
+            userProfile.value = null;
+        }
+        
+        // 提取工作状态
+        workStatus.value = { isOnline: statusRes.data?.data ?? false };
+        
+        // 提取位置信息
+        locationInfo.value = { area: locationRes.data?.data ?? '' };
+        
+        // 提取收入
+        const incomeData = incomeRes.data?.data;
+        income.value = typeof incomeData === 'number' ? incomeData : (parseFloat(String(incomeData)) || 0);
 
-        // --- 赋值 ---
-        userProfile.value = profileRes.data;
-        workStatus.value = statusRes.data;
-        locationInfo.value = locationRes.data;
-        // income.value = incomeRes.data; 
-        income.value = incomeRes.data;
-        locationInfo.value = locationRes.data;
+        const rawPendingOrders = pendingOrdersRes.data?.data ?? [];
+        const rawDeliveringOrders = deliveringOrdersRes.data?.data ?? [];
+        const rawCompletedOrders = completedOrdersRes.data?.data ?? [];
+        
+        const mapOrder = (order: any, status: OrderStatus) => ({
+            id: order.id || '',
+            status: status,
+            restaurant: order.restaurant || '未知商家',
+            pickupAddress: order.pickupAddress || order.address || '地址未提供',
+            deliveryAddress: order.deliveryAddress || order.address || '地址未提供',
+            customer: order.customer || '未知客户',
+            fee: order.fee || '0.00',
+            distance: order.distance || '0',
+            time: order.time || '',
+            completionTime: order.completionTime || undefined,
+            customerPhone: order.customerPhone || undefined,
+            restaurantPhone: order.restaurantPhone || undefined,
+            isReadyForPickup: order.isReadyForPickup ?? false,
+            remarks: order.remarks || '',
+            dishDetails: order.dishDetails || []
+        });
+        
+        const pendingOrders = rawPendingOrders.map((o: any) => mapOrder(o, 'pending'));
+        const deliveringOrders = rawDeliveringOrders.map((o: any) => mapOrder(o, 'delivering'));
+        const completedOrders = rawCompletedOrders.map((o: any) => mapOrder(o, 'completed'));
+        
+        pendingOrderCount.value = pendingOrders.length;
+        deliveringOrderCount.value = deliveringOrders.length;
+        completedOrderCount.value = completedOrders.length;
 
-        // ▼▼▼ 新增：为我们新创建的 count ref 赋值 ▼▼▼
-        pendingOrderCount.value = pendingOrdersRes.data.length;
-        deliveringOrderCount.value = deliveringOrdersRes.data.length;
-        completedOrderCount.value = completedOrdersRes.data.length;
-        // ▲▲▲ 新增结束 ▲▲▲
-
-        // 保持原有逻辑：页面首次加载时，订单列表默认显示“待取单”的内容
-        orders.value = pendingOrdersRes.data;
-        complaints.value = (complaintsRes as { data: any[] }).data;
+        // 合并所有状态的订单到 orders.value，这样切换标签时才能正确显示
+        orders.value = [...pendingOrders, ...deliveringOrders, ...completedOrders];
+        complaints.value = (complaintsRes.data?.data as Complaint[]) ?? [];
 
     } catch (error) {
         console.error("加载数据失败:", error);
@@ -881,20 +1163,13 @@ onMounted(() => {
 
 
 
-// --- 监听器 ---
-// 找到这个 watch
-watch(activeOrderTab, async (newStatus) => {
-    // 将其内部逻辑替换为下面这一行
+watch(activeOrderTab, async () => {
     await refreshOrderList();
 });
 
 watch(currentTab, (newTab) => {
-    // 当用户切换到“可接订单”页面时
-    if (newTab === 'available') {
-        // 如果列表是空的，就自动刷新一次
-        if (availableOrders.value.length === 0) {
-            refreshAvailableOrders();
-        }
+    if (newTab === 'available' && availableOrders.value.length === 0) {
+        refreshAvailableOrders();
     }
 }, { immediate: true });
 
@@ -913,7 +1188,6 @@ const getOrderStatusClass = (status: string) => {
     }
 };
 
-// 新增这个函数
 const getOrderStatusText = (status: string) => {
     switch (status) {
         case 'pending': return '待取单';
@@ -922,24 +1196,44 @@ const getOrderStatusText = (status: string) => {
         default: return '未知状态';
     }
 };
-/**
- * 接受一个在列表中展示的“可接订单”
- */
 const acceptAvailableOrder = async (order: Order) => {
     try {
         await api.acceptAvailableOrderAPI(order.id);
-        ElMessage.success(`订单 #${order.id} 已接受！将移至“待取单”`);
+        ElMessage.success(`订单 #${order.id} 已接受！将移至"待取单"`);
 
-        // --- 实时更新UI ---
-        // 1. 从“可接订单”列表中移除
         availableOrders.value = availableOrders.value.filter(o => o.id !== order.id);
 
-        // 2. 将“待取单”的数量加 1
-        pendingOrderCount.value++;
-
-        // 3. 【新增修复】手动将这个订单添加到“订单”页面的数据列表中
-        const newlyAcceptedOrder = { ...order, status: 'pending' as OrderStatus };
-        orders.value.unshift(newlyAcceptedOrder);
+        if (currentTab.value === 'orders' && activeOrderTab.value === 'pending') {
+            await refreshOrderList();
+        } else {
+            const res = await api.fetchOrders('pending') as any;
+            const rawOrders = res.data?.data ?? [];
+            const pendingOrders = rawOrders.map((o: any) => {
+                const statusLower = o.status?.toLowerCase();
+                const orderStatus: OrderStatus = (statusLower === 'pending' || statusLower === 'delivering' || statusLower === 'completed') 
+                    ? statusLower as OrderStatus 
+                    : 'pending';
+                return {
+                    id: o.id || '',
+                    status: orderStatus,
+                    restaurant: o.restaurant || '未知商家',
+                    pickupAddress: o.pickupAddress || o.address || '地址未提供',
+                    deliveryAddress: o.deliveryAddress || o.address || '地址未提供',
+                    customer: o.customer || '未知客户',
+                    fee: o.fee || '0.00',
+                    distance: o.distance || '0',
+                    time: o.time || '',
+                    completionTime: o.completionTime || undefined,
+                    customerPhone: o.customerPhone || undefined,
+                    restaurantPhone: o.restaurantPhone || undefined,
+                    isReadyForPickup: o.isReadyForPickup ?? false,
+                    remarks: o.remarks || '',
+                    dishDetails: o.dishDetails || []
+                };
+            });
+            orders.value = [...pendingOrders, ...orders.value.filter(o => o.status !== 'pending')];
+            pendingOrderCount.value = pendingOrders.length;
+        }
 
     } catch (error) {
         console.error("接单失败:", error);
@@ -949,7 +1243,6 @@ const acceptAvailableOrder = async (order: Order) => {
 
 async function handleLogout() {
     try {
-        // 1. 弹出确认框，提供更好的用户体验
         await ElMessageBox.confirm(
             '您确定要退出当前账号吗？',
             '退出登录',
@@ -960,25 +1253,16 @@ async function handleLogout() {
             }
         );
 
-        // 2. (推荐) 调用后端登出接口，通知服务器
         await loginApi.logout();
-
-        // 3. (核心) 从本地存储中删除 Token，清除登录状态
         removeToken();
-
         ElMessage.success('您已成功退出登录');
-
-        // 4. 重定向到登录页面
-        // 使用 replace 而不是 push，这样用户无法通过浏览器“后退”按钮回到之前的页面
-        router.replace('/login'); // <-- 请确保 '/login' 是你登录页面的正确路由
+        router.replace('/login');
 
     } catch (error: any) {
-        // 如果用户点击了“取消”，或者API调用失败
         if (error === 'cancel') { 
             ElMessage.info('已取消退出操作');
         } else {
             console.error('登出时发生错误:', error);
-            // 即便通知后端失败，也要强制执行前端登出
             ElMessage.warning('与服务器通信失败，但已在本地强制退出');
             removeToken();
             router.replace('/login');

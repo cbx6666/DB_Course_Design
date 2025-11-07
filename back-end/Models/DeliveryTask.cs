@@ -41,6 +41,11 @@ namespace BackEnd.Models
         public DateTime AcceptTime { get; set; }
 
         /// <summary>
+        /// 实际到店时间（骑手取餐时间）
+        /// </summary>
+        public DateTime? PickupTime { get; set; }
+
+        /// <summary>
         /// 配送状态
         /// </summary>
         [Required]

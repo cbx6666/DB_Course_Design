@@ -4,6 +4,8 @@ using BackEnd.DTOs.Common;
 using BackEnd.DTOs.Dish;
 using BackEnd.DTOs.Coupon;
 using BackEnd.DTOs.Store;
+using BackEnd.DTOs.DeliveryTask;
+using BackEnd.DTOs.Courier;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
 using BackEnd.Data;
@@ -17,152 +19,23 @@ namespace BackEnd.Services
     /// </summary>
     public class CustomerInfoService : ICustomerInfoService
     {
-        private readonly IStoreRepository _storeRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IFoodOrderRepository _foodOrderRepository;
-        private readonly IShoppingCartRepository _shoppingCartRepository;
         private readonly ICustomerRepository _customerRepository;
         private readonly IWebHostEnvironment _env;
         private readonly string _avatarFolder;
 
         public CustomerInfoService(
-            IStoreRepository storeRepository,
             IUserRepository userRepository,
-            IFoodOrderRepository foodOrderRepository,
-            IShoppingCartRepository shoppingCartRepository,
             ICustomerRepository customerRepository,
             IWebHostEnvironment env)
         {
-            _storeRepository = storeRepository;
             _userRepository = userRepository;
-            _foodOrderRepository = foodOrderRepository;
-            _shoppingCartRepository = shoppingCartRepository;
             _customerRepository = customerRepository;
             _env = env;
             _avatarFolder = Path.Combine(env.WebRootPath ?? env.ContentRootPath, "avatars");
             Directory.CreateDirectory(_avatarFolder);
         }
 
-        /// <summary>
-        /// 获取推荐店铺
-        /// </summary>
-        public async Task<HomeRecmDto> GetRecommendedStoresAsync()
-        {
-            var topStores = await _storeRepository.GetTopRatedStoresForHomepageAsync(10);
-            var random = new Random();
-            var recommended = topStores
-                .OrderBy(s => random.Next())
-                .Take(4);
-
-            return new HomeRecmDto
-            {
-                RecomStore = recommended
-            };
-        }
-
-        /// <summary>
-        /// 搜索店铺和菜品
-        /// </summary>
-        public async Task<(IEnumerable<ShowStoreDto> Stores, IEnumerable<ShowStoreDto> Dishes)> SearchAsync(HomeSearchDto searchDto)
-        {
-            var storeResults = await _storeRepository.SearchStoresByNameAsync(searchDto.Keyword);
-            var dishResults = await _storeRepository.SearchStoresByDishNameAsync(searchDto.Keyword);
-
-            return (storeResults, dishResults);
-        }
-
-        /// <summary>
-        /// 获取订单历史
-        /// </summary>
-        public async Task<List<CustomerOrderViewDto>> GetOrderHistoryAsync(int userId)
-        {
-            var allOrders = await _foodOrderRepository.GetAllAsync();
-            var orders = allOrders
-                .Where(o => o.CustomerID == userId)
-                .OrderByDescending(o => o.OrderTime)
-                .ToList();
-
-            var result = new List<CustomerOrderViewDto>();
-
-            foreach (var order in orders)
-            {
-                var store = await _storeRepository.GetStoreInfoForUserAsync(order.StoreID);
-
-                List<string> dishImages = new List<string>();
-                List<OrderDishDto> dishDetails = new List<OrderDishDto>();
-                decimal totalAmount = 0;
-
-                if (order.CartID.HasValue)
-                {
-                    var cart = await _shoppingCartRepository.GetByIdAsync(order.CartID.Value);
-
-                    if (cart != null && cart.ShoppingCartItems != null)
-                    {
-                        dishImages = cart.ShoppingCartItems
-                            .Where(sci => sci.Dish != null && !string.IsNullOrEmpty(sci.Dish.DishImage))
-                            .Select(sci => sci.Dish.DishImage)
-                            .OfType<string>()
-                            .Distinct()
-                            .ToList();
-
-                        dishDetails = cart.ShoppingCartItems
-                            .Where(sci => sci.Dish != null)
-                            .Select(sci => new OrderDishDto
-                            {
-                                DishName = sci.Dish.DishName,
-                                DishImage = sci.Dish.DishImage ?? "",
-                                Quantity = sci.Quantity
-                            })
-                            .ToList();
-
-                        totalAmount = cart.ShoppingCartItems
-                            .Where(sci => sci.Dish != null)
-                            .Sum(sci => sci.Quantity * sci.Dish.Price);
-                    }
-                }
-
-                OrderCouponInfoDto? usedCoupon = null;
-                
-                if (order.Coupons != null && order.Coupons.Any())
-                {
-                    var coupon = order.Coupons.FirstOrDefault();
-                    if (coupon != null && coupon.CouponManager != null)
-                    {
-                        usedCoupon = new OrderCouponInfoDto
-                        {
-                            CouponId = coupon.CouponID,
-                            CouponName = coupon.CouponManager.CouponName,
-                            Description = coupon.CouponManager.Description,
-                            DiscountType = coupon.CouponManager.CouponType == Models.Enums.CouponType.Fixed ? "fixed" : "discount",
-                            DiscountValue = coupon.CouponManager.Value,
-                            ValidFrom = coupon.CouponManager.ValidFrom.ToString("o"),
-                            ValidTo = coupon.CouponManager.ValidTo.ToString("o"),
-                            IsUsed = coupon.CouponState == Models.Enums.CouponState.Used
-                        };
-                    }
-                }
-                
-                result.Add(new CustomerOrderViewDto
-                {
-                    OrderId = order.OrderID,
-                    PaymentTime = order.PaymentTime.HasValue ?
-                        order.PaymentTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : "",
-                    CartId = order.CartID ?? 0,
-                    StoreId = order.StoreID,
-                    OrderState = order.FoodOrderState,
-                    StoreImage = store?.StoreImage ?? "",
-                    StoreName = store?.StoreName ?? "",
-                    DishImage = dishImages,
-                    DishDetails = dishDetails,
-                    TotalAmount = totalAmount,
-                    DeliveryStatus = (int?)order.DeliveryTask?.Status,
-                    DeliveryFee = order.DeliveryFee,
-                    UsedCoupon = usedCoupon
-                });
-            }
-
-            return result;
-        }
 
         /// <summary>
         /// 获取用户档案
@@ -362,13 +235,5 @@ namespace BackEnd.Services
             return new ApiResponseDto { Success = true, Code = 200, Message = "默认收货地址设置成功" };
         }
 
-        /// <summary>
-        /// 获取所有店铺
-        /// </summary>
-        public async Task<StoresResponseDto> GetAllStoresAsync()
-        {
-            var operationalStores = await _storeRepository.GetOperationalStoresAsync();
-            return new StoresResponseDto { AllStores = operationalStores.ToList() };
-        }
     }
 }

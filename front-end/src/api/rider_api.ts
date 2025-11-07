@@ -16,36 +16,31 @@ import type {
 
 /** 获取用户（骑手）个人资料 */
 export const fetchUserProfile = () => {
-    // 【已修正】路径从 /user/profile 改为 /courier/info/profile
+    // 后端返回 ApiResponseDto<UserProfile>，前端需要从 response.data.Data 提取
     return apiClient.get<UserProfile>('/courier/info/profile');
 };
 
 /** 获取骑手工作状态 */
 export const fetchWorkStatus = () => {
-    // 【已修正】路径从 /user/status 改为 /courier/info/status
-    // 我们的后端返回 { code, message, data: { isOnline: boolean } }
-    // apiClient 应该配置为自动提取 data 字段，所以这里的类型 WorkStatus 是正确的
+    // 后端返回 ApiResponseDto<bool>，前端需要从 response.data.Data 提取
     return apiClient.get<WorkStatus>('/courier/info/status');
 };
 
-/** 获取收入数据 */
+/** 获取今日收入数据 */
 export const fetchIncomeData = () => {
-    // 【已修正】路径从 /income/thisMonth 改为 /courier/info/income/monthly
-    // 我们的后端直接返回纯数字，所以类型是 number
-    return apiClient.get<number>('/courier/info/income/monthly');
+    // 后端返回 ApiResponseDto<decimal>，前端需要从 response.data.Data 提取
+    return apiClient.get<number>('/courier/info/income/today');
 };
 
 /** 根据状态获取配送任务列表 */
 export const fetchOrders = (status: OrderStatus) => {
-    // 【已修正】路径从 /courier/info/orders 改为 /courier/delivery-tasks
-    // 这将生成正确的 URL: /api/courier/delivery-tasks?status=pending
+    // 后端返回 ApiResponseDto<Order[]>，前端需要从 response.data.Data 提取
     return apiClient.get<Order[]>('/courier/delivery-tasks', { params: { status } });
 };
 
 /** 获取骑手当前位置信息 */
 export const fetchLocationInfo = () => {
-    // 【已修正】路径从 /user/location 改为 /courier/info/location
-    // 后端返回 { data: { area: "..." } }，所以需要一个匹配的类型
+    // 后端返回 ApiResponseDto<string>，前端需要从 response.data.Data 提取
     return apiClient.get<LocationInfo>('/courier/info/location');
 };
 
@@ -98,7 +93,7 @@ export const acceptAvailableOrderAPI = (taskId: string) => {
  * 获取骑手的投诉记录列表
  */
 export const fetchComplaints = () => {
-    // 【已修正】路径从 /courier/info/complaints 改为 /courier/delivery-complaints
+    // 后端返回 ApiResponseDto<Complaint[]>，前端需要从 response.data.Data 提取
     return apiClient.get<Complaint[]>('/courier/delivery-complaints');
 };
 
@@ -106,7 +101,7 @@ export const fetchComplaints = () => {
  * 获取当前骑手附近的可接配送任务列表
  */
 export const fetchAvailableOrders = () => {
-    // 【已修正】路径从 /courier/info/orders/available 改为 /courier/delivery-tasks/available
+    // 后端返回 ApiResponseDto<Order[]>，前端需要从 response.data.Data 提取
     return apiClient.get<Order[]>('/courier/delivery-tasks/available');
 };
 
@@ -132,7 +127,7 @@ export const updateUserProfile = (profileData: UpdateProfilePayload) => {
 
 /** 获取用于编辑页面的个人资料 */
 export const fetchProfileForEdit = () => {
-    // 后端返回 UpdateProfileDto，其结构与 UpdateProfilePayload 兼容
+    // 后端返回 ApiResponseDto<UpdateProfileDto>，前端需要从 response.data.Data 提取
     return apiClient.get<UpdateProfilePayload>('/courier/info/profile/for-edit');
 };
 
@@ -142,9 +137,9 @@ export const fetchProfileForEdit = () => {
  */
 export const uploadAvatarAPI = (file: File) => {
     const formData = new FormData();
-    formData.append('file', file); // 'file' 必须与后端 IFormFile 参数名一致
+    formData.append('AvatarFile', file); // 'AvatarFile' 必须与后端 DTO 属性名一致（PascalCase）
 
-    return apiClient.post<{ url: string }>('/files/upload/avatar', formData, {
+    return apiClient.put<{ Success: boolean; Code: number; Message: string; Data: string }>('/courier/info/profile/avatar', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
