@@ -16,7 +16,7 @@ namespace BackEnd.Services
     {
         private readonly ISellerRepository _sellerRepository;
         private readonly IUserRepository _userRepository;
-        private readonly string _avatarFolder;
+        private readonly IImageUploadService _imageUploadService;
 
         /// <summary>
         /// 构造函数
@@ -27,12 +27,11 @@ namespace BackEnd.Services
         public MerchantInfoService(
             ISellerRepository sellerRepository,
             IUserRepository userRepository,
-            IWebHostEnvironment env)
+            IImageUploadService imageUploadService)
         {
             _sellerRepository = sellerRepository;
             _userRepository = userRepository;
-            _avatarFolder = Path.Combine(env.WebRootPath ?? env.ContentRootPath, "avatars");
-            Directory.CreateDirectory(_avatarFolder);
+            _imageUploadService = imageUploadService;
         }
 
         // ========== 商家信息管理 ==========
@@ -116,29 +115,29 @@ namespace BackEnd.Services
         /// </summary>
         public async Task<(bool Success, string? Message, string? AvatarUrl)> UpdateMerchantAvatarAsync(int merchantUserId, IFormFile avatarFile)
         {
-            var user = await _userRepository.GetByIdAsync(merchantUserId);
-            if (user == null)
-                return (false, "用户不存在", null);
-
-            if (avatarFile == null || avatarFile.Length <= 0)
-                return (false, "文件不能为空", null);
-
-            var fileExtension = Path.GetExtension(avatarFile.FileName);
-            var fileName = $"{merchantUserId}_{Guid.NewGuid()}{fileExtension}";
-            var filePath = Path.Combine(_avatarFolder, fileName);
-
-            Directory.CreateDirectory(_avatarFolder);
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            try
             {
-                await avatarFile.CopyToAsync(stream);
+                var user = await _userRepository.GetByIdAsync(merchantUserId);
+                if (user == null)
+                    return (false, "用户不存在", null);
+
+                // 使用统一的图片上传服务，上传到avatars目录
+                var avatarUrl = await _imageUploadService.UploadImageAsync(avatarFile, null, "avatars");
+                
+                user.Avatar = avatarUrl;
+                await _userRepository.UpdateAsync(user);
+                await _userRepository.SaveAsync();
+
+                return (true, null, avatarUrl);
             }
-
-            var avatarUrl = $"/avatars/{fileName}";
-            user.Avatar = avatarUrl;
-            await _userRepository.UpdateAsync(user);
-            await _userRepository.SaveAsync();
-
-            return (true, null, avatarUrl);
+            catch (ArgumentException ex)
+            {
+                return (false, ex.Message, null);
+            }
+            catch (Exception ex)
+            {
+                return (false, $"上传失败: {ex.Message}", null);
+            }
         }
     }
 }

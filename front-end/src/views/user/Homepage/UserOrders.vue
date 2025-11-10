@@ -34,6 +34,7 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-lg">{{ order.storeName }}</h3>
+                                <p class="text-gray-600 text-sm">订单号：<span class="font-medium text-gray-800">{{ order.orderId }}</span></p>
                                 <p class="text-gray-600 text-sm">下单时间：{{ order.paymentTime }}</p>
                             </div>
                         </div>

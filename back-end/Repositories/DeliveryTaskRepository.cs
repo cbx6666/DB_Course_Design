@@ -1,5 +1,6 @@
 using BackEnd.Data;
 using BackEnd.Models;
+using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -125,6 +126,24 @@ namespace BackEnd.Repositories
         public IQueryable<DeliveryTask> GetQueryable()
         {
             return _context.DeliveryTasks.AsQueryable();
+        }
+
+        /// <summary>
+        /// 根据骑手ID和日期范围获取已完成的配送任务
+        /// </summary>
+        /// <param name="courierId">骑手ID</param>
+        /// <param name="startDate">开始日期</param>
+        /// <param name="endDate">结束日期</param>
+        /// <returns>配送任务列表</returns>
+        public async Task<List<DeliveryTask>> GetCompletedTasksByCourierIdAndDateRangeAsync(int courierId, DateTime startDate, DateTime endDate)
+        {
+            return await _context.DeliveryTasks
+                .Where(dt => dt.CourierID == courierId
+                    && dt.Status == DeliveryStatus.Completed
+                    && dt.CompletionTime.HasValue
+                    && dt.CompletionTime.Value >= startDate
+                    && dt.CompletionTime.Value < endDate)
+                .ToListAsync();
         }
     }
 }

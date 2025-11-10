@@ -10,14 +10,14 @@ namespace BackEnd.Services
     /// </summary>
     public class AdminPenaltyService : IAdminPenaltyService
     {
-        private readonly IAdministratorRepository _administratorRepository;
+        private readonly IStoreViolationPenaltyRepository _storeViolationPenaltyRepository;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public AdminPenaltyService(IAdministratorRepository administratorRepository)
+        public AdminPenaltyService(IStoreViolationPenaltyRepository storeViolationPenaltyRepository)
         {
-            _administratorRepository = administratorRepository;
+            _storeViolationPenaltyRepository = storeViolationPenaltyRepository;
         }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace BackEnd.Services
         /// </summary>
         public async Task<IEnumerable<AdminPenaltyDetailDto>> GetViolationPenaltiesForAdminAsync(int adminId)
         {
-            var penaltiesFromDb = await _administratorRepository.GetViolationPenaltiesByAdminIdAsync(adminId);
+            var penaltiesFromDb = await _storeViolationPenaltyRepository.GetByAdminIdAsync(adminId);
 
             if (penaltiesFromDb == null || !penaltiesFromDb.Any())
             {
@@ -40,8 +40,7 @@ namespace BackEnd.Services
                 MerchantPunishment = penalty.SellerPenalty ?? "-",
                 StorePunishment = penalty.StorePenalty ?? "-",
                 PunishmentTime = penalty.PenaltyTime.ToString("yyyy-MM-dd HH:mm"),
-                Status = penalty.ViolationPenaltyState == ViolationPenaltyState.Pending ? "待处理" : "已完成",
-                ProcessingNote = penalty.PenaltyNote ?? "-"
+                Status = penalty.ViolationPenaltyState == ViolationPenaltyState.Pending ? "待处理" : "已完成"
             });
 
             return penaltyDtos;
@@ -72,7 +71,7 @@ namespace BackEnd.Services
                     };
                 }
 
-                var existingPenalty = await _administratorRepository.GetViolationPenaltyByIdAsync(punishmentId);
+                var existingPenalty = await _storeViolationPenaltyRepository.GetByIdAsync(punishmentId);
                 if (existingPenalty == null)
                 {
                     return new UpdatePenaltyResponseDto
@@ -82,12 +81,11 @@ namespace BackEnd.Services
                     };
                 }
 
-                var newState = request.Status switch
+                ViolationPenaltyState? newState = request.Status switch
                 {
                     "待处理" => ViolationPenaltyState.Pending,
-                    "执行中" => ViolationPenaltyState.Processing,
                     "已完成" => ViolationPenaltyState.Completed,
-                    _ => (ViolationPenaltyState?)null
+                    _ => null
                 };
 
                 if (newState == null)
@@ -95,7 +93,7 @@ namespace BackEnd.Services
                     return new UpdatePenaltyResponseDto
                     {
                         Success = false,
-                        Message = "无效的状态值，只能是：待处理、执行中、已完成"
+                        Message = "无效的状态值，只能是：待处理、已完成"
                     };
                 }
 
@@ -110,7 +108,6 @@ namespace BackEnd.Services
                 }
 
                 existingPenalty.ViolationPenaltyState = newState.Value;
-                existingPenalty.PenaltyNote = request.ProcessingNote;
                 existingPenalty.PenaltyReason = request.Reason;
                 existingPenalty.SellerPenalty = request.MerchantPunishment == "-" ? null : request.MerchantPunishment;
                 existingPenalty.StorePenalty = request.StorePunishment == "-" ? null : request.StorePunishment;
@@ -120,15 +117,7 @@ namespace BackEnd.Services
                     existingPenalty.PenaltyTime = newPenaltyTime;
                 }
 
-                bool updateSuccess = await _administratorRepository.UpdateViolationPenaltyAsync(existingPenalty);
-                if (!updateSuccess)
-                {
-                    return new UpdatePenaltyResponseDto
-                    {
-                        Success = false,
-                        Message = "更新违规处罚失败，请稍后重试"
-                    };
-                }
+                await _storeViolationPenaltyRepository.UpdateAsync(existingPenalty);
 
                 var updatedPenaltyDto = new AdminPenaltyDetailDto
                 {
@@ -138,8 +127,7 @@ namespace BackEnd.Services
                     MerchantPunishment = existingPenalty.SellerPenalty ?? "-",
                     StorePunishment = existingPenalty.StorePenalty ?? "-",
                     PunishmentTime = existingPenalty.PenaltyTime.ToString("yyyy-MM-dd HH:mm"),
-                    Status = request.Status,
-                    ProcessingNote = existingPenalty.PenaltyNote ?? ""
+                    Status = request.Status
                 };
 
                 return new UpdatePenaltyResponseDto

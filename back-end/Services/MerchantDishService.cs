@@ -13,13 +13,15 @@ namespace BackEnd.Services
     public class MerchantDishService : IMerchantDishService
     {
         private readonly IDishRepository _dishRepo;
+        private readonly IImageUploadService _imageUploadService;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public MerchantDishService(IDishRepository dishRepo)
+        public MerchantDishService(IDishRepository dishRepo, IImageUploadService imageUploadService)
         {
             _dishRepo = dishRepo;
+            _imageUploadService = imageUploadService;
         }
 
         /// <summary>
@@ -170,41 +172,22 @@ namespace BackEnd.Services
         {
             try
             {
-                if (imageFile == null || imageFile.Length == 0)
-                {
-                    return new UploadImageResultDto
-                    {
-                        Success = false,
-                        Message = "请选择要上传的图片"
-                    };
-                }
-
-                // 创建菜品图片目录
-                var dishImagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "dishes");
-                if (!Directory.Exists(dishImagesFolder))
-                {
-                    Directory.CreateDirectory(dishImagesFolder);
-                }
-
-                // 生成唯一文件名
-                var fileExtension = Path.GetExtension(imageFile.FileName);
-                var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                var filePath = Path.Combine(dishImagesFolder, fileName);
-
-                // 保存文件
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await imageFile.CopyToAsync(stream);
-                }
-
-                // 返回图片URL
-                var imageUrl = $"/images/dishes/{fileName}";
+                // 使用统一的图片上传服务，限制大小为2MB
+                var imageUrl = await _imageUploadService.UploadImageAsync(imageFile, "dishes", "images", 2 * 1024 * 1024);
 
                 return new UploadImageResultDto
                 {
                     Success = true,
                     Message = "图片上传成功",
                     ImageUrl = imageUrl
+                };
+            }
+            catch (ArgumentException ex)
+            {
+                return new UploadImageResultDto
+                {
+                    Success = false,
+                    Message = ex.Message
                 };
             }
             catch (Exception ex)

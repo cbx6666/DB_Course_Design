@@ -24,6 +24,7 @@ namespace BackEnd.Data.EntityConfigs
 
             // 基础属性配置
             builder.Property(asa => asa.Description).HasColumnName("DESCRIPTION").IsRequired().HasMaxLength(255);
+            builder.Property(asa => asa.ApplicationImages).HasColumnName("APPLICATIONIMAGES").IsRequired(false).HasMaxLength(1000);
             builder.Property(asa => asa.ApplicationTime).HasColumnName("APPLICATIONTIME").IsRequired();
 
             // 状态配置
@@ -37,7 +38,6 @@ namespace BackEnd.Data.EntityConfigs
             // 处理相关属性配置
             builder.Property(asa => asa.ProcessingResult).HasColumnName("PROCESSINGRESULT").IsRequired(false).HasMaxLength(255);
             builder.Property(asa => asa.ProcessingReason).HasColumnName("PROCESSINGREASON").IsRequired(false).HasMaxLength(255);
-            builder.Property(asa => asa.ProcessingRemark).HasColumnName("PROCESSINGREMARK").IsRequired(false).HasMaxLength(255);
 
             // 外键配置
             builder.Property(asa => asa.OrderID).HasColumnName("ORDERID").IsRequired();

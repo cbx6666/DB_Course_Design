@@ -22,7 +22,7 @@
                         <img :src="'https://s1.aigei.com/src/img/png/f7/f734d8198b614d0a9356196cd83c6758.png?imageMogr2/auto-orient/thumbnail/!282x282r/gravity/Center/crop/282x282/quality/85/%7CimageView2/2/w/282&e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:FldJin-4wd319skieoNSW_v2zAY='"
                              :alt="currentUser.username + '的头像'"
                             class="w-8 h-8 rounded-full object-cover">
-                        <span class="text-sm text-gray-700">{{ currentUser.username }}</span>
+                        <span class="text-sm text-gray-700">{{ getDisplayName() }}</span>
                     </div>
                     <!-- 【修改】这是现在唯一的一个登出按钮，并绑定了点击事件 -->
                     <button @click="handleLogout" class="text-gray-500 hover:text-gray-700 cursor-pointer">
@@ -543,112 +543,74 @@
                 <div v-if="activeMenu === 'admin' && currentUser">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                         <div class="p-6 border-b border-gray-100">
-                            <h2 class="text-lg font-semibold text-gray-900">管理员信息管理</h2>
+                            <h2 class="text-lg font-semibold text-gray-900 text-center">管理员信息管理</h2>
                         </div>
                         <div class="p-6">
-                            <div class="max-w-2xl">
-                                <!-- 头像和基本信息 -->
-                                <div class="flex items-center space-x-6 mb-8">
+                            <div class="max-w-4xl mx-auto">
+                            <!-- 头像和基本信息 -->
+                            <div class="flex items-center justify-between mb-8">
+                                <div class="flex items-center space-x-6">
                                     <img :src="'https://s1.aigei.com/src/img/png/f7/f734d8198b614d0a9356196cd83c6758.png?imageMogr2/auto-orient/thumbnail/!282x282r/gravity/Center/crop/282x282/quality/85/%7CimageView2/2/w/282&e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:FldJin-4wd319skieoNSW_v2zAY='"
                                         class="w-24 h-24 rounded-full object-cover border-4 border-gray-100">
                                     <div>
-                                        <h3 class="text-xl font-semibold text-gray-900">{{ currentUser.username }}</h3>
-                                        <p class="text-gray-600">{{ currentUser.role }}</p>
+                                        <p class="text-gray-600 text-lg font-semibold">系统管理员 {{ currentUser.id }}号</p>
                                         <p class="text-sm text-gray-500">注册时间：{{ currentUser.registrationDate }}</p>
                                     </div>
                                 </div>
+                                <div class="text-right">
+                                    <p class="text-lg font-semibold text-gray-700 mb-1">事务评分</p>
+                                    <p class="text-sm text-gray-600">
+                                        {{ currentUser.averageRating && currentUser.averageRating > 0 ? currentUser.averageRating : '暂未获得评分' }}
+                                    </p>
+                                </div>
+                            </div>
 
                                 <!-- 信息表单 -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">管理员ID</label>
-                                        <input type="text" :value="currentUser.id" readonly
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
-                                        <input type="text" v-model="currentUser.username"
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">手机号</label>
-                                        <input type="text" :value="currentUser.phone" readonly
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">电子邮箱</label>
-                                        <input type="email" v-model="currentUser.email" readonly
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">性别</label>
-                                        <div class="flex space-x-4">
-                                            <label class="flex items-center">
-                                                <!-- 【修改】将 value="男" 修改为 value="M" -->
-                                                <input type="radio" name="gender" value="M" v-model="currentUser.gender"
-                                                    class="text-orange-500 focus:ring-orange-500">
-                                                <span class="ml-2 text-sm text-gray-700">男</span>
-                                            </label>
-                                            <label class="flex items-center">
-                                                <!-- 【修改】将 value="女" 修改为 value="F" (假设女性的代号是'F') -->
-                                                <input type="radio" name="gender" value="F" v-model="currentUser.gender"
-                                                    class="text-orange-500 focus:ring-orange-500">
-                                                <span class="ml-2 text-sm text-gray-700">女</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">姓名</label>
-                                        <input type="text" :value="currentUser.realName" readonly
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">生日</label>
-                                        <input type="date" v-model="currentUser.birthDate"
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm">
-                                    </div>
-                                    <div>
+                                <div>
+                                    <div class="mb-6">
                                         <label class="block text-sm font-medium text-gray-700 mb-2">管理对象</label>
-                                        <div class="relative">
-                                            <!-- 点击的文本框 -->
-                                            <div @click="toggleDropdown" 
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm bg-white cursor-pointer flex justify-between items-center">
-                                                <span class="text-gray-700">
-                                                    {{ getSelectedText() }}
-                                                </span>
-                                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                                </svg>
-                                            </div>
-                                            
-                                            <!-- 下拉选项 -->
-                                            <div v-show="dropdownVisible" 
-                                                class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                                                <div v-for="option in managementOptions" 
-                                                    :key="option"
-                                                    @click="toggleOption(option)"
-                                                    class="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
-                                                    <input type="checkbox" 
-                                                        :checked="isSelected(option)"
-                                                        class="text-orange-500 focus:ring-orange-500 mr-2" readonly>
-                                                    <span class="text-sm text-gray-700">{{ option }}</span>
-                                                </div>
-                                            </div>
+                                        <div class="flex flex-wrap gap-5 justify-center">
+                                            <button 
+                                                type="button"
+                                                v-for="option in managementOptions" 
+                                                :key="option"
+                                                @click="toggleOption(option)"
+                                                :class="{
+                                                    'bg-orange-500 text-white': isSelected(option),
+                                                    'bg-gray-200 text-gray-700 hover:bg-gray-300': !isSelected(option)
+                                                }"
+                                                class="px-8 py-2 rounded-lg text-sm font-medium transition-colors">
+                                                {{ option }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-6 mb-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
+                                            <input type="text" v-model="currentUser.username"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm bg-white">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">真实姓名</label>
+                                            <input type="text" :value="currentUser.realName" readonly
+                                                class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-600 text-sm cursor-not-allowed">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-6 mb-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">手机号</label>
+                                            <input type="text" :value="currentUser.phone" readonly
+                                                class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-600 text-sm cursor-not-allowed">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">电子邮箱</label>
+                                            <input type="email" v-model="currentUser.email" readonly
+                                                class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-600 text-sm cursor-not-allowed">
                                         </div>
                                     </div>
 
-
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">处理事项获评均分</label>
-                                        <div class="flex items-center space-x-2">
-                                            <input type="text" :value="currentUser.averageRating" readonly
-                                                class="w-20 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- 操作按钮 -->
-                                <div class="mt-8 flex space-x-4">
+                                    <!-- 操作按钮 -->
+                                    <div class="mt-12 pt-6 border-t border-gray-200 flex justify-center space-x-4">
                                     <button @click="handleSaveChanges" :disabled="isSaving"
                                         class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors cursor-pointer !rounded-button whitespace-nowrap disabled:opacity-50">
                                         {{ isSaving ? '保存中...' : '保存修改' }}
@@ -657,6 +619,7 @@
                                         class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer !rounded-button whitespace-nowrap">
                                         重置
                                     </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -707,19 +670,6 @@
                     <div class="p-4 bg-gray-50 rounded-lg">
                         <p class="text-gray-900">{{ currentAfterSale.description }}</p>
                     </div>
-                </div>
-                <div class="mb-6">
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">处理备注</h4>
-                    <!-- 【修改】添加 disabled 属性 -->
-                    <el-input 
-                        v-model="afterSaleNote" 
-                        type="textarea" 
-                        :rows="3" 
-                        placeholder="请输入处理备注" 
-                        maxlength="500"
-                        show-word-limit 
-                        :disabled="currentAfterSale.status !== '待处理'"
-                    />
                 </div>
                 <div class="mb-6">
                     <h4 class="text-sm font-medium text-gray-700 mb-2">处罚措施</h4>
@@ -835,18 +785,6 @@
                         class="mb-4"
                         :disabled="currentComplaint.status !== '待处理'"
                     />
-                    
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">处理备注</h4>
-                    <!-- 【修改】添加 disabled 属性 -->
-                    <el-input 
-                        v-model="complaintNote" 
-                        type="textarea" 
-                        :rows="3" 
-                        placeholder="请输入处理备注" 
-                        maxlength="500"
-                        show-word-limit 
-                        :disabled="currentComplaint.status !== '待处理'"
-                    />
                 </div>
                 <div class="flex justify-end space-x-4">
                     <el-button @click="showComplaintDetail = false">取消</el-button>
@@ -925,25 +863,10 @@
                         <!-- 【修改】删除原来的 v-else 显示区域 -->
                     </div>
                 </div>
-                <div class="mb-6">
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">处理备注</h4>
-                    <!-- 【修改】禁用条件改为 status === '已完成' -->
-                    <el-input 
-                        v-model="violationNote" 
-                        type="textarea" 
-                        :rows="3" 
-                        placeholder="请输入处理备注" 
-                        maxlength="500"
-                        show-word-limit 
-                        :disabled="currentViolation.status === '已完成'"
-                    />
-                </div>
                 <div class="flex justify-end space-x-4">
                     <el-button @click="showViolationDetail = false">取消</el-button>
                     <el-button v-if="currentViolation.status === '待处理'" type="primary"
-                        @click="handleViolationAction('process')">开始执行</el-button>
-                    <el-button v-if="currentViolation.status === '执行中'" type="success"
-                        @click="handleViolationAction('complete')">完成执行</el-button>
+                        @click="handleViolationAction('complete')">完成处理</el-button>
                 </div>
             </div>
         </el-dialog>
@@ -1038,13 +961,11 @@ interface AdminInfo {
     id: string; // e.g., "ADM001"
     username: string;
     realName: string; // e.g., "张伟"
-    role: string; // e.g., "系统管理员"
     registrationDate: string; // e.g., "2023-01-15"
     avatarUrl: string;
     phone: string;
     email: string;
     gender: '男' | '女';
-    birthDate: string; // e.g., "1990-05-15"
     managementScope: string;
     averageRating: number;
 }
@@ -1058,7 +979,6 @@ interface AfterSaleItem {
     status: '待处理' | '已完成';
     punishment: string;
     punishmentReason?: string;
-    processingNote?: string;
 }
 
 interface ComplaintItem {
@@ -1070,7 +990,6 @@ interface ComplaintItem {
     punishment: string;
     fine: string;
     punishmentReason?: string;
-    processingNote?: string;
 }
 
 interface ViolationItem {
@@ -1080,8 +999,7 @@ interface ViolationItem {
     merchantPunishment: string;
     storePunishment: string;
     punishmentTime: string;
-    status: '待处理' | '执行中' | '已完成';
-    processingNote?: string;
+    status: '待处理' | '已完成';
 }
 
 interface ReviewItem {
@@ -1114,9 +1032,25 @@ const api = {
     // --- 获取列表 (GET请求) - 这部分保持不变，因为它们返回的是数组 ---
     getAfterSalesList: () => apiClient.get<AfterSaleItem[]>('/admin/after-sales/mine').then(res => res.data),
     getComplaintsList: () => apiClient.get<ComplaintItem[]>('/admin/delivery-complaints/mine').then(res => res.data),
-    getViolationsList: () => apiClient.get<ViolationItem[]>('/admin/violation-penalties/mine').then(res => res.data),
-    getReviewsList: () => apiClient.get<ReviewItem[]>('/admin/review-comments/mine').then(res => res.data),
-    getAdminInfo: () => apiClient.get<AdminInfo>('/admin/info').then(res => res.data),
+    getViolationsList: () => apiClient.get<ViolationItem[]>('/admin/penalties/mine').then(res => res.data),
+    getReviewsList: () => apiClient.get<ReviewItem[]>('/admin/comments/mine').then(res => res.data),
+    getAdminInfo: async () => {
+        try {
+            const response = await apiClient.get<any>('/admin/info');
+            // 后端直接返回 GetAdminInfo 对象（camelCase），不是包装在 ApiResponseDto 中
+            // 如果响应是 ApiResponseDto 格式，则提取 data 字段；否则直接返回响应数据
+            const data = response.data;
+            if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
+                // 如果包装在 ApiResponseDto 中，提取 data
+                return data.data as AdminInfo;
+            }
+            // 直接返回响应数据
+            return data as AdminInfo;
+        } catch (error) {
+            console.error('获取管理员信息失败:', error);
+            throw error;
+        }
+    },
 
     // --- 更新数据 (PUT请求) ---
     // 【核心修改】将所有更新函数的返回值包装成 { success: boolean, data: T } 的格式
@@ -1144,7 +1078,7 @@ const api = {
 
     updateViolation: async (item: ViolationItem) => {
         try {
-            const response = await apiClient.put<ViolationItem>(`/admin/violation-penalties/update`, item);
+            const response = await apiClient.put<ViolationItem>(`/admin/penalties/update`, item);
             return { success: true, data: response.data };
         } catch (error) {
             console.error('更新违规失败:', error);
@@ -1154,7 +1088,7 @@ const api = {
 
     updateReview: async (item: ReviewItem) => {
         try {
-            const response = await apiClient.put<ReviewItem>(`/admin/review-comments/update`, item);
+            const response = await apiClient.put<ReviewItem>(`/admin/comments/update`, item);
             return { success: true, data: response.data };
         } catch (error) {
             console.error('更新评论失败:', error);
@@ -1202,13 +1136,10 @@ const reviewsList = ref<ReviewItem[]>([]);
 // 弹窗和当前选中项的状态
 const showAfterSaleDetail = ref(false);
 const currentAfterSale = ref<AfterSaleItem | null>(null);
-const afterSaleNote = ref('');
 const showComplaintDetail = ref(false);
 const currentComplaint = ref<ComplaintItem | null>(null);
-const complaintNote = ref('');
 const showViolationDetail = ref(false);
 const currentViolation = ref<ViolationItem | null>(null);
-const violationNote = ref('');
 const showReviewDetail = ref(false);
 const currentReview = ref<ReviewItem | null>(null);
 const reviewImages = ref([
@@ -1239,7 +1170,7 @@ const isSaving = ref(false);
 const commonStatuses = [{ label: '全部', value: 'all' }, { label: '待处理', value: '待处理' }, { label: '已完成', value: '已完成' }];
 const afterSalesStatuses = commonStatuses;
 const complaintStatuses = commonStatuses;
-const violationStatuses = [{ label: '全部', value: 'all' }, { label: '待处理', value: '待处理' }, { label: '执行中', value: '执行中' }, { label: '已完成', value: '已完成' }];
+const violationStatuses = [{ label: '全部', value: 'all' }, { label: '待处理', value: '待处理' }, { label: '已完成', value: '已完成' }];
 const reviewStatuses = commonStatuses;
 const punishmentOptions = { afterSales: [{ label: '全额退款', value: 'full_refund' }, { label: '部分退款', value: 'partial_refund' }, { label: '重新配送', value: 'redelivery' }, { label: '商家道歉', value: 'apology' }, { label: '赔偿用户', value: 'compensation' }], complaints: [{ label: '警告处分', value: 'warning' }, { label: '暂停接单3天', value: 'suspend_3days' }, { label: '暂停接单7天', value: 'suspend_7days' }, { label: '罚款处理', value: 'fine' }, { label: '终止合作', value: 'terminate' }], violations: { merchant: [{ label: '口头警告', value: 'verbal_warning' }, { label: '书面警告', value: 'written_warning' }, { label: '罚款500元', value: 'fine_500' }, { label: '罚款1000元', value: 'fine_1000' }], store: [{ label: '限期整改', value: 'correction' }, { label: '暂停营业3天', value: 'suspend_3days' }, { label: '暂停营业7天', value: 'suspend_7days' }, { label: '永久下架', value: 'permanent_removal' }] }, reviews: [{ label: '通过审核', value: 'approve' }, { label: '删除评论', value: 'delete' }, { label: '禁止评论7天', value: 'ban_7days' }, { label: '禁止评论30天', value: 'ban_30days' }, { label: '永久禁言', value: 'permanent_ban' }] };
 
@@ -1263,17 +1194,38 @@ onMounted(async () => {
         ]);
 
         // 【新增】填充管理员信息数据模型
-        currentUser.value = adminInfo;
-        originalAdminInfo = JSON.parse(JSON.stringify(adminInfo)); // 深拷贝备份，用于重置
+        console.log('获取到的管理员信息:', adminInfo);
+        if (adminInfo) {
+            // 确保性别字段格式正确（后端可能返回 'M'/'F'，前端期望 '男'/'女'）
+            const genderMap: Record<string, '男' | '女'> = {
+                'M': '男',
+                'F': '女',
+                '男': '男',
+                '女': '女',
+                '': '男' // 空字符串默认为男
+            };
+            if (!adminInfo.gender || !['男', '女'].includes(adminInfo.gender)) {
+                adminInfo.gender = genderMap[adminInfo.gender] || '男';
+            }
+            currentUser.value = adminInfo;
+            originalAdminInfo = JSON.parse(JSON.stringify(adminInfo)); // 深拷贝备份，用于重置
+        } else {
+            ElMessage.warning('未能获取管理员信息');
+        }
 
         // 填充其他列表数据
         afterSalesList.value = afterSales;
         complaintsList.value = complaints;
         violationsList.value = violations;
         reviewsList.value = reviews;
-    } catch (error) {
-        ElMessage.error('数据加载失败，请检查网络或联系管理员');
+    } catch (error: any) {
+        const errorMsg = error?.response?.data?.message || error?.message || '数据加载失败';
+        ElMessage.error(`数据加载失败: ${errorMsg}`);
         console.error('数据加载失败:', error);
+        if (error?.response) {
+            console.error('响应状态:', error.response.status);
+            console.error('响应数据:', error.response.data);
+        }
     }
 });
 
@@ -1311,19 +1263,17 @@ const filteredReviews = computed(() =>
 );
 
 const getBreadcrumb = () => ({ admin: '管理员信息', afterSales: '售后处理中心', complaints: '投诉处理中心', violations: '违规举报处理', reviews: '评论审核管理' })[activeMenu.value] || '控制台';
-const getStatusClass = (status: string) => ({ '待处理': 'bg-yellow-100 text-yellow-800', '已完成': 'bg-green-100 text-green-800', '执行中': 'bg-blue-100 text-blue-800' })[status] || 'bg-gray-100 text-gray-800';
+const getStatusClass = (status: string) => ({ '待处理': 'bg-yellow-100 text-yellow-800', '已完成': 'bg-green-100 text-green-800' })[status] || 'bg-gray-100 text-gray-800';
 
 const openAfterSaleDetail = (item: AfterSaleItem) => {
     currentAfterSale.value = { ...item };
     
     if (item.status === '待处理') {
         // 待处理：清空输入框，准备填写
-        afterSaleNote.value = '';
         selectedPunishment.value = '';
         punishmentReason.value = '';
     } else {
         // 已完成：填充已保存的数据，供查看
-        afterSaleNote.value = item.processingNote || '';
         selectedPunishment.value = item.punishment || '';
         punishmentReason.value = item.punishmentReason || '';
     }
@@ -1336,13 +1286,11 @@ const openComplaintDetail = (item: ComplaintItem) => {
     
     if (item.status === '待处理') {
         // 待处理：清空输入框，准备填写
-        complaintNote.value = '';
         selectedComplaintPunishment.value = '';
         complaintPunishmentReason.value = '';
         complaintFine.value = 0.00; 
     } else {
         // 已完成：填充已保存的数据，供查看
-        complaintNote.value = item.processingNote || '';
         selectedComplaintPunishment.value = item.punishment || '';
         complaintPunishmentReason.value = item.punishmentReason || '';
         complaintFine.value = item.fine ? Number(item.fine) : 0.00;
@@ -1358,15 +1306,9 @@ const openViolationDetail = (item: ViolationItem) => {
         // 待处理：清空输入框，准备填写
         selectedMerchantPunishment.value = '';
         selectedStorePunishment.value = '';
-        violationNote.value = '';
-        selectedMerchantPunishment.value = '';
-        selectedStorePunishment.value = '';
     } else {
         // 已完成：填充已保存的数据，供查看
         console.log('原始数据:', item);
-        selectedMerchantPunishment.value = item.merchantPunishment === '-' ? '' : item.merchantPunishment;
-        selectedStorePunishment.value = item.storePunishment === '-' ? '' : item.storePunishment;
-        violationNote.value = item.processingNote || '';
         selectedMerchantPunishment.value = item.merchantPunishment === '-' ? '' : item.merchantPunishment;
         selectedStorePunishment.value = item.storePunishment === '-' ? '' : item.storePunishment;
     }
@@ -1376,6 +1318,21 @@ const openViolationDetail = (item: ViolationItem) => {
 
 
 const openReviewDetail = (item: ReviewItem) => { currentReview.value = { ...item }; showReviewDetail.value = true; };
+
+// 获取显示名称（姓氏+先生/女士）
+const getDisplayName = () => {
+    if (!currentUser.value) return '管理员';
+    const realName = currentUser.value.realName || '';
+    const gender = currentUser.value.gender || '男';
+    
+    if (realName) {
+        const surname = realName.charAt(0); // 取第一个字符作为姓氏
+        const honorific = gender === '女' ? '女士' : '先生';
+        return `${surname}${honorific}`;
+    }
+    
+    return currentUser.value.username || '管理员';
+}
 
 // 下拉框相关的数据和方法
 const dropdownVisible = ref(false)
@@ -1426,7 +1383,7 @@ const toggleOption = (option: string) => {
 // 4.4 ----------------- 修改数据处理函数 (全部完成) -----------------
 
 const handleAfterSaleAction = async () => {
-    if (!afterSaleNote.value.trim() || !selectedPunishment.value || !punishmentReason.value.trim()) {
+    if (!selectedPunishment.value || !punishmentReason.value.trim()) {
         return ElMessage.warning('请填写完整的处理信息和处罚原因');
     }
     if (!currentAfterSale.value) return;
@@ -1439,8 +1396,7 @@ const handleAfterSaleAction = async () => {
             ...currentAfterSale.value,
             status: '已完成',
             punishment: punishmentLabel,
-            punishmentReason: punishmentReason.value,
-            processingNote: afterSaleNote.value
+            punishmentReason: punishmentReason.value
         };
 
         // 【核心修改】接收API的返回结果
@@ -1484,7 +1440,13 @@ const handleSaveChanges = async () => {
 
     isSaving.value = true;
     try {
-        const response = await api.updateAdminInfo(currentUser.value);
+        // 只发送后端需要的字段
+        const updateData = {
+            username: currentUser.value.username,
+            managementScope: currentUser.value.managementScope,
+            gender: currentUser.value.gender
+        };
+        const response = await api.updateAdminInfo(updateData);
 
         if (response.success) {
             // 【核心修改】使用 Object.assign 来更新现有响应式对象的属性
@@ -1545,7 +1507,7 @@ const handleLogout = () => {
 
 
 const handleComplaintProcess = async () => {
-    if (!complaintNote.value.trim() || !selectedComplaintPunishment.value || !complaintPunishmentReason.value.trim()) {
+    if (!selectedComplaintPunishment.value || !complaintPunishmentReason.value.trim()) {
         return ElMessage.warning('请填写完整的处理信息和处罚原因');
     }
     if (!currentComplaint.value) return;
@@ -1559,7 +1521,6 @@ const handleComplaintProcess = async () => {
             status: '已完成',
             punishment: punishmentLabel,
             punishmentReason: complaintPunishmentReason.value,
-            processingNote: complaintNote.value,
             fine: complaintFine.value !== undefined ? String(complaintFine.value) : ''
         };
 
@@ -1592,34 +1553,21 @@ const handleComplaintProcess = async () => {
     }
 };
 
-const handleViolationAction = async (action: 'process' | 'complete') => {
+const handleViolationAction = async (action: 'complete') => {
     if (!currentViolation.value) return;
-    if (action === 'process' && (!selectedMerchantPunishment.value || !selectedStorePunishment.value)) {
+    if (!selectedMerchantPunishment.value || !selectedStorePunishment.value) {
         return ElMessage.warning('请选择商家和店铺的处罚措施');
-    }
-    if (!violationNote.value.trim()) {
-        return ElMessage.warning('请填写处理备注');
     }
 
     try {
-        await ElMessageBox.confirm(`确定要${action === 'process' ? '开始执行' : '完成执行'}该处罚吗？`, '确认操作', { type: 'warning' });
+        await ElMessageBox.confirm('确定要完成处理该处罚吗？', '确认操作', { type: 'warning' });
 
-        let updatedItem: ViolationItem;
-        if (action === 'process') {
-            updatedItem = {
-                ...currentViolation.value,
-                status: '执行中',
-                merchantPunishment: selectedMerchantPunishment.value,
-                storePunishment: selectedStorePunishment.value,
-                processingNote: violationNote.value
-            };
-        } else { // action === 'complete'
-            updatedItem = {
-                ...currentViolation.value,
-                status: '已完成',
-                processingNote: violationNote.value
-            };
-        }
+        const updatedItem: ViolationItem = {
+            ...currentViolation.value,
+            status: '已完成',
+            merchantPunishment: selectedMerchantPunishment.value,
+            storePunishment: selectedStorePunishment.value
+        };
 
         // 【核心修改】接收API的返回结果
         const response = await api.updateViolation(updatedItem);

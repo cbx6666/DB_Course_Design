@@ -26,13 +26,6 @@ namespace BackEnd.Models
         public DateTime AdminRegistrationTime { get; set; }
 
         /// <summary>
-        /// 管理员角色
-        /// </summary>
-        [Required]
-        [StringLength(20)]
-        public string AdminRole { get; set; } = "系统管理员";
-
-        /// <summary>
         /// 管理的实体
         /// </summary>
         [Required]

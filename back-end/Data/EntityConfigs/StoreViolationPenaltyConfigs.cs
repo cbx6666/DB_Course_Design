@@ -32,13 +32,15 @@ namespace BackEnd.Data.EntityConfigs
 
             // 基础属性配置
             builder.Property(svp => svp.PenaltyReason).HasColumnName("PENALTYREASON").IsRequired().HasMaxLength(255);
-            builder.Property(svp => svp.PenaltyNote).HasColumnName("PENALTYNOTE").IsRequired(false).HasMaxLength(255);
+            builder.Property(svp => svp.ReportImages).HasColumnName("REPORTIMAGES").IsRequired(false).HasMaxLength(1000);
             builder.Property(svp => svp.PenaltyTime).HasColumnName("PENALTYTIME").IsRequired();
             builder.Property(svp => svp.SellerPenalty).HasColumnName("SELLERPENALTY").HasMaxLength(50);
             builder.Property(svp => svp.StorePenalty).HasColumnName("STOREPENALTY").HasMaxLength(50);
 
             // 外键配置
             builder.Property(svp => svp.StoreID).HasColumnName("STOREID").IsRequired();
+            builder.Property(svp => svp.CustomerID).HasColumnName("CUSTOMERID").IsRequired(false);
+            builder.Property(svp => svp.CourierID).HasColumnName("COURIERID").IsRequired(false);
 
             // 关系配置
             ConfigureRelationships(builder);
@@ -55,6 +57,18 @@ namespace BackEnd.Data.EntityConfigs
                 .WithMany(s => s.StoreViolationPenalties)
                 .HasForeignKey(svp => svp.StoreID)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // 配置与Customer的多对一关系（可选）
+            builder.HasOne(svp => svp.Customer)
+                .WithMany()
+                .HasForeignKey(svp => svp.CustomerID)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // 配置与Courier的多对一关系（可选）
+            builder.HasOne(svp => svp.Courier)
+                .WithMany()
+                .HasForeignKey(svp => svp.CourierID)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

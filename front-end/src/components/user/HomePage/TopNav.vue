@@ -43,6 +43,7 @@ const navItems = [
     { path: "/home/restaurants", label: "商家" },
     { path: "/home/orders", label: "订单" },
     { path: "/home/coupons", label: "优惠" },
+    { path: "/home/after-sale", label: "售后" },
 ];
 
 const goToPage = (path: string) => {

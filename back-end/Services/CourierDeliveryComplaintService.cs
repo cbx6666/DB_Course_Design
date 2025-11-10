@@ -11,14 +11,14 @@ namespace BackEnd.Services
     /// </summary>
     public class CourierDeliveryComplaintService : ICourierDeliveryComplaintService
     {
-        private readonly AppDbContext _context;
+        private readonly IDeliveryComplaintRepository _complaintRepository;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public CourierDeliveryComplaintService(AppDbContext context)
+        public CourierDeliveryComplaintService(IDeliveryComplaintRepository complaintRepository)
         {
-            _context = context;
+            _complaintRepository = complaintRepository;
         }
 
         /// <summary>
@@ -28,10 +28,7 @@ namespace BackEnd.Services
         /// <returns>投诉列表</returns>
         public async Task<IEnumerable<CourierComplaintDto>> GetComplaintsAsync(int courierId)
         {
-            var complaints = await _context.DeliveryComplaints
-                .Where(c => c.CourierID == courierId)
-                .OrderByDescending(c => c.ComplaintTime)
-                .ToListAsync();
+            var complaints = await _complaintRepository.GetByCourierIdAsync(courierId);
 
             var complaintDtos = complaints.Select(complaint =>
             {

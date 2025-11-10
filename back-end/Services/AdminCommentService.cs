@@ -10,14 +10,14 @@ namespace BackEnd.Services
     /// </summary>
     public class AdminCommentService : IAdminCommentService
     {
-        private readonly IAdministratorRepository _administratorRepository;
+        private readonly ICommentRepository _commentRepository;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public AdminCommentService(IAdministratorRepository administratorRepository)
+        public AdminCommentService(ICommentRepository commentRepository)
         {
-            _administratorRepository = administratorRepository;
+            _commentRepository = commentRepository;
         }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace BackEnd.Services
         /// </summary>
         public async Task<IEnumerable<AdminCommentDetailDto>> GetCommentsForAdminAsync(int adminId)
         {
-            var commentsFromDb = await _administratorRepository.GetReviewCommentsByAdminIdAsync(adminId);
+            var commentsFromDb = await _commentRepository.GetByAdminIdAsync(adminId);
 
             if (commentsFromDb == null || !commentsFromDb.Any())
             {
@@ -70,7 +70,7 @@ namespace BackEnd.Services
                     };
                 }
 
-                var existingComment = await _administratorRepository.GetReviewCommentByIdAsync(commentId);
+                var existingComment = await _commentRepository.GetByIdAsync(commentId);
                 if (existingComment == null)
                 {
                     return new UpdateCommentReviewResponseDto
@@ -109,15 +109,7 @@ namespace BackEnd.Services
 
                 existingComment.CommentState = newState.Value;
 
-                bool updateSuccess = await _administratorRepository.UpdateReviewCommentAsync(existingComment);
-                if (!updateSuccess)
-                {
-                    return new UpdateCommentReviewResponseDto
-                    {
-                        Success = false,
-                        Message = "更新评论状态失败，请稍后重试"
-                    };
-                }
+                await _commentRepository.UpdateAsync(existingComment);
 
                 var updatedCommentDto = new AdminCommentDetailDto
                 {

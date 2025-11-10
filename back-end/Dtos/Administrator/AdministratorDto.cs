@@ -18,10 +18,6 @@ namespace BackEnd.DTOs.Administrator
         /// </summary>
         public string RealName { get; set; } = string.Empty;
         /// <summary>
-        /// 角色
-        /// </summary>
-        public string Role { get; set; } = string.Empty;
-        /// <summary>
         /// 注册日期
         /// </summary>
         public string RegistrationDate { get; set; } = string.Empty;
@@ -41,10 +37,6 @@ namespace BackEnd.DTOs.Administrator
         /// 性别
         /// </summary>
         public string Gender { get; set; } = string.Empty;
-        /// <summary>
-        /// 出生日期
-        /// </summary>
-        public string BirthDate { get; set; } = string.Empty;
         /// <summary>
         /// 管理范围
         /// </summary>
@@ -69,9 +61,9 @@ namespace BackEnd.DTOs.Administrator
         /// </summary>
         public string ManagementScope { get; set; } = string.Empty;
         /// <summary>
-        /// 出生日期
+        /// 性别
         /// </summary>
-        public string BirthDate { get; set; } = string.Empty;
+        public string Gender { get; set; } = string.Empty;
     }
 
     /// <summary>

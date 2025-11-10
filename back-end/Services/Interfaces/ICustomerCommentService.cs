@@ -27,5 +27,12 @@ namespace BackEnd.Services.Interfaces
         /// <param name="dto">评论请求</param>
         /// <returns>提交任务</returns>
         Task SubmitCommentAsync(CreateCommentDto dto);
+
+        /// <summary>
+        /// 获取用户的评论列表
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>评论列表</returns>
+        Task<List<CustomerMyCommentListItemDto>> GetMyCommentsAsync(int userId);
     }
 }

@@ -53,5 +53,20 @@ namespace BackEnd.Repositories.Interfaces
         /// </summary>
         /// <returns>任务</returns>
         Task SaveAsync();
+
+        /// <summary>
+        /// 根据客户ID获取已领取的优惠券管理ID列表
+        /// </summary>
+        /// <param name="customerId">客户ID</param>
+        /// <returns>优惠券管理ID列表</returns>
+        Task<List<int>> GetClaimedCouponManagerIdsByCustomerIdAsync(int customerId);
+
+        /// <summary>
+        /// 根据客户ID和优惠券管理ID查找优惠券
+        /// </summary>
+        /// <param name="customerId">客户ID</param>
+        /// <param name="couponManagerId">优惠券管理ID</param>
+        /// <returns>优惠券</returns>
+        Task<Coupon?> GetByCustomerIdAndCouponManagerIdAsync(int customerId, int couponManagerId);
     }
 }

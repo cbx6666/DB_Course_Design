@@ -15,5 +15,12 @@ namespace BackEnd.Services.Interfaces
         /// <param name="userId">用户ID</param>
         /// <returns>创建结果</returns>
         Task<CreateAfterSaleApplicationResponseDto> CreateApplicationAsync(CreateAfterSaleApplicationDto request, int userId);
+
+        /// <summary>
+        /// 获取用户的售后申请列表
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>售后申请列表</returns>
+        Task<List<CustomerAfterSaleListItemDto>> GetMyAfterSalesAsync(int userId);
     }
 }

@@ -11,7 +11,7 @@ namespace BackEnd.Services
     /// </summary>
     public class AdminDeliveryComplaintService : IAdminDeliveryComplaintService
     {
-        private readonly IAdministratorRepository _administratorRepository;
+        private readonly IDeliveryComplaintRepository _deliveryComplaintRepository;
         private readonly ICourierRepository _courierRepository;
         private readonly AppDbContext _context;
 
@@ -19,11 +19,11 @@ namespace BackEnd.Services
         /// 构造函数
         /// </summary>
         public AdminDeliveryComplaintService(
-            IAdministratorRepository administratorRepository,
+            IDeliveryComplaintRepository deliveryComplaintRepository,
             ICourierRepository courierRepository,
             AppDbContext context)
         {
-            _administratorRepository = administratorRepository;
+            _deliveryComplaintRepository = deliveryComplaintRepository;
             _courierRepository = courierRepository;
             _context = context;
         }
@@ -33,7 +33,7 @@ namespace BackEnd.Services
         /// </summary>
         public async Task<IEnumerable<AdminComplaintDetailDto>> GetComplaintsForAdminAsync(int adminId)
         {
-            var complaintsFromDb = await _administratorRepository.GetDeliveryComplaintsByAdminIdAsync(adminId);
+            var complaintsFromDb = await _deliveryComplaintRepository.GetByAdminIdAsync(adminId);
 
             if (complaintsFromDb == null || !complaintsFromDb.Any())
             {
@@ -57,7 +57,6 @@ namespace BackEnd.Services
                     Status = complaint.ComplaintState == ComplaintState.Pending ? "待处理" : "已完成",
                     Punishment = complaint.ProcessingResult ?? "-",
                     PunishmentReason = complaint.ProcessingReason ?? "",
-                    ProcessingNote = complaint.ProcessingRemark ?? "",
                     Fine = complaint.FineAmount?.ToString("F2") ?? "0.00"
                 };
             }).ToList();
@@ -111,7 +110,7 @@ namespace BackEnd.Services
                 }
 
                 // 获取现有的配送投诉
-                var existingComplaint = await _administratorRepository.GetDeliveryComplaintByIdAsync(complaintId);
+                var existingComplaint = await _deliveryComplaintRepository.GetByIdAsync(complaintId);
                 if (existingComplaint == null)
                 {
                     return new UpdateDeliveryComplaintResponseDto
@@ -137,7 +136,6 @@ namespace BackEnd.Services
                 existingComplaint.ComplaintState = ComplaintState.Completed;
                 existingComplaint.ProcessingResult = request.Punishment;
                 existingComplaint.ProcessingReason = request.PunishmentReason;
-                existingComplaint.ProcessingRemark = request.ProcessingNote;
                 existingComplaint.FineAmount = fineAmount;
 
                 // 获取骑手信息并扣除薪资
@@ -151,11 +149,11 @@ namespace BackEnd.Services
                     }
                     if (courier.MonthlySalary >= (int)fineAmount)
                         courier.MonthlySalary -= (int)fineAmount;
-                    _context.Couriers.Update(courier);
+                    await _courierRepository.UpdateAsync(courier);
                 }
 
                 // 保存更改
-                await _context.SaveChangesAsync();
+                await _courierRepository.SaveAsync();
                 await transaction.CommitAsync();
 
                 // 返回更新后的完整信息
@@ -170,7 +168,6 @@ namespace BackEnd.Services
                     Status = "已完成",
                     Punishment = existingComplaint.ProcessingResult ?? "-",
                     PunishmentReason = existingComplaint.ProcessingReason ?? "",
-                    ProcessingNote = existingComplaint.ProcessingRemark ?? "",
                     Fine = existingComplaint.FineAmount?.ToString("F2") ?? "0.00"
                 };
 

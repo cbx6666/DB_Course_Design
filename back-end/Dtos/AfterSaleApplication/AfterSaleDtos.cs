@@ -1,5 +1,6 @@
 using BackEnd.DTOs.Common;
 using BackEnd.DTOs.Customer;
+using BackEnd.DTOs.Dish;
 
 namespace BackEnd.DTOs.AfterSaleApplication
 {
@@ -19,6 +20,11 @@ namespace BackEnd.DTOs.AfterSaleApplication
         /// 申请描述
         /// </summary>
         public string Description { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 申请图片URL列表（多个图片用逗号分隔）
+        /// </summary>
+        public string? Images { get; set; }
     }
 
     /// <summary>
@@ -30,6 +36,62 @@ namespace BackEnd.DTOs.AfterSaleApplication
         /// 申请ID
         /// </summary>
         public int? ApplicationId { get; set; }
+    }
+
+    /// <summary>
+    /// 用户售后申请列表项DTO（消费者端查看自己的申请）
+    /// </summary>
+    public class CustomerAfterSaleListItemDto
+    {
+        /// <summary>
+        /// 申请ID
+        /// </summary>
+        public int ApplicationId { get; set; }
+
+        /// <summary>
+        /// 订单ID
+        /// </summary>
+        public int OrderId { get; set; }
+
+        /// <summary>
+        /// 店铺名称
+        /// </summary>
+        public string StoreName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 申请描述
+        /// </summary>
+        public string Description { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 申请图片URL列表
+        /// </summary>
+        public string[] Images { get; set; } = Array.Empty<string>();
+
+        /// <summary>
+        /// 申请时间
+        /// </summary>
+        public DateTime ApplicationTime { get; set; }
+
+        /// <summary>
+        /// 处理状态
+        /// </summary>
+        public string Status { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 处理结果
+        /// </summary>
+        public string? ProcessingResult { get; set; }
+
+        /// <summary>
+        /// 处理原因
+        /// </summary>
+        public string? ProcessingReason { get; set; }
+
+        /// <summary>
+        /// 订单菜品列表
+        /// </summary>
+        public List<OrderDishDto> DishDetails { get; set; } = new List<OrderDishDto>();
     }
 
     // ========== 商家侧 ==========
@@ -122,11 +184,6 @@ namespace BackEnd.DTOs.AfterSaleApplication
         /// 处罚原因
         /// </summary>
         public string PunishmentReason { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 处理备注
-        /// </summary>
-        public string ProcessingNote { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -153,11 +210,6 @@ namespace BackEnd.DTOs.AfterSaleApplication
         /// 处罚原因
         /// </summary>
         public string PunishmentReason { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 处理备注
-        /// </summary>
-        public string ProcessingNote { get; set; } = string.Empty;
     }
 
     /// <summary>

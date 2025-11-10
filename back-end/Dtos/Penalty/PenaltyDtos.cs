@@ -28,6 +28,67 @@ namespace BackEnd.DTOs.Penalty
         [Required]
         [MaxLength(500)]
         public string Content { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 举报图片URL列表（多个图片用逗号分隔）
+        /// </summary>
+        public string? Images { get; set; }
+    }
+
+    /// <summary>
+    /// 用户店铺举报列表项DTO（消费者端查看自己的举报）
+    /// </summary>
+    public class CustomerStoreReportListItemDto
+    {
+        /// <summary>
+        /// 处罚ID（举报记录ID）
+        /// </summary>
+        public int PenaltyId { get; set; }
+
+        /// <summary>
+        /// 店铺ID
+        /// </summary>
+        public int StoreId { get; set; }
+
+        /// <summary>
+        /// 店铺名称
+        /// </summary>
+        public string StoreName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 举报内容
+        /// </summary>
+        public string Content { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 举报图片URL列表
+        /// </summary>
+        public string[] Images { get; set; } = Array.Empty<string>();
+
+        /// <summary>
+        /// 举报时间
+        /// </summary>
+        public DateTime ReportTime { get; set; }
+
+        /// <summary>
+        /// 处理状态
+        /// </summary>
+        public string Status { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 商家处罚（处理结果的一部分）
+        /// </summary>
+        public string? MerchantPunishment { get; set; }
+
+        /// <summary>
+        /// 店铺处罚（处理结果的一部分）
+        /// </summary>
+        public string? StorePunishment { get; set; }
+
+        /// <summary>
+        /// 处理原因（管理员填写的处罚原因，当状态为已完成时，PenaltyReason 就是处理原因）
+        /// </summary>
+        public string? ProcessingReason { get; set; }
     }
 
     // ========== 商家查看 ==========
@@ -115,11 +176,6 @@ namespace BackEnd.DTOs.Penalty
         /// 当前状态
         /// </summary>
         public string Status { get; set; } = null!;
-
-        /// <summary>
-        /// 处理备注
-        /// </summary>
-        public string ProcessingNote { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -156,11 +212,6 @@ namespace BackEnd.DTOs.Penalty
         /// 当前状态
         /// </summary>
         public string Status { get; set; } = null!;
-
-        /// <summary>
-        /// 处理备注
-        /// </summary>
-        public string ProcessingNote { get; set; } = string.Empty;
     }
 
     /// <summary>

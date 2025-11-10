@@ -60,5 +60,19 @@ namespace BackEnd.Repositories.Interfaces
         /// </summary>
         /// <returns>任务</returns>
         Task SaveAsync();
+
+        /// <summary>
+        /// 根据用户ID获取售后申请列表（包含订单和店铺信息）
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>售后申请列表</returns>
+        Task<List<AfterSaleApplication>> GetByCustomerIdAsync(int userId);
+
+        /// <summary>
+        /// 根据管理员ID获取售后申请列表
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>售后申请列表</returns>
+        Task<List<AfterSaleApplication>> GetByAdminIdAsync(int adminId);
     }
 }

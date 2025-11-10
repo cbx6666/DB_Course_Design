@@ -1,5 +1,6 @@
 using BackEnd.Data;
 using BackEnd.Models;
+using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -101,6 +102,79 @@ namespace BackEnd.Repositories
         public async Task SaveAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// 根据用户ID获取店铺举报列表（包含店铺信息）
+        /// </summary>
+        /// <param name="customerId">用户ID</param>
+        /// <returns>店铺举报列表</returns>
+        public async Task<List<StoreViolationPenalty>> GetByCustomerIdAsync(int customerId)
+        {
+            return await _context.StoreViolationPenalties
+                .Include(p => p.Store)
+                .Where(p => p.CustomerID == customerId)
+                .OrderByDescending(p => p.PenaltyTime)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 根据骑手ID获取店铺举报列表（包含店铺信息）
+        /// </summary>
+        /// <param name="courierId">骑手ID</param>
+        /// <returns>店铺举报列表</returns>
+        public async Task<List<StoreViolationPenalty>> GetByCourierIdAsync(int courierId)
+        {
+            return await _context.StoreViolationPenalties
+                .Include(p => p.Store)
+                .Where(p => p.CourierID == courierId)
+                .OrderByDescending(p => p.PenaltyTime)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 根据管理员ID获取违规处罚列表（包含店铺信息）
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>违规处罚列表</returns>
+        public async Task<List<StoreViolationPenalty>> GetByAdminIdAsync(int adminId)
+        {
+            return await _context.Supervise_s
+                .Where(s => s.AdminID == adminId)
+                .Include(s => s.Penalty)
+                    .ThenInclude(p => p.Store)
+                .Select(s => s.Penalty)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 根据用户ID和店铺ID获取未完成的举报列表
+        /// </summary>
+        /// <param name="customerId">用户ID</param>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>未完成的举报列表</returns>
+        public async Task<List<StoreViolationPenalty>> GetPendingByCustomerIdAndStoreIdAsync(int customerId, int storeId)
+        {
+            return await _context.StoreViolationPenalties
+                .Where(p => p.CustomerID == customerId 
+                    && p.StoreID == storeId 
+                    && p.ViolationPenaltyState != ViolationPenaltyState.Completed)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 根据骑手ID和店铺ID获取未完成的举报列表
+        /// </summary>
+        /// <param name="courierId">骑手ID</param>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>未完成的举报列表</returns>
+        public async Task<List<StoreViolationPenalty>> GetPendingByCourierIdAndStoreIdAsync(int courierId, int storeId)
+        {
+            return await _context.StoreViolationPenalties
+                .Where(p => p.CourierID == courierId 
+                    && p.StoreID == storeId 
+                    && p.ViolationPenaltyState != ViolationPenaltyState.Completed)
+                .ToListAsync();
         }
     }
 }

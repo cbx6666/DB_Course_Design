@@ -10,14 +10,14 @@ namespace BackEnd.Services
     /// </summary>
     public class AdminAfterSaleService : IAdminAfterSaleService
     {
-        private readonly IAdministratorRepository _administratorRepository;
+        private readonly IAfterSaleApplicationRepository _afterSaleApplicationRepository;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public AdminAfterSaleService(IAdministratorRepository administratorRepository)
+        public AdminAfterSaleService(IAfterSaleApplicationRepository afterSaleApplicationRepository)
         {
-            _administratorRepository = administratorRepository;
+            _afterSaleApplicationRepository = afterSaleApplicationRepository;
         }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace BackEnd.Services
         /// </summary>
         public async Task<IEnumerable<AfterSaleApplicationDetailDto>> GetApplicationsForAdminAsync(int adminId)
         {
-            var applicationsFromDb = await _administratorRepository.GetAfterSaleApplicationsByAdminIdAsync(adminId);
+            var applicationsFromDb = await _afterSaleApplicationRepository.GetByAdminIdAsync(adminId);
 
             if (applicationsFromDb == null || !applicationsFromDb.Any())
             {
@@ -40,8 +40,7 @@ namespace BackEnd.Services
                 Description = app.Description,
                 Status = app.AfterSaleState == AfterSaleState.Pending ? "待处理" : "已完成",
                 Punishment = app.ProcessingResult ?? "-",
-                PunishmentReason = app.ProcessingReason ?? "",
-                ProcessingNote = app.ProcessingRemark ?? "-"
+                PunishmentReason = app.ProcessingReason ?? ""
             });
 
             return applicationDtos;
@@ -87,7 +86,7 @@ namespace BackEnd.Services
                 }
 
                 // 获取现有的售后申请
-                var existingApplication = await _administratorRepository.GetAfterSaleApplicationByIdAsync(applicationId);
+                var existingApplication = await _afterSaleApplicationRepository.GetByIdAsync(applicationId);
                 if (existingApplication == null)
                 {
                     return new UpdateAfterSaleApplicationResponseDto
@@ -101,20 +100,10 @@ namespace BackEnd.Services
                 // 更新售后申请信息
                 existingApplication.AfterSaleState = AfterSaleState.Completed;
                 existingApplication.ProcessingResult = request.Punishment;
-                existingApplication.ProcessingRemark = request.ProcessingNote;
                 existingApplication.ProcessingReason = request.PunishmentReason;
 
                 // 保存更改
-                bool updateSuccess = await _administratorRepository.UpdateAfterSaleApplicationAsync(existingApplication);
-                if (!updateSuccess)
-                {
-                    return new UpdateAfterSaleApplicationResponseDto
-                    {
-                        Success = false,
-                        Code = 500,
-                        Message = "更新售后申请失败，请稍后重试"
-                    };
-                }
+                await _afterSaleApplicationRepository.UpdateAsync(existingApplication);
 
                 // 返回更新后的完整信息
                 var updatedApplicationDto = new AfterSaleApplicationDetailDto

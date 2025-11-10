@@ -48,5 +48,22 @@ namespace BackEnd.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
+        /// <summary>
+        /// 获取用户的配送投诉列表
+        /// </summary>
+        /// <returns>配送投诉列表</returns>
+        [HttpGet("mine")]
+        public async Task<IActionResult> GetMyComplaints()
+        {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+            {
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "无效的Token" });
+            }
+
+            var result = await _customerDeliveryComplaintService.GetMyComplaintsAsync(userId.Value);
+            return Ok(new ApiResponseDto<object> { Success = true, Code = 200, Message = "获取成功", Data = result });
+        }
+
     }
 }

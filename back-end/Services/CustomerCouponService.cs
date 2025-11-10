@@ -15,7 +15,7 @@ namespace BackEnd.Services
     {
         private readonly ICouponRepository _userCouponRepository;
         private readonly IUserRepository _userRepository;
-        private readonly AppDbContext _context;
+        private readonly ICouponManagerRepository _couponManagerRepository;
 
         /// <summary>
         /// 构造函数
@@ -23,11 +23,11 @@ namespace BackEnd.Services
         public CustomerCouponService(
             ICouponRepository userCouponRepository,
             IUserRepository userRepository,
-            AppDbContext context)
+            ICouponManagerRepository couponManagerRepository)
         {
             _userCouponRepository = userCouponRepository;
             _userRepository = userRepository;
-            _context = context;
+            _couponManagerRepository = couponManagerRepository;
         }
 
         /// <summary>
@@ -104,21 +104,12 @@ namespace BackEnd.Services
 
             var customerId = user.Customer.UserID;
 
-            var allCouponManagers = await _context.CouponManagers
-                .Include(cm => cm.Store)
-                .Include(cm => cm.Coupons)
+            var allCouponManagers = (await _couponManagerRepository.GetAllAsync())
                 .Where(cm => cm.ValidTo >= now)
-                .ToListAsync();
-            
-            allCouponManagers = allCouponManagers
                 .Where(cm => (cm.Coupons?.Count ?? 0) < cm.TotalQuantity)
                 .ToList();
 
-            var claimedCouponManagerIds = await _context.Coupons
-                .Where(c => c.CustomerID == customerId)
-                .Select(c => c.CouponManagerID)
-                .Distinct()
-                .ToListAsync();
+            var claimedCouponManagerIds = await _userCouponRepository.GetClaimedCouponManagerIdsByCustomerIdAsync(customerId);
 
             var result = new List<AvailableCouponDto>();
 
@@ -161,7 +152,7 @@ namespace BackEnd.Services
             }
 
             var customerId = user.Customer.UserID;
-            var couponManager = await _context.CouponManagers.FindAsync(couponManagerId);
+            var couponManager = await _couponManagerRepository.GetByIdAsync(couponManagerId);
             if (couponManager == null)
             {
                 return false;
@@ -173,18 +164,13 @@ namespace BackEnd.Services
                 return false;
             }
 
-            await _context.Entry(couponManager)
-                .Collection(cm => cm.Coupons!)
-                .LoadAsync();
-
             var totalClaimed = couponManager.Coupons?.Count ?? 0;
             if (totalClaimed >= couponManager.TotalQuantity)
             {
                 return false;
             }
 
-            var existingCoupon = await _context.Coupons
-                .FirstOrDefaultAsync(c => c.CustomerID == customerId && c.CouponManagerID == couponManagerId);
+            var existingCoupon = await _userCouponRepository.GetByCustomerIdAndCouponManagerIdAsync(customerId, couponManagerId);
             if (existingCoupon != null)
             {
                 return false;

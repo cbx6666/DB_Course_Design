@@ -43,13 +43,11 @@ namespace BackEnd.Services
                     Id = user.UserID.ToString(),
                     Username = user.Username,
                     RealName = user.FullName ?? user.Username,
-                    Role = administrator.AdminRole,
                     RegistrationDate = administrator.AdminRegistrationTime.ToString("yyyy-MM-dd"),
                     AvatarUrl = user.Avatar ?? string.Empty,
                     Phone = user.PhoneNumber.ToString(),
                     Email = user.Email,
                     Gender = user.Gender ?? string.Empty,
-                    BirthDate = user.Birthday?.ToString("yyyy-MM-dd") ?? string.Empty,
                     ManagementScope = administrator.ManagedEntities,
                     AverageRating = administrator.IssueHandlingScore,
                 };
@@ -84,21 +82,10 @@ namespace BackEnd.Services
                 existingAdmin.User.Username = request.Username;
                 existingAdmin.ManagedEntities = request.ManagementScope;
 
-                // 处理生日
-                if (!string.IsNullOrWhiteSpace(request.BirthDate))
+                // 处理性别（将 '男'/'女' 转换为 'M'/'F'）
+                if (!string.IsNullOrWhiteSpace(request.Gender))
                 {
-                    if (DateTime.TryParse(request.BirthDate, out DateTime birthDate))
-                    {
-                        existingAdmin.User.Birthday = birthDate;
-                    }
-                    else
-                    {
-                        return new SetAdminInfoResponse
-                        {
-                            Success = false,
-                            Message = "日期格式错误"
-                        };
-                    }
+                    existingAdmin.User.Gender = request.Gender == "男" ? "M" : (request.Gender == "女" ? "F" : request.Gender);
                 }
 
                 bool success = await _administratorRepository.UpdateAdministratorAsync(existingAdmin);

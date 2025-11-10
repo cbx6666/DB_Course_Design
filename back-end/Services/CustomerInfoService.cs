@@ -21,19 +21,16 @@ namespace BackEnd.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly ICustomerRepository _customerRepository;
-        private readonly IWebHostEnvironment _env;
-        private readonly string _avatarFolder;
+        private readonly IImageUploadService _imageUploadService;
 
         public CustomerInfoService(
             IUserRepository userRepository,
             ICustomerRepository customerRepository,
-            IWebHostEnvironment env)
+            IImageUploadService imageUploadService)
         {
             _userRepository = userRepository;
             _customerRepository = customerRepository;
-            _env = env;
-            _avatarFolder = Path.Combine(env.WebRootPath ?? env.ContentRootPath, "avatars");
-            Directory.CreateDirectory(_avatarFolder);
+            _imageUploadService = imageUploadService;
         }
 
 
@@ -115,21 +112,8 @@ namespace BackEnd.Services
         /// </summary>
         private async Task<string> UpdateUserAvatarAsync(int userId, IFormFile file)
         {
-            if (file == null || file.Length == 0)
-            {
-                throw new ArgumentException("文件不能为空");
-            }
-
-            var fileExtension = Path.GetExtension(file.FileName);
-            var fileName = $"{userId}_{Guid.NewGuid()}{fileExtension}";
-            var filePath = Path.Combine(_avatarFolder, fileName);
-
-            Directory.CreateDirectory(_avatarFolder);
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-            return $"/avatars/{fileName}";
+            // 使用统一的图片上传服务，上传到avatars目录
+            return await _imageUploadService.UploadImageAsync(file, null, "avatars");
         }
 
         /// <summary>

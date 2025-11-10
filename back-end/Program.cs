@@ -123,8 +123,9 @@ builder.Services.AddScoped<ICustomerCommentService, CustomerCommentService>();
 builder.Services.AddScoped<IMerchantCommentService, MerchantCommentService>();
 builder.Services.AddScoped<IAdminCommentService, AdminCommentService>();
 
-// ========== 店铺举报惩罚服务（按角色分类） ==========
-builder.Services.AddScoped<ICustomerPenaltyService, CustomerPenaltyService>();
+// ========== 店铺举报服务（按角色分类） ==========
+builder.Services.AddScoped<ICustomerStoreReportService, CustomerStoreReportService>();
+builder.Services.AddScoped<ICourierStoreReportService, CourierStoreReportService>();
 builder.Services.AddScoped<IMerchantPenaltyService, MerchantPenaltyService>();
 builder.Services.AddScoped<IAdminPenaltyService, AdminPenaltyService>();
 
@@ -157,6 +158,7 @@ builder.Services.AddScoped<ICourierDeliveryTaskService, CourierDeliveryTaskServi
 builder.Services.AddScoped<IGeoHelper, GeoHelper>();
 builder.Services.AddScoped<IMenuService, MenuService>();
 builder.Services.AddScoped<IDishCategoryService, DishCategoryService>();
+builder.Services.AddScoped<IImageUploadService, ImageUploadService>();
 
 // ========== 后台任务服务 ==========
 builder.Services.AddHostedService<MonthlyCommissionResetService>();
@@ -207,6 +209,19 @@ app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(dishesImagesPath),
     RequestPath = "/images/dishes"
+});
+
+// 配置通用上传图片文件服务
+var uploadsImagesPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "images", "uploads");
+if (!Directory.Exists(uploadsImagesPath))
+{
+    Directory.CreateDirectory(uploadsImagesPath);
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsImagesPath),
+    RequestPath = "/images/uploads"
 });
 
 // 启用 CORS

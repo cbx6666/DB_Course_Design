@@ -54,6 +54,7 @@ namespace BackEnd.Repositories
                                  .Include(c => c.Store)
                                  .Include(c => c.FoodOrder)
                                  .Include(c => c.Commenter)
+                                     .ThenInclude(cu => cu.User)
                                  .Include(c => c.ReviewComments)
                                      .ThenInclude(rc => rc.Admin)
                                  .FirstOrDefaultAsync(c => c.CommentID == id);
@@ -117,6 +118,67 @@ namespace BackEnd.Repositories
         public async Task SaveAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// 根据评论者ID获取评论列表（包含店铺信息、订单信息和菜品信息）
+        /// </summary>
+        /// <param name="commenterId">评论者ID</param>
+        /// <returns>评论列表</returns>
+        public async Task<List<Comment>> GetByCommenterIdAsync(int commenterId)
+        {
+            return await _context.Comments
+                .Include(c => c.Store)
+                .Include(c => c.FoodOrder)
+                    .ThenInclude(o => o.Cart)
+                        .ThenInclude(cart => cart!.ShoppingCartItems!)
+                            .ThenInclude(item => item.Dish)
+                .Where(c => c.CommenterID == commenterId && c.CommentType == CommentType.Store)
+                .OrderByDescending(c => c.PostedAt)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 根据管理员ID获取评论审核列表（包含评论者信息）
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>评论列表</returns>
+        public async Task<List<Comment>> GetByAdminIdAsync(int adminId)
+        {
+            return await _context.Review_Comments
+                .Where(rc => rc.AdminID == adminId)
+                .Include(rc => rc.Comment)
+                    .ThenInclude(c => c.Commenter)
+                        .ThenInclude(customer => customer.User)
+                .Select(rc => rc.Comment)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 根据订单ID获取评论列表
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>评论列表</returns>
+        public async Task<List<Comment>> GetByOrderIdAsync(int orderId)
+        {
+            return await _context.Comments
+                .Where(c => c.FoodOrderID == orderId)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 根据用户ID和店铺ID获取未完成的评论列表
+        /// </summary>
+        /// <param name="commenterId">评论者ID</param>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>未完成的评论列表</returns>
+        public async Task<List<Comment>> GetPendingByCommenterIdAndStoreIdAsync(int commenterId, int storeId)
+        {
+            return await _context.Comments
+                .Where(c => c.CommenterID == commenterId 
+                    && c.StoreID == storeId 
+                    && c.CommentState != CommentState.Completed)
+                .ToListAsync();
         }
     }
 }

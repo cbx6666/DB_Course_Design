@@ -121,5 +121,37 @@ namespace BackEnd.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        /// <summary>
+        /// 根据用户ID获取售后申请列表（包含订单和店铺信息）
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>售后申请列表</returns>
+        public async Task<List<AfterSaleApplication>> GetByCustomerIdAsync(int userId)
+        {
+            return await _context.AfterSaleApplications
+                .Include(a => a.Order)
+                    .ThenInclude(o => o.Store)
+                .Include(a => a.Order)
+                    .ThenInclude(o => o.Cart)
+                        .ThenInclude(c => c!.ShoppingCartItems!)
+                            .ThenInclude(sci => sci.Dish)
+                .Where(a => a.Order.CustomerID == userId)
+                .OrderByDescending(a => a.ApplicationTime)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 根据管理员ID获取售后申请列表
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>售后申请列表</returns>
+        public async Task<List<AfterSaleApplication>> GetByAdminIdAsync(int adminId)
+        {
+            return await _context.Evaluate_AfterSales
+                .Where(eas => eas.AdminID == adminId)
+                .Select(eas => eas.Application)
+                .ToListAsync();
+        }
     }
 }

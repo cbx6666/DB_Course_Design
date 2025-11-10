@@ -151,7 +151,7 @@ namespace BackEnd.Services
         /// <returns>可接配送任务列表</returns>
         public async Task<IEnumerable<CourierAvailableTaskDto>> GetAvailableTasksAsync(int courierId, decimal? latitude = null, decimal? longitude = null, decimal maxDistance = 10)
         {
-            var tasksQuery = _context.DeliveryTasks
+            var tasksQuery = _deliveryTaskRepository.GetQueryable()
                 .Where(task => task.Status == DeliveryStatus.To_Be_Taken)
                 .Include(task => task.Order)
                 .ThenInclude(order => order.Store)
@@ -220,7 +220,7 @@ namespace BackEnd.Services
         /// <returns>接受结果</returns>
         public async Task<bool> AcceptTaskAsync(int courierId, int taskId)
         {
-            var taskToAccept = await _context.DeliveryTasks.FindAsync(taskId);
+            var taskToAccept = await _deliveryTaskRepository.GetByIdAsync(taskId);
 
             if (taskToAccept == null || taskToAccept.Status != DeliveryStatus.To_Be_Taken)
             {
@@ -232,7 +232,8 @@ namespace BackEnd.Services
             taskToAccept.AcceptTime = DateTime.UtcNow;
             taskToAccept.Courier = await _courierRepository.GetByIdAsync(courierId);
 
-            await _context.SaveChangesAsync();
+            await _deliveryTaskRepository.UpdateAsync(taskToAccept);
+            await _deliveryTaskRepository.SaveAsync();
             return true;
         }
 

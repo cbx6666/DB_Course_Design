@@ -1,9 +1,11 @@
 using BackEnd.Data;
 using BackEnd.DTOs.AfterSaleApplication;
+using BackEnd.DTOs.Dish;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackEnd.Services
 {
@@ -15,6 +17,7 @@ namespace BackEnd.Services
         private readonly IAfterSaleApplicationRepository _applicationRepository;
         private readonly IFoodOrderRepository _orderRepository;
         private readonly IAdministratorRepository _administratorRepository;
+        private readonly IEvaluate_AfterSaleRepository _evaluateAfterSaleRepository;
         private readonly AppDbContext _context;
 
         /// <summary>
@@ -24,11 +27,13 @@ namespace BackEnd.Services
             IAfterSaleApplicationRepository applicationRepository,
             IFoodOrderRepository orderRepository,
             IAdministratorRepository administratorRepository,
+            IEvaluate_AfterSaleRepository evaluateAfterSaleRepository,
             AppDbContext context)
         {
             _applicationRepository = applicationRepository;
             _orderRepository = orderRepository;
             _administratorRepository = administratorRepository;
+            _evaluateAfterSaleRepository = evaluateAfterSaleRepository;
             _context = context;
         }
 
@@ -53,11 +58,20 @@ namespace BackEnd.Services
                     return Fail("无权对此订单申请售后");
                 }
 
+                // 检查该订单是否已有未完成的售后申请
+                var existingApplications = await _applicationRepository.GetByOrderIdAsync(request.OrderId);
+                var hasPendingApplication = existingApplications.Any(app => app.AfterSaleState != AfterSaleState.Completed);
+                if (hasPendingApplication)
+                {
+                    return Fail("该订单已有未完成的售后申请，请等待处理完成后再提交");
+                }
+
                 // 创建售后申请
                 var application = new AfterSaleApplication
                 {
                     OrderID = request.OrderId,
                     Description = request.Description,
+                    ApplicationImages = request.Images,
                     ApplicationTime = DateTime.Now,
                     AfterSaleState = AfterSaleState.Pending
                 };
@@ -85,8 +99,7 @@ namespace BackEnd.Services
                     ApplicationID = application.ApplicationID,
                 };
 
-                await _context.Evaluate_AfterSales.AddAsync(evaluateAfterSale);
-                await _context.SaveChangesAsync();
+                await _evaluateAfterSaleRepository.AddAsync(evaluateAfterSale);
 
                 // 提交事务
                 await transaction.CommitAsync();
@@ -104,6 +117,40 @@ namespace BackEnd.Services
                 await transaction.RollbackAsync();
                 return Fail($"创建售后申请失败: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// 获取用户的售后申请列表
+        /// </summary>
+        public async Task<List<CustomerAfterSaleListItemDto>> GetMyAfterSalesAsync(int userId)
+        {
+            var applications = await _applicationRepository.GetByCustomerIdAsync(userId);
+
+            var result = applications.Select(app => new CustomerAfterSaleListItemDto
+            {
+                ApplicationId = app.ApplicationID,
+                OrderId = app.OrderID,
+                StoreName = app.Order?.Store?.StoreName ?? "未知店铺",
+                Description = app.Description,
+                Images = string.IsNullOrWhiteSpace(app.ApplicationImages)
+                    ? Array.Empty<string>()
+                    : app.ApplicationImages.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                ApplicationTime = app.ApplicationTime,
+                Status = app.AfterSaleState.ToString(),
+                ProcessingResult = app.ProcessingResult ?? "-",
+                ProcessingReason = string.IsNullOrWhiteSpace(app.ProcessingReason) ? null : app.ProcessingReason,
+                DishDetails = app.Order?.Cart?.ShoppingCartItems?
+                    .Select(item => new OrderDishDto
+                    {
+                        DishName = item.Dish?.DishName ?? "未知菜品",
+                        DishImage = item.Dish?.DishImage ?? "",
+                        Quantity = item.Quantity,
+                        Price = item.Dish?.Price ?? 0m
+                    })
+                    .ToList() ?? new List<OrderDishDto>()
+            }).ToList();
+
+            return result;
         }
 
         /// <summary>

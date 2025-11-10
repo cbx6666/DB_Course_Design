@@ -26,6 +26,11 @@ namespace BackEnd.DTOs.DeliveryComplaint
         [Required(ErrorMessage = "投诉原因不能为空")]
         [StringLength(255, ErrorMessage = "投诉原因不能超过255个字符")]
         public string ComplaintReason { get; set; } = null!;
+
+        /// <summary>
+        /// 投诉图片URL列表（多个图片用逗号分隔）
+        /// </summary>
+        public string? Images { get; set; }
     }
 
     /// <summary>
@@ -37,6 +42,57 @@ namespace BackEnd.DTOs.DeliveryComplaint
         /// 投诉ID（成功时返回）
         /// </summary>
         public int? ComplaintId { get; set; }
+    }
+
+    /// <summary>
+    /// 用户配送投诉列表项DTO（消费者端查看自己的投诉）
+    /// </summary>
+    public class CustomerDeliveryComplaintListItemDto
+    {
+        /// <summary>
+        /// 投诉ID
+        /// </summary>
+        public int ComplaintId { get; set; }
+
+        /// <summary>
+        /// 订单ID
+        /// </summary>
+        public int OrderId { get; set; }
+
+        /// <summary>
+        /// 配送任务ID
+        /// </summary>
+        public int DeliveryTaskId { get; set; }
+
+        /// <summary>
+        /// 投诉原因
+        /// </summary>
+        public string ComplaintReason { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 投诉图片URL列表
+        /// </summary>
+        public string[] Images { get; set; } = Array.Empty<string>();
+
+        /// <summary>
+        /// 投诉时间
+        /// </summary>
+        public DateTime ComplaintTime { get; set; }
+
+        /// <summary>
+        /// 投诉状态
+        /// </summary>
+        public string Status { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 处理结果
+        /// </summary>
+        public string? ProcessingResult { get; set; }
+
+        /// <summary>
+        /// 处理原因
+        /// </summary>
+        public string? ProcessingReason { get; set; }
     }
 
     // ========== 骑手侧 ==========
@@ -136,11 +192,6 @@ namespace BackEnd.DTOs.DeliveryComplaint
         public string PunishmentReason { get; set; } = string.Empty;
 
         /// <summary>
-        /// 处理备注
-        /// </summary>
-        public string ProcessingNote { get; set; } = string.Empty;
-
-        /// <summary>
         /// 罚款
         /// </summary>
         public string Fine { get; set; } = string.Empty;
@@ -170,11 +221,6 @@ namespace BackEnd.DTOs.DeliveryComplaint
         /// 处罚原因
         /// </summary>
         public string PunishmentReason { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 处理备注
-        /// </summary>
-        public string ProcessingNote { get; set; } = string.Empty;
 
         /// <summary>
         /// 罚款

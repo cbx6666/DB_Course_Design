@@ -107,5 +107,31 @@ namespace BackEnd.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        /// <summary>
+        /// 根据客户ID获取已领取的优惠券管理ID列表
+        /// </summary>
+        /// <param name="customerId">客户ID</param>
+        /// <returns>优惠券管理ID列表</returns>
+        public async Task<List<int>> GetClaimedCouponManagerIdsByCustomerIdAsync(int customerId)
+        {
+            return await _context.Coupons
+                .Where(c => c.CustomerID == customerId)
+                .Select(c => c.CouponManagerID)
+                .Distinct()
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 根据客户ID和优惠券管理ID查找优惠券
+        /// </summary>
+        /// <param name="customerId">客户ID</param>
+        /// <param name="couponManagerId">优惠券管理ID</param>
+        /// <returns>优惠券</returns>
+        public async Task<Coupon?> GetByCustomerIdAndCouponManagerIdAsync(int customerId, int couponManagerId)
+        {
+            return await _context.Coupons
+                .FirstOrDefaultAsync(c => c.CustomerID == customerId && c.CouponManagerID == couponManagerId);
+        }
     }
 }

@@ -47,6 +47,7 @@ namespace BackEnd.Repositories
             // 对于单个查询，同样建议预加载关联数据
             return await _context.DeliveryComplaints
                                  .Include(dc => dc.Courier)
+                                     .ThenInclude(c => c.User)
                                  .Include(dc => dc.Customer)
                                  .Include(dc => dc.DeliveryTask)
                                  .Include(dc => dc.EvaluateComplaints)
@@ -110,6 +111,50 @@ namespace BackEnd.Repositories
         public async Task SaveAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// 根据用户ID获取配送投诉列表（包含配送任务和订单信息）
+        /// </summary>
+        /// <param name="customerId">用户ID</param>
+        /// <returns>配送投诉列表</returns>
+        public async Task<List<DeliveryComplaint>> GetByCustomerIdAsync(int customerId)
+        {
+            return await _context.DeliveryComplaints
+                .Include(c => c.DeliveryTask)
+                    .ThenInclude(dt => dt.Order)
+                .Where(c => c.CustomerID == customerId)
+                .OrderByDescending(c => c.ComplaintTime)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 根据骑手ID获取配送投诉列表
+        /// </summary>
+        /// <param name="courierId">骑手ID</param>
+        /// <returns>配送投诉列表</returns>
+        public async Task<List<DeliveryComplaint>> GetByCourierIdAsync(int courierId)
+        {
+            return await _context.DeliveryComplaints
+                .Where(c => c.CourierID == courierId)
+                .OrderByDescending(c => c.ComplaintTime)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 根据管理员ID获取配送投诉列表（包含骑手信息）
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>配送投诉列表</returns>
+        public async Task<List<DeliveryComplaint>> GetByAdminIdAsync(int adminId)
+        {
+            return await _context.Evaluate_Complaints
+                .Where(ec => ec.AdminID == adminId)
+                .Include(ec => ec.Complaint)
+                    .ThenInclude(c => c.Courier)
+                        .ThenInclude(courier => courier.User)
+                .Select(ec => ec.Complaint)
+                .ToListAsync();
         }
     }
 }

@@ -77,10 +77,32 @@ namespace BackEnd.Controllers
             {
                 return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
-            catch (Exception)
+            catch (InvalidOperationException ex)
             {
-                return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "提交评论时发生错误" });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = $"提交评论时发生错误: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 获取用户的评论列表
+        /// </summary>
+        /// <returns>评论列表</returns>
+        [HttpGet("mine")]
+        [Authorize]
+        public async Task<IActionResult> GetMyComments()
+        {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+            {
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "无效的Token" });
+            }
+
+            var result = await _commentService.GetMyCommentsAsync(userId.Value);
+            return Ok(new ApiResponseDto<object> { Success = true, Code = 200, Message = "获取成功", Data = result });
         }
     }
 }

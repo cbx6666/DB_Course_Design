@@ -24,6 +24,7 @@ namespace BackEnd.Data.EntityConfigs
 
             // 基础属性配置
             builder.Property(dc => dc.ComplaintReason).HasColumnName("COMPLAINTREASON").IsRequired().HasMaxLength(255);
+            builder.Property(dc => dc.ComplaintImages).HasColumnName("COMPLAINTIMAGES").IsRequired(false).HasMaxLength(1000);
             builder.Property(dc => dc.ComplaintTime).HasColumnName("COMPLAINTTIME").IsRequired();
 
             // 状态配置
@@ -37,7 +38,6 @@ namespace BackEnd.Data.EntityConfigs
             // 处理相关属性配置
             builder.Property(dc => dc.ProcessingResult).HasColumnName("PROCESSINGRESULT").IsRequired(false).HasMaxLength(255);
             builder.Property(dc => dc.ProcessingReason).HasColumnName("PROCESSINGREASON").IsRequired(false).HasMaxLength(255);
-            builder.Property(dc => dc.ProcessingRemark).HasColumnName("PROCESSINGREMARK").IsRequired(false).HasMaxLength(255);
             builder.Property(dc => dc.FineAmount)
                 .HasColumnName("FINEAMOUNT")
                 .IsRequired(false)

@@ -40,6 +40,7 @@ namespace BackEnd.Repositories
             return await _context.Users
                 .Include(u => u.Customer)
                     .ThenInclude(c => c!.DeliveryInfos)
+                .Include(u => u.Courier)
                 .FirstOrDefaultAsync(u => u.UserID == id);
         }
 

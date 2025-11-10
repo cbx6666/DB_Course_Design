@@ -16,19 +16,19 @@ namespace BackEnd.Services
     {
         private readonly IMerchantRepository _merchantRepository;
         private readonly IConfiguration _configuration;
-        private readonly string _storeImageFolder;
+        private readonly IImageUploadService _imageUploadService;
 
         /// <summary>
         /// 构造函数
         /// </summary>
         public MerchantStoreService(
             IMerchantRepository merchantRepository,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IImageUploadService imageUploadService)
         {
             _merchantRepository = merchantRepository;
             _configuration = configuration;
-            _storeImageFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "stores");
-            Directory.CreateDirectory(_storeImageFolder);
+            _imageUploadService = imageUploadService;
         }
 
         /// <summary>
@@ -194,31 +194,29 @@ namespace BackEnd.Services
         /// </summary>
         public async Task<(bool Success, string? Message, string? ImageUrl)> UploadStoreImageAsync(int sellerId, IFormFile imageFile)
         {
-            if (imageFile == null || imageFile.Length <= 0)
+            try
             {
-                return (false, "文件不能为空", null);
-            }
+                var store = await _merchantRepository.GetStoreBySellerIdAsync(sellerId);
+                if (store == null)
+                {
+                    return (false, "店铺不存在", null);
+                }
 
-            var store = await _merchantRepository.GetStoreBySellerIdAsync(sellerId);
-            if (store == null)
+                // 使用统一的图片上传服务
+                var url = await _imageUploadService.UploadImageAsync(imageFile, "stores", "images");
+                
+                store.StoreImage = url;
+                var success = await _merchantRepository.UpdateStoreAsync(store);
+                return success ? (true, null, url) : (false, "保存失败", null);
+            }
+            catch (ArgumentException ex)
             {
-                return (false, "店铺不存在", null);
+                return (false, ex.Message, null);
             }
-
-            var ext = Path.GetExtension(imageFile.FileName);
-            var fileName = $"store_{store.StoreID}_{Guid.NewGuid()}{ext}";
-            var filePath = Path.Combine(_storeImageFolder, fileName);
-
-            Directory.CreateDirectory(_storeImageFolder);
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            catch (Exception ex)
             {
-                await imageFile.CopyToAsync(stream);
+                return (false, $"上传失败: {ex.Message}", null);
             }
-
-            var url = $"/images/stores/{fileName}";
-            store.StoreImage = url;
-            var success = await _merchantRepository.UpdateStoreAsync(store);
-            return success ? (true, null, url) : (false, "保存失败", null);
         }
 
         /// <summary>

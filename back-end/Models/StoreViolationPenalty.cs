@@ -30,10 +30,10 @@ namespace BackEnd.Models
         public string PenaltyReason { get; set; } = null!;
 
         /// <summary>
-        /// 处罚备注
+        /// 举报图片URL（多个图片用逗号分隔）
         /// </summary>
-        [StringLength(255)]
-        public string? PenaltyNote { get; set; }
+        [StringLength(1000)]
+        public string? ReportImages { get; set; }
 
         /// <summary>
         /// 处罚时间
@@ -64,6 +64,28 @@ namespace BackEnd.Models
         /// </summary>
         [ForeignKey("StoreID")]
         public Store Store { get; set; } = null!;
+
+        /// <summary>
+        /// 举报消费者ID（外键，可选）
+        /// </summary>
+        public int? CustomerID { get; set; }
+
+        /// <summary>
+        /// 关联的举报消费者
+        /// </summary>
+        [ForeignKey("CustomerID")]
+        public Customer? Customer { get; set; }
+
+        /// <summary>
+        /// 举报骑手ID（外键，可选）
+        /// </summary>
+        public int? CourierID { get; set; }
+
+        /// <summary>
+        /// 关联的举报骑手
+        /// </summary>
+        [ForeignKey("CourierID")]
+        public Courier? Courier { get; set; }
 
         /// <summary>
         /// 监督记录集合

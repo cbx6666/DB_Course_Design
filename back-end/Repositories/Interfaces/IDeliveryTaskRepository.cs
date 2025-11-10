@@ -59,5 +59,14 @@ namespace BackEnd.Repositories.Interfaces
         /// </summary>
         /// <returns>IQueryable任务集</returns>
         IQueryable<DeliveryTask> GetQueryable();
+
+        /// <summary>
+        /// 根据骑手ID和日期范围获取已完成的配送任务
+        /// </summary>
+        /// <param name="courierId">骑手ID</param>
+        /// <param name="startDate">开始日期</param>
+        /// <param name="endDate">结束日期</param>
+        /// <returns>配送任务列表</returns>
+        Task<List<DeliveryTask>> GetCompletedTasksByCourierIdAndDateRangeAsync(int courierId, DateTime startDate, DateTime endDate);
     }
 }

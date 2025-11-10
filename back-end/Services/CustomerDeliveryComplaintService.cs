@@ -4,6 +4,7 @@ using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackEnd.Services
 {
@@ -15,6 +16,7 @@ namespace BackEnd.Services
         private readonly IDeliveryComplaintRepository _complaintRepository;
         private readonly IDeliveryTaskRepository _deliveryTaskRepository;
         private readonly IAdministratorRepository _administratorRepository;
+        private readonly IEvaluate_ComplaintRepository _evaluateComplaintRepository;
         private readonly AppDbContext _context;
 
         /// <summary>
@@ -24,11 +26,13 @@ namespace BackEnd.Services
             IDeliveryComplaintRepository complaintRepository,
             IDeliveryTaskRepository deliveryTaskRepository,
             IAdministratorRepository administratorRepository,
+            IEvaluate_ComplaintRepository evaluateComplaintRepository,
             AppDbContext context)
         {
             _complaintRepository = complaintRepository;
             _deliveryTaskRepository = deliveryTaskRepository;
             _administratorRepository = administratorRepository;
+            _evaluateComplaintRepository = evaluateComplaintRepository;
             _context = context;
         }
 
@@ -92,6 +96,7 @@ namespace BackEnd.Services
                     CourierID = deliveryTask.CourierID!.Value,
                     CustomerID = userId,
                     ComplaintReason = request.ComplaintReason,
+                    ComplaintImages = request.Images,
                     ComplaintTime = DateTime.Now,
                     ComplaintState = ComplaintState.Pending
                 };
@@ -110,8 +115,7 @@ namespace BackEnd.Services
                     ComplaintID = complaint.ComplaintID,
                 };
 
-                await _context.Evaluate_Complaints.AddAsync(evaluateComplaint);
-                await _context.SaveChangesAsync();
+                await _evaluateComplaintRepository.AddAsync(evaluateComplaint);
 
                 // 提交事务
                 await transaction.CommitAsync();
@@ -129,6 +133,31 @@ namespace BackEnd.Services
                 await transaction.RollbackAsync();
                 return Fail($"提交配送投诉失败: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// 获取用户的配送投诉列表
+        /// </summary>
+        public async Task<List<CustomerDeliveryComplaintListItemDto>> GetMyComplaintsAsync(int userId)
+        {
+            var complaints = await _complaintRepository.GetByCustomerIdAsync(userId);
+
+            var result = complaints.Select(complaint => new CustomerDeliveryComplaintListItemDto
+            {
+                ComplaintId = complaint.ComplaintID,
+                OrderId = complaint.DeliveryTask?.OrderID ?? 0,
+                DeliveryTaskId = complaint.DeliveryTaskID,
+                ComplaintReason = complaint.ComplaintReason,
+                Images = string.IsNullOrWhiteSpace(complaint.ComplaintImages)
+                    ? Array.Empty<string>()
+                    : complaint.ComplaintImages.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                ComplaintTime = complaint.ComplaintTime,
+                Status = complaint.ComplaintState.ToString(),
+                ProcessingResult = string.IsNullOrWhiteSpace(complaint.ProcessingResult) ? null : complaint.ProcessingResult,
+                ProcessingReason = string.IsNullOrWhiteSpace(complaint.ProcessingReason) ? null : complaint.ProcessingReason
+            }).ToList();
+
+            return result;
         }
 
         /// <summary>

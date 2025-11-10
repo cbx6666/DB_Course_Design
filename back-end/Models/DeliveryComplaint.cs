@@ -24,6 +24,12 @@ namespace BackEnd.Models
         public string ComplaintReason { get; set; } = null!;
 
         /// <summary>
+        /// 投诉图片URL（多个图片用逗号分隔）
+        /// </summary>
+        [StringLength(1000)]
+        public string? ComplaintImages { get; set; }
+
+        /// <summary>
         /// 投诉时间
         /// </summary>
         [Required]
@@ -46,12 +52,6 @@ namespace BackEnd.Models
         /// </summary>
         [StringLength(255)]
         public string? ProcessingReason { get; set; }
-
-        /// <summary>
-        /// 处理备注
-        /// </summary>
-        [StringLength(255)]
-        public string? ProcessingRemark { get; set; }
 
         /// <summary>
         /// 罚金金额

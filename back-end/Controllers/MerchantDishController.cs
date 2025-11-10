@@ -136,24 +136,6 @@ namespace BackEnd.Controllers
         {
             try
             {
-                if (imageFile == null || imageFile.Length == 0)
-                {
-                    return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "请选择要上传的图片" });
-                }
-
-                // 验证文件类型
-                var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png" };
-                if (!allowedTypes.Contains(imageFile.ContentType))
-                {
-                    return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "只支持 JPG、JPEG、PNG 格式的图片" });
-                }
-
-                // 验证文件大小 (2MB)
-                if (imageFile.Length > 2 * 1024 * 1024)
-                {
-                    return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "图片大小不能超过 2MB" });
-                }
-
                 var result = await _merchantDishService.UploadDishImageAsync(imageFile);
                 return result.Success
                     ? Ok(new ApiResponseDto<string> { Success = true, Code = 200, Message = "图片上传成功", Data = result.ImageUrl ?? string.Empty })

@@ -17,27 +17,26 @@ namespace BackEnd.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly ICourierRepository _courierRepository;
-        private readonly AppDbContext _context;
-        private readonly string _avatarFolder;
+        private readonly IDeliveryTaskRepository _deliveryTaskRepository;
+        private readonly IImageUploadService _imageUploadService;
 
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="userRepository">用户仓储</param>
         /// <param name="courierRepository">配送员仓储</param>
-        /// <param name="context">数据库上下文</param>
-        /// <param name="env">Web主机环境</param>
+        /// <param name="deliveryTaskRepository">配送任务仓储</param>
+        /// <param name="imageUploadService">图片上传服务</param>
         public CourierInfoService(
             IUserRepository userRepository,
             ICourierRepository courierRepository,
-            AppDbContext context,
-            IWebHostEnvironment env)
+            IDeliveryTaskRepository deliveryTaskRepository,
+            IImageUploadService imageUploadService)
         {
             _userRepository = userRepository;
             _courierRepository = courierRepository;
-            _context = context;
-            _avatarFolder = Path.Combine(env.WebRootPath ?? env.ContentRootPath, "avatars");
-            Directory.CreateDirectory(_avatarFolder);
+            _deliveryTaskRepository = deliveryTaskRepository;
+            _imageUploadService = imageUploadService;
         }
 
         /// <summary>
@@ -47,10 +46,7 @@ namespace BackEnd.Services
         /// <returns>配送员档案</returns>
         public async Task<CourierProfileDto?> GetProfileAsync(int courierId)
         {
-            var user = await _context.Users
-                .AsNoTracking()
-                .Include(u => u.Courier)
-                .FirstOrDefaultAsync(u => u.UserID == courierId);
+            var user = await _userRepository.GetByIdAsync(courierId);
 
             if (user == null)
             {
@@ -150,13 +146,7 @@ namespace BackEnd.Services
             var tomorrow = today.AddDays(1);
 
             // 查询今日已完成的配送任务
-            var todayCompletedTasks = await _context.DeliveryTasks
-                .Where(dt => dt.CourierID == courierId
-                    && dt.Status == DeliveryStatus.Completed
-                    && dt.CompletionTime.HasValue
-                    && dt.CompletionTime.Value >= today
-                    && dt.CompletionTime.Value < tomorrow)
-                .ToListAsync();
+            var todayCompletedTasks = await _deliveryTaskRepository.GetCompletedTasksByCourierIdAndDateRangeAsync(courierId, today, tomorrow);
 
             // 计算今日收入：每单配送费 + 5元
             decimal todayIncome = todayCompletedTasks.Sum(task => task.DeliveryFee + 5);
@@ -172,7 +162,7 @@ namespace BackEnd.Services
         /// <returns>更新结果</returns>
         public async Task<bool> UpdateCourierLocationAsync(int courierId, decimal latitude, decimal longitude)
         {
-            var courier = await _context.Couriers.FirstOrDefaultAsync(c => c.UserID == courierId);
+            var courier = await _courierRepository.GetByIdAsync(courierId);
 
             if (courier == null)
             {
@@ -182,7 +172,8 @@ namespace BackEnd.Services
             courier.CourierLatitude = latitude;
             courier.CourierLongitude = longitude;
 
-            await _context.SaveChangesAsync();
+            await _courierRepository.UpdateAsync(courier);
+            await _courierRepository.SaveAsync();
             return true;
         }
 
@@ -194,7 +185,7 @@ namespace BackEnd.Services
         /// <returns>更新结果</returns>
         public async Task<bool> UpdateProfileAsync(int courierId, UpdateProfileDto profileDto)
         {
-            var userToUpdate = await _context.Users.FindAsync(courierId);
+            var userToUpdate = await _userRepository.GetByIdAsync(courierId);
             if (userToUpdate == null)
             {
                 return false;
@@ -205,18 +196,18 @@ namespace BackEnd.Services
             userToUpdate.Birthday = profileDto.Birthday;
             userToUpdate.Avatar = profileDto.Avatar;
 
-            _context.Users.Update(userToUpdate);
+            await _userRepository.UpdateAsync(userToUpdate);
+            await _userRepository.SaveAsync();
 
-            var courierToUpdate = await _context.Couriers.FindAsync(courierId);
+            var courierToUpdate = await _courierRepository.GetByIdAsync(courierId);
             if (courierToUpdate == null)
             {
                 return false;
             }
 
             courierToUpdate.VehicleType = profileDto.VehicleType;
-            _context.Couriers.Update(courierToUpdate);
-
-            await _context.SaveChangesAsync();
+            await _courierRepository.UpdateAsync(courierToUpdate);
+            await _courierRepository.SaveAsync();
             return true;
         }
 
@@ -227,10 +218,7 @@ namespace BackEnd.Services
         /// <returns>编辑用档案信息</returns>
         public async Task<UpdateProfileDto?> GetProfileForEditAsync(int courierId)
         {
-            var user = await _context.Users
-                .AsNoTracking()
-                .Include(u => u.Courier)
-                .FirstOrDefaultAsync(u => u.UserID == courierId);
+            var user = await _userRepository.GetByIdAsync(courierId);
 
             if (user == null || user.Courier == null)
             {
@@ -256,29 +244,29 @@ namespace BackEnd.Services
         /// <returns>头像URL</returns>
         public async Task<(bool Success, string? Message, string? AvatarUrl)> UpdateCourierAvatarAsync(int courierId, IFormFile avatarFile)
         {
-            var user = await _context.Users.FindAsync(courierId);
-            if (user == null)
-                return (false, "用户不存在", null);
-
-            if (avatarFile == null || avatarFile.Length <= 0)
-                return (false, "文件不能为空", null);
-
-            var fileExtension = Path.GetExtension(avatarFile.FileName);
-            var fileName = $"{courierId}_{Guid.NewGuid()}{fileExtension}";
-            var filePath = Path.Combine(_avatarFolder, fileName);
-
-            Directory.CreateDirectory(_avatarFolder);
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            try
             {
-                await avatarFile.CopyToAsync(stream);
+                var user = await _userRepository.GetByIdAsync(courierId);
+                if (user == null)
+                    return (false, "用户不存在", null);
+
+                // 使用统一的图片上传服务，上传到avatars目录
+                var avatarUrl = await _imageUploadService.UploadImageAsync(avatarFile, null, "avatars");
+                
+                user.Avatar = avatarUrl;
+                await _userRepository.UpdateAsync(user);
+                await _userRepository.SaveAsync();
+
+                return (true, null, avatarUrl);
             }
-
-            var avatarUrl = $"/avatars/{fileName}";
-            user.Avatar = avatarUrl;
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync();
-
-            return (true, null, avatarUrl);
+            catch (ArgumentException ex)
+            {
+                return (false, ex.Message, null);
+            }
+            catch (Exception ex)
+            {
+                return (false, $"上传失败: {ex.Message}", null);
+            }
         }
     }
 }

@@ -1,8 +1,11 @@
+using BackEnd.Data;
 using BackEnd.DTOs.Comment;
+using BackEnd.DTOs.Dish;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackEnd.Services
 {
@@ -77,14 +80,23 @@ namespace BackEnd.Services
         /// </summary>
         public async Task SubmitCommentAsync(CreateCommentDto dto)
         {
+            // 检查该用户对该店铺是否已有未完成的评论
+            var existingComments = await _commentRepository.GetPendingByCommenterIdAndStoreIdAsync(dto.UserId, dto.StoreId);
+            if (existingComments.Any())
+            {
+                throw new InvalidOperationException("该店铺已有未完成的评论，请等待审核完成后再提交");
+            }
+
             var comment = new Comment
             {
                 Content = dto.Content,
                 PostedAt = DateTime.UtcNow,
                 Rating = dto.Rating,
+                CommentImage = dto.Images,
                 CommentType = CommentType.Store,
                 CommentState = CommentState.Pending,
                 StoreID = dto.StoreId,
+                FoodOrderID = dto.OrderId,
                 CommenterID = dto.UserId
             };
 
@@ -103,6 +115,40 @@ namespace BackEnd.Services
             };
             await _reviewCommentRepository.AddAsync(review);
             await _reviewCommentRepository.SaveAsync();
+        }
+
+        /// <summary>
+        /// 获取用户的评论列表
+        /// </summary>
+        public async Task<List<CustomerMyCommentListItemDto>> GetMyCommentsAsync(int userId)
+        {
+            var comments = await _commentRepository.GetByCommenterIdAsync(userId);
+
+            var result = comments.Select(comment => new CustomerMyCommentListItemDto
+            {
+                CommentId = comment.CommentID,
+                OrderId = comment.FoodOrderID,
+                StoreId = comment.StoreID ?? 0,
+                StoreName = comment.Store?.StoreName ?? "未知店铺",
+                Rating = comment.Rating ?? 0,
+                Content = comment.Content,
+                Images = string.IsNullOrWhiteSpace(comment.CommentImage)
+                    ? Array.Empty<string>()
+                    : comment.CommentImage.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                PostedAt = comment.PostedAt,
+                Status = comment.CommentState.ToString(),
+                DishDetails = comment.FoodOrder?.Cart?.ShoppingCartItems?
+                    .Select(item => new OrderDishDto
+                    {
+                        DishName = item.Dish?.DishName ?? "未知菜品",
+                        DishImage = item.Dish?.DishImage ?? "",
+                        Quantity = item.Quantity,
+                        Price = item.Dish?.Price ?? 0m
+                    })
+                    .ToList() ?? new List<OrderDishDto>()
+            }).ToList();
+
+            return result;
         }
 
         /// <summary>

@@ -13,6 +13,6 @@ export interface RiderComment {
     content: string;
 }
 
-export async function postStoreComment(userId: number, storeId: number, rating: number, content: string) {
-    return postData<StoreComment>(`/review/comment`, { userId, storeId, rating, content })
+export async function postStoreComment(userId: number, storeId: number, rating: number, content: string, images?: string, orderId?: number) {
+    return postData<StoreComment>(`/customer/comments/comment`, { userId, storeId, rating, content, images, orderId })
 }

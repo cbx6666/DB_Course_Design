@@ -264,14 +264,9 @@ namespace BackEnd.Models.Enums
         Pending = 0,
 
         /// <summary>
-        /// 处理中
-        /// </summary>
-        Processing = 1,
-
-        /// <summary>
         /// 已完成
         /// </summary>
-        Completed = 2
+        Completed = 1
     }
 
     /// <summary>

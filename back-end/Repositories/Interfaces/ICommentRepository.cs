@@ -53,5 +53,34 @@ namespace BackEnd.Repositories.Interfaces
         /// </summary>
         /// <returns>任务</returns>
         Task SaveAsync();
+
+        /// <summary>
+        /// 根据评论者ID获取评论列表（包含店铺信息）
+        /// </summary>
+        /// <param name="commenterId">评论者ID</param>
+        /// <returns>评论列表</returns>
+        Task<List<Comment>> GetByCommenterIdAsync(int commenterId);
+
+        /// <summary>
+        /// 根据管理员ID获取评论审核列表（包含评论者信息）
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>评论列表</returns>
+        Task<List<Comment>> GetByAdminIdAsync(int adminId);
+
+        /// <summary>
+        /// 根据订单ID获取评论列表
+        /// </summary>
+        /// <param name="orderId">订单ID</param>
+        /// <returns>评论列表</returns>
+        Task<List<Comment>> GetByOrderIdAsync(int orderId);
+
+        /// <summary>
+        /// 根据用户ID和店铺ID获取未完成的评论列表
+        /// </summary>
+        /// <param name="commenterId">评论者ID</param>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>未完成的评论列表</returns>
+        Task<List<Comment>> GetPendingByCommenterIdAndStoreIdAsync(int commenterId, int storeId);
     }
 }

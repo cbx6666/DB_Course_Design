@@ -53,5 +53,26 @@ namespace BackEnd.Repositories.Interfaces
         /// </summary>
         /// <returns>任务</returns>
         Task SaveAsync();
+
+        /// <summary>
+        /// 根据用户ID获取配送投诉列表（包含配送任务和订单信息）
+        /// </summary>
+        /// <param name="customerId">用户ID</param>
+        /// <returns>配送投诉列表</returns>
+        Task<List<DeliveryComplaint>> GetByCustomerIdAsync(int customerId);
+
+        /// <summary>
+        /// 根据骑手ID获取配送投诉列表
+        /// </summary>
+        /// <param name="courierId">骑手ID</param>
+        /// <returns>配送投诉列表</returns>
+        Task<List<DeliveryComplaint>> GetByCourierIdAsync(int courierId);
+
+        /// <summary>
+        /// 根据管理员ID获取配送投诉列表（包含骑手信息）
+        /// </summary>
+        /// <param name="adminId">管理员ID</param>
+        /// <returns>配送投诉列表</returns>
+        Task<List<DeliveryComplaint>> GetByAdminIdAsync(int adminId);
     }
 }

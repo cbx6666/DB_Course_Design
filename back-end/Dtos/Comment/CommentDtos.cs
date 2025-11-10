@@ -1,5 +1,6 @@
 using BackEnd.DTOs.Common;
 using BackEnd.DTOs.Customer;
+using BackEnd.DTOs.Dish;
 using System.ComponentModel.DataAnnotations;
 
 namespace BackEnd.DTOs.Comment
@@ -54,6 +55,62 @@ namespace BackEnd.DTOs.Comment
     }
 
     /// <summary>
+    /// 用户评论列表项DTO（消费者端查看自己的评论）
+    /// </summary>
+    public class CustomerMyCommentListItemDto
+    {
+        /// <summary>
+        /// 评论ID
+        /// </summary>
+        public int CommentId { get; set; }
+
+        /// <summary>
+        /// 订单ID
+        /// </summary>
+        public int? OrderId { get; set; }
+
+        /// <summary>
+        /// 店铺ID
+        /// </summary>
+        public int StoreId { get; set; }
+
+        /// <summary>
+        /// 店铺名称
+        /// </summary>
+        public string StoreName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 评分（1-5）
+        /// </summary>
+        public int? Rating { get; set; }
+
+        /// <summary>
+        /// 评论内容
+        /// </summary>
+        public string Content { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 评论图片URL列表
+        /// </summary>
+        public string[] Images { get; set; } = Array.Empty<string>();
+
+        /// <summary>
+        /// 评论时间
+        /// </summary>
+        public DateTime PostedAt { get; set; }
+
+        /// <summary>
+        /// 评论状态
+        /// </summary>
+        public string Status { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 订单菜品详情
+        /// </summary>
+        public List<OrderDishDto> DishDetails { get; set; } = new List<OrderDishDto>();
+    }
+
+    /// <summary>
     /// 评论状态统计DTO
     /// </summary>
     public class CommentStateDto
@@ -82,6 +139,11 @@ namespace BackEnd.DTOs.Comment
         public int StoreId { get; set; }
 
         /// <summary>
+        /// 订单ID（可选）
+        /// </summary>
+        public int? OrderId { get; set; }
+
+        /// <summary>
         /// 评分（1-5）
         /// </summary>
         [Required]
@@ -94,6 +156,11 @@ namespace BackEnd.DTOs.Comment
         [Required]
         [MaxLength(500)]
         public string Content { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 评论图片URL列表（多个图片用逗号分隔）
+        /// </summary>
+        public string? Images { get; set; }
     }
 
     // ========== 商家侧 ==========
