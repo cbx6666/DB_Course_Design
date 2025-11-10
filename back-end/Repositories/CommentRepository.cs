@@ -128,10 +128,10 @@ namespace BackEnd.Repositories
         public async Task<List<Comment>> GetByCommenterIdAsync(int commenterId)
         {
             return await _context.Comments
-                .Include(c => c.Store)
-                .Include(c => c.FoodOrder)
-                    .ThenInclude(o => o.Cart)
-                        .ThenInclude(cart => cart!.ShoppingCartItems!)
+                .Include(c => c.Store!)
+                .Include(c => c.FoodOrder!)
+                    .ThenInclude(o => o.Cart!)
+                        .ThenInclude(cart => cart.ShoppingCartItems!)
                             .ThenInclude(item => item.Dish)
                 .Where(c => c.CommenterID == commenterId && c.CommentType == CommentType.Store)
                 .OrderByDescending(c => c.PostedAt)
@@ -178,6 +178,18 @@ namespace BackEnd.Repositories
                 .Where(c => c.CommenterID == commenterId 
                     && c.StoreID == storeId 
                     && c.CommentState != CommentState.Completed)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 根据店铺ID获取评论列表
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>评论列表</returns>
+        public async Task<List<Comment>> GetByStoreIdAsync(int storeId)
+        {
+            return await _context.Comments
+                .Where(c => c.StoreID == storeId)
                 .ToListAsync();
         }
     }

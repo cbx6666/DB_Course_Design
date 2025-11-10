@@ -11,13 +11,15 @@ namespace BackEnd.Services
     public class AdminCommentService : IAdminCommentService
     {
         private readonly ICommentRepository _commentRepository;
+        private readonly IStoreRepository _storeRepository;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public AdminCommentService(ICommentRepository commentRepository)
+        public AdminCommentService(ICommentRepository commentRepository, IStoreRepository storeRepository)
         {
             _commentRepository = commentRepository;
+            _storeRepository = storeRepository;
         }
 
         /// <summary>
@@ -123,6 +125,11 @@ namespace BackEnd.Services
                     Status = GetCommentStatusString(existingComment.CommentState)
                 };
 
+                if (existingComment.CommentState == CommentState.Completed)
+                {
+                    await UpdateStoreRatingAsync(existingComment.StoreID ?? 0);
+                }
+
                 return new UpdateCommentReviewResponseDto
                 {
                     Success = true,
@@ -148,8 +155,7 @@ namespace BackEnd.Services
             return commentType switch
             {
                 CommentType.Comment => "回复评论",
-                CommentType.Store => "店铺评价",
-                CommentType.FoodOrder => "订单评价",
+                CommentType.Store => "店铺评论",
                 _ => "未知类型"
             };
         }
@@ -166,6 +172,39 @@ namespace BackEnd.Services
                 CommentState.Illegal => "违规",
                 _ => "未知状态"
             };
+        }
+
+        /// <summary>
+        /// 更新店铺评分
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>任务</returns>
+        private async Task UpdateStoreRatingAsync(int storeId)
+        {
+            var comments = await _commentRepository.GetByStoreIdAsync(storeId);
+            if (comments == null || !comments.Any())
+            {
+                return;
+            }
+            
+            // 只计算已通过审核的评论
+            var completedComments = comments.Where(c => c.CommentState == CommentState.Completed && c.Rating.HasValue).ToList();
+            if (!completedComments.Any())
+            {
+                return;
+            }
+            
+            var totalRating = completedComments.Sum(c => c.Rating!.Value);
+            var averageRating = (decimal)totalRating / completedComments.Count;
+            
+            var store = await _storeRepository.GetByIdAsync(storeId);
+            if (store == null)
+            {
+                return;
+            }
+            store.AverageRating = averageRating;
+            await _storeRepository.UpdateAsync(store);
+            await _storeRepository.SaveAsync();
         }
     }
 }

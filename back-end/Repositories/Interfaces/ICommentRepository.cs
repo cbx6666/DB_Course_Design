@@ -82,5 +82,12 @@ namespace BackEnd.Repositories.Interfaces
         /// <param name="storeId">店铺ID</param>
         /// <returns>未完成的评论列表</returns>
         Task<List<Comment>> GetPendingByCommenterIdAndStoreIdAsync(int commenterId, int storeId);
+
+        /// <summary>
+        /// 根据店铺ID获取评论列表
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>评论列表</returns>
+        Task<List<Comment>> GetByStoreIdAsync(int storeId);
     }
 }

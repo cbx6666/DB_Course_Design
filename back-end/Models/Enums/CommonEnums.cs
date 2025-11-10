@@ -190,19 +190,14 @@ namespace BackEnd.Models.Enums
     public enum CommentType
     {
         /// <summary>
-        /// 普通评论
+        /// 回复评论
         /// </summary>
         Comment = 0,
 
         /// <summary>
         /// 店铺评论
         /// </summary>
-        Store = 1,
-
-        /// <summary>
-        /// 订单评论
-        /// </summary>
-        FoodOrder = 2
+        Store = 1
     }
 
     /// <summary>
