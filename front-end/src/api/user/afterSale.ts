@@ -39,6 +39,11 @@ export interface DeliveryComplaintListItem {
     status: string
     processingResult?: string
     processingReason?: string
+    courierName?: string
+    courierPhone?: string
+    acceptTime?: string
+    pickupTime?: string
+    completionTime?: string
 }
 
 /**
@@ -55,6 +60,7 @@ export interface StoreReportListItem {
     merchantPunishment?: string
     storePunishment?: string
     processingReason?: string
+    penaltyTime?: string
 }
 
 /**

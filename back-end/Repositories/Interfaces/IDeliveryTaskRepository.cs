@@ -68,5 +68,12 @@ namespace BackEnd.Repositories.Interfaces
         /// <param name="endDate">结束日期</param>
         /// <returns>配送任务列表</returns>
         Task<List<DeliveryTask>> GetCompletedTasksByCourierIdAndDateRangeAsync(int courierId, DateTime startDate, DateTime endDate);
+
+        /// <summary>
+        /// 根据骑手ID获取所有已完成的配送任务
+        /// </summary>
+        /// <param name="courierId">骑手ID</param>
+        /// <returns>配送任务列表</returns>
+        Task<List<DeliveryTask>> GetCompletedTasksByCourierIdAsync(int courierId);
     }
 }

@@ -36,10 +36,10 @@ namespace BackEnd.Services
             {
                 PunishmentId = penalty.PenaltyID.ToString(),
                 StoreName = penalty.Store.StoreName,
-                Reason = penalty.PenaltyReason ?? "-",
+                Reason = penalty.ReportReason ?? "-", // 显示消费者的举报内容
                 MerchantPunishment = penalty.SellerPenalty ?? "-",
                 StorePunishment = penalty.StorePenalty ?? "-",
-                PunishmentTime = penalty.PenaltyTime.ToString("yyyy-MM-dd HH:mm"),
+                PunishmentTime = penalty.PenaltyTime?.ToString("yyyy-MM-dd HH:mm") ?? "",
                 Status = penalty.ViolationPenaltyState == ViolationPenaltyState.Pending ? "待处理" : "已完成"
             });
 
@@ -108,13 +108,25 @@ namespace BackEnd.Services
                 }
 
                 existingPenalty.ViolationPenaltyState = newState.Value;
+                // ReportReason 是消费者的举报内容，不应该被覆盖
+                // PenaltyReason 是管理员填写的处理原因
                 existingPenalty.PenaltyReason = request.Reason;
                 existingPenalty.SellerPenalty = request.MerchantPunishment == "-" ? null : request.MerchantPunishment;
                 existingPenalty.StorePenalty = request.StorePunishment == "-" ? null : request.StorePunishment;
 
-                if (DateTime.TryParse(request.PunishmentTime, out DateTime newPenaltyTime))
+                // 当状态变为已完成时，更新 PenaltyTime 为处罚时间
+                // 如果管理员指定了处罚时间，则使用指定的时间；否则使用当前时间
+                if (newState.Value == ViolationPenaltyState.Completed)
                 {
-                    existingPenalty.PenaltyTime = newPenaltyTime;
+                    if (DateTime.TryParse(request.PunishmentTime, out DateTime newPenaltyTime))
+                    {
+                        existingPenalty.PenaltyTime = newPenaltyTime;
+                    }
+                    else
+                    {
+                        // 如果没有指定处罚时间，使用当前时间作为处罚时间
+                        existingPenalty.PenaltyTime = DateTime.UtcNow;
+                    }
                 }
 
                 await _storeViolationPenaltyRepository.UpdateAsync(existingPenalty);
@@ -123,10 +135,10 @@ namespace BackEnd.Services
                 {
                     PunishmentId = existingPenalty.PenaltyID.ToString(),
                     StoreName = existingPenalty.Store.StoreName,
-                    Reason = existingPenalty.PenaltyReason ?? "-",
+                    Reason = existingPenalty.PenaltyReason ?? "-", // 显示管理员填写的处理原因
                     MerchantPunishment = existingPenalty.SellerPenalty ?? "-",
                     StorePunishment = existingPenalty.StorePenalty ?? "-",
-                    PunishmentTime = existingPenalty.PenaltyTime.ToString("yyyy-MM-dd HH:mm"),
+                    PunishmentTime = existingPenalty.PenaltyTime?.ToString("yyyy-MM-dd HH:mm") ?? "",
                     Status = request.Status
                 };
 

@@ -69,7 +69,10 @@ namespace BackEnd.Repositories
         {
             return await _context.Administrators
                 .Include(a => a.User)
-                .Where(a => a.ManagedEntities.Contains(managedEntity))
+                .Where(a => a.ManagedEntities == managedEntity || 
+                           a.ManagedEntities.StartsWith(managedEntity + "、") ||
+                           a.ManagedEntities.EndsWith("、" + managedEntity) ||
+                           a.ManagedEntities.Contains("、" + managedEntity + "、"))
                 .ToListAsync();
         }
 

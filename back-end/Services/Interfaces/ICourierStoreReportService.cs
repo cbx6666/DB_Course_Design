@@ -19,7 +19,7 @@ namespace BackEnd.Services.Interfaces
         /// </summary>
         /// <param name="courierId">骑手ID</param>
         /// <returns>店铺举报列表</returns>
-        Task<List<CustomerStoreReportListItemDto>> GetMyReportsAsync(int courierId);
+        Task<List<StoreReportListItemDto>> GetMyReportsAsync(int courierId);
     }
 }
 

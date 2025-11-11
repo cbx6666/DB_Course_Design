@@ -80,11 +80,14 @@ namespace BackEnd.Services
         /// </summary>
         public async Task SubmitCommentAsync(CreateCommentDto dto)
         {
-            // 检查该用户对该店铺是否已有未完成的评论
-            var existingComments = await _commentRepository.GetPendingByCommenterIdAndStoreIdAsync(dto.UserId, dto.StoreId);
-            if (existingComments.Any())
+            // 检查该订单是否已有评论（一个订单只能发起一次评论）
+            if (dto.OrderId.HasValue)
             {
-                throw new InvalidOperationException("该店铺已有未完成的评论，请等待审核完成后再提交");
+                var existingComments = await _commentRepository.GetByOrderIdAsync(dto.OrderId.Value);
+                if (existingComments.Any())
+                {
+                    throw new InvalidOperationException("该订单已有评论，一个订单只能发起一次评论");
+                }
             }
 
             var comment = new Comment

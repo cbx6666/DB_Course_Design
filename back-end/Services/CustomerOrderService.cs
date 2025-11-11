@@ -342,6 +342,7 @@ namespace BackEnd.Services
                 ActualPickupTime = task.PickupTime?.ToString("yyyy-MM-dd HH:mm:ss"),
                 EstimatedDeliveryTime = task.EstimatedDeliveryTime.ToString("yyyy-MM-dd HH:mm:ss"),
                 ActualDeliveryTime = task.CompletionTime?.ToString("yyyy-MM-dd HH:mm:ss"),
+                TaskRating = task.TaskRating,
                 Courier = courier == null ? null : new CourierSummaryDto
                 {
                     UserId = courier.UserID,

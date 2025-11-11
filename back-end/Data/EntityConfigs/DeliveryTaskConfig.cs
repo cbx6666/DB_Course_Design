@@ -43,6 +43,10 @@ namespace BackEnd.Data.EntityConfigs
                 .IsRequired()
                 .HasDefaultValue(0.00m);
 
+            builder.Property(dt => dt.TaskRating)
+                .HasColumnName("TASKRATING")
+                .IsRequired(false);
+
             // 外键配置
             builder.Property(dt => dt.CourierID).HasColumnName("COURIERID").IsRequired(false);
             builder.Property(dt => dt.OrderID).HasColumnName("ORDERID").IsRequired();

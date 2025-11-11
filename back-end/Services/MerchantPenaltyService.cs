@@ -39,7 +39,7 @@ namespace BackEnd.Services
             {
                 Id = $"PEN{p.PenaltyID}",
                 Reason = p.PenaltyReason ?? "",
-                Time = p.PenaltyTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                Time = p.PenaltyTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
                 MerchantAction = p.SellerPenalty ?? "",
                 PlatformAction = p.StorePenalty ?? ""
             }).ToList();
@@ -66,7 +66,7 @@ namespace BackEnd.Services
             {
                 Id = $"PEN{penalty.PenaltyID}",
                 Reason = penalty.PenaltyReason ?? "",
-                Time = penalty.PenaltyTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                Time = penalty.PenaltyTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
                 MerchantAction = penalty.SellerPenalty ?? "",
                 PlatformAction = penalty.StorePenalty ?? ""
             };

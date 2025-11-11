@@ -611,12 +611,12 @@
 
                                     <!-- 操作按钮 -->
                                     <div class="mt-12 pt-6 border-t border-gray-200 flex justify-center space-x-4">
-                                    <button @click="handleSaveChanges" :disabled="isSaving"
-                                        class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors cursor-pointer !rounded-button whitespace-nowrap disabled:opacity-50">
+                                    <button @click="handleSaveChanges" :disabled="!hasChanges || isSaving"
+                                        class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors cursor-pointer !rounded-button whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
                                         {{ isSaving ? '保存中...' : '保存修改' }}
                                     </button>
-                                    <button @click="resetForm" :disabled="isSaving"
-                                        class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer !rounded-button whitespace-nowrap">
+                                    <button @click="resetForm" :disabled="!hasChanges || isSaving"
+                                        class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer !rounded-button whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
                                         重置
                                     </button>
                                     </div>
@@ -1160,10 +1160,23 @@ const router = useRouter(); // 【新增】获取 router 实例
 
 // 【新增】创建一个响应式变量来存储当前管理员的信息
 const currentUser = ref<AdminInfo | null>(null);
-// 【新增】创建一个变量来备份初始数据，用于“重置”功能
-let originalAdminInfo: AdminInfo | null = null;
+// 【新增】创建一个响应式变量来备份初始数据，用于"重置"功能和修改检测
+const originalAdminInfo = ref<AdminInfo | null>(null);
 // 【新增】一个加载状态，提升用户体验
 const isSaving = ref(false);
+
+// 【新增】计算属性：检查是否有修改
+const hasChanges = computed(() => {
+    if (!currentUser.value || !originalAdminInfo.value) {
+        return false;
+    }
+    
+    return (
+        currentUser.value.username !== originalAdminInfo.value.username ||
+        currentUser.value.managementScope !== originalAdminInfo.value.managementScope ||
+        currentUser.value.gender !== originalAdminInfo.value.gender
+    );
+});
 
 
 // 静态数据
@@ -1208,7 +1221,7 @@ onMounted(async () => {
                 adminInfo.gender = genderMap[adminInfo.gender] || '男';
             }
             currentUser.value = adminInfo;
-            originalAdminInfo = JSON.parse(JSON.stringify(adminInfo)); // 深拷贝备份，用于重置
+            originalAdminInfo.value = JSON.parse(JSON.stringify(adminInfo)); // 深拷贝备份，用于重置
         } else {
             ElMessage.warning('未能获取管理员信息');
         }
@@ -1453,7 +1466,7 @@ const handleSaveChanges = async () => {
             // 这样做可以更稳定地触发视图更新
             Object.assign(currentUser.value, response.data);
 
-            originalAdminInfo = JSON.parse(JSON.stringify(response.data));
+            originalAdminInfo.value = JSON.parse(JSON.stringify(response.data));
 
             ElMessage.success('信息更新成功！');
             console.log('管理员信息已更新:', response.data);
@@ -1474,8 +1487,8 @@ const handleSaveChanges = async () => {
  * 【新增】重置表单的函数
  */
 const resetForm = () => {
-    if (originalAdminInfo) {
-        currentUser.value = JSON.parse(JSON.stringify(originalAdminInfo)); // 从备份恢复
+    if (originalAdminInfo.value) {
+        currentUser.value = JSON.parse(JSON.stringify(originalAdminInfo.value)); // 从备份恢复
         ElMessage.info('表单已重置');
     }
 };

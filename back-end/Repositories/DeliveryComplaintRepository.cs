@@ -123,6 +123,9 @@ namespace BackEnd.Repositories
             return await _context.DeliveryComplaints
                 .Include(c => c.DeliveryTask)
                     .ThenInclude(dt => dt.Order)
+                .Include(c => c.DeliveryTask)
+                    .ThenInclude(dt => dt.Courier!)
+                        .ThenInclude(courier => courier.User)
                 .Where(c => c.CustomerID == customerId)
                 .OrderByDescending(c => c.ComplaintTime)
                 .ToListAsync();

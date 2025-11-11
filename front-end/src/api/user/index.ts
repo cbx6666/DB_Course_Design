@@ -7,6 +7,8 @@ export * from './coupon';
 export * from './comment';
 export * from './report';
 export * from './account-utils';
+export * from './courier';
+export * from './deliveryComplaint';
 
 // 导出优惠券相关的API
 export { getAvailableCoupons, claimCoupon, type AvailableCoupon, type ClaimCouponResponse } from './coupon';

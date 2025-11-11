@@ -145,5 +145,18 @@ namespace BackEnd.Repositories
                     && dt.CompletionTime.Value < endDate)
                 .ToListAsync();
         }
+
+        /// <summary>
+        /// 根据骑手ID获取所有已完成的配送任务
+        /// </summary>
+        /// <param name="courierId">骑手ID</param>
+        /// <returns>配送任务列表</returns>
+        public async Task<List<DeliveryTask>> GetCompletedTasksByCourierIdAsync(int courierId)
+        {
+            return await _context.DeliveryTasks
+                .Where(dt => dt.CourierID == courierId
+                    && dt.Status == DeliveryStatus.Completed)
+                .ToListAsync();
+        }
     }
 }

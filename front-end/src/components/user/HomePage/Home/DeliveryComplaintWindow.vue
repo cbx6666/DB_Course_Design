@@ -2,12 +2,12 @@
     <div v-if="visible"
         class="fixed border-2 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 bg-white rounded-xl shadow-xl z-50">
         <!-- 标题 -->
-        <h2 class="text-xl text-left font-semibold text-gray-800 mb-4">举报店铺</h2>
+        <h2 class="text-xl text-left font-semibold text-gray-800 mb-4">配送投诉</h2>
 
         <!-- 投诉输入 -->
         <div class="mb-6">
-            <textarea v-model="storeReport" placeholder="写下您对店铺的举报内容..." rows="3"
-                class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 mb-4" />
+            <textarea v-model="complaintReason" placeholder="写下您对配送服务的投诉内容..." rows="3"
+                class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 mb-4" />
 
             <!-- 图片上传 -->
             <div class="mb-4">
@@ -19,7 +19,7 @@
                             ×
                         </button>
                     </div>
-                    <label v-if="uploadedImages.length < 5" class="w-20 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-orange-500 transition-colors">
+                    <label v-if="uploadedImages.length < 5" class="w-20 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-red-500 transition-colors">
                         <input type="file" accept="image/*" class="hidden" @change="handleImageUpload" />
                         <i class="fas fa-plus text-gray-400 text-xl"></i>
                     </label>
@@ -38,7 +38,7 @@
                 取消
             </button>
             <button
-                class="px-4 py-2 rounded-lg bg-orange-500 text-white text-sm hover:bg-orange-600 disabled:opacity-50"
+                class="px-4 py-2 rounded-lg bg-red-500 text-white text-sm hover:bg-red-600 disabled:opacity-50"
                 :disabled="submitting" @click="submit">
                 {{ submitting ? "提交中..." : "提交" }}
             </button>
@@ -50,9 +50,8 @@
 import { ref, defineProps, defineEmits } from "vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/stores/user";
-
-import type { OrderInfo } from "@/api/user";
-import { postStoreReport, uploadImage } from "@/api/user";
+import { postDeliveryComplaint } from "@/api/user/deliveryComplaint";
+import { uploadImage } from "@/api/user/home";
 import { API_CONFIG } from "@/config/index";
 
 const userStore = useUserStore();
@@ -60,13 +59,15 @@ const userId = userStore.getUserID();
 
 const props = defineProps<{
     visible: boolean;
-    order: OrderInfo;
+    orderId?: number;
+    taskId?: number;
+    courierId?: number;
 }>();
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "submitted"]);
 
 // 输入框内容
-const storeReport = ref("");
+const complaintReason = ref("");
 
 // 上传的图片URL列表
 const uploadedImages = ref<string[]>([]);
@@ -79,7 +80,7 @@ const uploadingImage = ref(false);
 function close() {
     emit("close");
     // 重置数据
-    storeReport.value = "";
+    complaintReason.value = "";
     uploadedImages.value = [];
     errorMsg.value = "";
 }
@@ -124,26 +125,19 @@ function removeImage(index: number) {
 async function submit() {
     errorMsg.value = "";
 
-    if (!storeReport.value.trim()) {
-        errorMsg.value = "请填写店铺举报内容";
+    if (!complaintReason.value.trim()) {
+        errorMsg.value = "请填写配送投诉内容";
         return;
     }
 
     submitting.value = true;
     try {
-        const storeId = props.order?.storeId;
-        if (!storeId || storeId === 0) {
-            errorMsg.value = "无法获取店铺信息，请刷新页面后重试";
-            ElMessage.error("无法获取店铺信息，请刷新页面后重试");
-            submitting.value = false;
-            return;
-        }
-
-        const content = storeReport.value.trim();
+        const content = complaintReason.value.trim();
         // 将图片URL列表转换为逗号分隔的字符串
         const imagesString = uploadedImages.value.length > 0 ? uploadedImages.value.join(',') : undefined;
-        await postStoreReport(userId, storeId, content, imagesString);
-        ElMessage.success('举报提交成功');
+        await postDeliveryComplaint(userId, props.orderId, props.taskId, content, imagesString);
+        ElMessage.success('投诉提交成功');
+        emit("submitted");
         close();
     } catch (error: any) {
         const errorMessage = error?.response?.data?.message || error?.response?.data?.Message || error?.message || '提交失败，请稍后重试';
@@ -154,3 +148,4 @@ async function submit() {
     }
 }
 </script>
+

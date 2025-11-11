@@ -23,11 +23,11 @@ namespace BackEnd.Models
         public ViolationPenaltyState ViolationPenaltyState { get; set; } = ViolationPenaltyState.Pending;
 
         /// <summary>
-        /// 处罚原因
+        /// 举报原因（消费者填写的举报内容）
         /// </summary>
         [Required]
         [StringLength(255)]
-        public string PenaltyReason { get; set; } = null!;
+        public string ReportReason { get; set; } = null!;
 
         /// <summary>
         /// 举报图片URL（多个图片用逗号分隔）
@@ -36,10 +36,15 @@ namespace BackEnd.Models
         public string? ReportImages { get; set; }
 
         /// <summary>
-        /// 处罚时间
+        /// 举报时间（消费者提交举报的时间）
         /// </summary>
         [Required]
-        public DateTime PenaltyTime { get; set; }
+        public DateTime ReportTime { get; set; }
+
+        /// <summary>
+        /// 处罚时间（管理员处理完成时设置）
+        /// </summary>
+        public DateTime? PenaltyTime { get; set; }
 
         /// <summary>
         /// 商家处罚
@@ -52,6 +57,12 @@ namespace BackEnd.Models
         /// </summary>
         [StringLength(50)]
         public string? StorePenalty { get; set; }
+
+        /// <summary>
+        /// 处罚原因（管理员填写的处理原因）
+        /// </summary>
+        [StringLength(255)]
+        public string? PenaltyReason { get; set; }
 
         /// <summary>
         /// 店铺ID（外键）

@@ -154,6 +154,9 @@ builder.Services.AddScoped<IMerchantStoreService, MerchantStoreService>();
 builder.Services.AddScoped<IMerchantDeliveryTaskService, MerchantDeliveryTaskService>();
 builder.Services.AddScoped<ICourierDeliveryTaskService, CourierDeliveryTaskService>();
 
+// ========== 骑手评分服务 ==========
+builder.Services.AddScoped<ICourierRatingService, CourierRatingService>();
+
 // ========== 其他服务 ==========
 builder.Services.AddScoped<IGeoHelper, GeoHelper>();
 builder.Services.AddScoped<IMenuService, MenuService>();

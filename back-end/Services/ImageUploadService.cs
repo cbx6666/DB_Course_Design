@@ -65,26 +65,55 @@ namespace BackEnd.Services
             var baseFolder = string.IsNullOrWhiteSpace(basePath) ? "images" : basePath;
             var folderName = string.IsNullOrWhiteSpace(subFolder) ? "uploads" : subFolder;
             
+            // 获取 wwwroot 路径（WebRootPath 已经指向 wwwroot 目录）
+            var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
+            
             // 构建完整路径
             var fullPath = baseFolder == "avatars" 
-                ? Path.Combine(_env.WebRootPath ?? _env.ContentRootPath, "avatars")
-                : Path.Combine(_env.WebRootPath ?? _env.ContentRootPath, baseFolder, folderName);
+                ? Path.Combine(webRoot, "avatars")
+                : Path.Combine(webRoot, baseFolder, folderName);
             
             // 创建目录（如果不存在）
             if (!Directory.Exists(fullPath))
             {
-                Directory.CreateDirectory(fullPath);
+                try
+                {
+                    Directory.CreateDirectory(fullPath);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"无法创建目录 {fullPath}: {ex.Message}", ex);
+                }
             }
 
             // 生成唯一文件名
             var fileExtension = Path.GetExtension(imageFile.FileName);
+            if (string.IsNullOrEmpty(fileExtension))
+            {
+                fileExtension = ".jpg"; // 默认扩展名
+            }
             var fileName = $"{Guid.NewGuid()}{fileExtension}";
             var filePath = Path.Combine(fullPath, fileName);
 
             // 保存文件
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            try
             {
-                await imageFile.CopyToAsync(stream);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await imageFile.CopyToAsync(stream);
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                throw new Exception($"没有权限保存文件: {ex.Message}", ex);
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                throw new Exception($"目录不存在: {fullPath}", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"保存文件失败: {ex.Message}", ex);
             }
 
             // 返回图片相对URL

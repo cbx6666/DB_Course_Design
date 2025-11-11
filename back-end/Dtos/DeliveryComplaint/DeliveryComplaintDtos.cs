@@ -93,6 +93,31 @@ namespace BackEnd.DTOs.DeliveryComplaint
         /// 处理原因
         /// </summary>
         public string? ProcessingReason { get; set; }
+
+        /// <summary>
+        /// 骑手姓名
+        /// </summary>
+        public string? CourierName { get; set; }
+
+        /// <summary>
+        /// 骑手电话
+        /// </summary>
+        public string? CourierPhone { get; set; }
+
+        /// <summary>
+        /// 接单时间
+        /// </summary>
+        public DateTime? AcceptTime { get; set; }
+
+        /// <summary>
+        /// 实际到店时间
+        /// </summary>
+        public DateTime? PickupTime { get; set; }
+
+        /// <summary>
+        /// 实际送达时间
+        /// </summary>
+        public DateTime? CompletionTime { get; set; }
     }
 
     // ========== 骑手侧 ==========

@@ -21,11 +21,16 @@ export async function saveAccountInfo(data: AccountUpdateData) {
     const formData = new FormData();
     formData.append('Id', data.id.toString());
     formData.append('Name', data.name);
-    formData.append('AvatarFile', data.avatarFile);
+    // 只有当文件存在且大小大于0时才添加头像文件
+    if (data.avatarFile && data.avatarFile.size > 0) {
+        formData.append('AvatarFile', data.avatarFile);
+    }
 
-    return API.put('/customer/info/profile/account/update', formData, {
+    const response = await API.put('/customer/info/profile/account/update', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
     });
+    
+    return response.data;
 }

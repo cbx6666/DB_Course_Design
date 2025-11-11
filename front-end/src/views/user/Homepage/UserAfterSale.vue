@@ -134,6 +134,14 @@
           <div class="mb-4">
             <p class="text-gray-700">{{ item.complaintReason }}</p>
           </div>
+          <!-- 配送信息板块 -->
+          <div class="mb-4 p-3 bg-gray-50 rounded-lg space-y-2">
+            <p class="text-sm text-gray-600">骑手：<span class="font-medium text-gray-800">{{ item.courierName || '-' }}</span></p>
+            <p class="text-sm text-gray-600">骑手电话：<span class="font-medium text-gray-800">{{ item.courierPhone || '-' }}</span></p>
+            <p class="text-sm text-gray-600">接单时间：<span class="font-medium text-gray-800">{{ item.acceptTime ? formatDateTime(item.acceptTime) : '-' }}</span></p>
+            <p class="text-sm text-gray-600">实际到店时间：<span class="font-medium text-gray-800">{{ item.pickupTime ? formatDateTime(item.pickupTime) : '-' }}</span></p>
+            <p class="text-sm text-gray-600">实际送达时间：<span class="font-medium text-gray-800">{{ item.completionTime ? formatDateTime(item.completionTime) : '-' }}</span></p>
+          </div>
           <div v-if="item.images && item.images.length > 0" class="mb-4 flex flex-wrap gap-2">
             <img
               v-for="(image, idx) in item.images"
@@ -196,15 +204,19 @@
               @click="previewImage(image)"
             />
           </div>
-          <div v-if="item.merchantPunishment || item.storePunishment || item.processingReason || item.status === 'Completed'" class="mt-4 p-3 bg-gray-50 rounded-lg space-y-2">
-            <p v-if="item.merchantPunishment" class="text-sm text-gray-600">
-              <span class="font-medium">商家处罚：</span>{{ item.merchantPunishment }}
-            </p>
-            <p v-if="item.storePunishment" class="text-sm text-gray-600">
-              <span class="font-medium">店铺处罚：</span>{{ item.storePunishment }}
+          <!-- 处罚信息 -->
+          <div class="mt-4 p-3 bg-gray-50 rounded-lg space-y-2">
+            <p class="text-sm text-gray-600">
+              <span class="font-medium">店铺处罚：</span>{{ item.storePunishment || '-' }}
             </p>
             <p class="text-sm text-gray-600">
-              <span class="font-medium">处理原因：</span>{{ item.processingReason || '-' }}
+              <span class="font-medium">商家处罚：</span>{{ item.merchantPunishment || '-' }}
+            </p>
+            <p class="text-sm text-gray-600">
+              <span class="font-medium">处罚时间：</span>{{ item.penaltyTime ? formatDateTime(item.penaltyTime) : '-' }}
+            </p>
+            <p v-if="item.processingReason" class="text-sm text-gray-600">
+              <span class="font-medium">处理原因：</span>{{ item.processingReason }}
             </p>
           </div>
         </div>
@@ -221,7 +233,7 @@
           :key="item.commentId"
           :class="[
             'bg-white rounded-lg shadow-md border-l-4 p-6 text-left hover:shadow-lg transition-all duration-200 mb-4',
-            item.status === 'Pending' ? 'border-blue-500' : item.status === 'Completed' ? 'border-green-500' : 'border-gray-400'
+            item.status === 'Pending' ? 'border-yellow-500' : item.status === 'Completed' ? 'border-green-500' : item.status === 'Illegal' ? 'border-red-500' : 'border-gray-400'
           ]"
         >
           <div class="flex justify-between items-start mb-4 pb-4 border-b border-gray-200">
@@ -260,26 +272,31 @@
               @click="previewImage(image)"
             />
           </div>
-          <!-- 菜品信息 -->
-          <div v-if="item.dishDetails && item.dishDetails.length > 0" class="mt-4 p-4 bg-gray-50 rounded-lg">
-            <h4 class="font-medium text-gray-800 mb-3">订单菜品</h4>
-            <div class="space-y-2">
-              <div
-                v-for="(dish, idx) in item.dishDetails"
-                :key="idx"
-                class="flex items-center space-x-3 p-2 bg-white rounded"
-              >
-                <img
-                  :src="normalizeImageUrl(dish.dishImage)"
-                  :alt="dish.dishName"
-                  class="w-12 h-12 object-cover rounded border border-gray-200"
-                  @error="handleImageError"
-                />
-                <div class="flex-1">
-                  <p class="text-sm font-medium text-gray-800">{{ dish.dishName }}</p>
-                  <p class="text-xs text-gray-600">¥{{ dish.price.toFixed(2) }} × {{ dish.quantity }}</p>
+          <!-- 订单菜品列表 -->
+          <div v-if="item.dishDetails && item.dishDetails.length > 0" class="mb-4">
+            <h4 class="text-sm font-semibold text-gray-700 mb-2">订单菜品：</h4>
+            <div class="bg-gray-50 rounded-lg p-3">
+              <div class="space-y-2">
+                <div
+                  v-for="(dish, dishIdx) in item.dishDetails"
+                  :key="dishIdx"
+                  class="flex items-center gap-3 py-2 border-b border-gray-200 last:border-b-0"
+                >
+                  <img
+                    :src="normalizeImageUrl(dish.dishImage)"
+                    :alt="dish.dishName"
+                    class="w-16 h-16 object-cover rounded border border-gray-300"
+                    @error="handleImageError"
+                  />
+                  <div class="flex-1">
+                    <p class="font-medium text-gray-800">{{ dish.dishName }}</p>
+                    <p class="text-sm text-gray-600">单价：¥{{ dish.price.toFixed(2) }}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="font-medium text-gray-800">×{{ dish.quantity }}</p>
+                    <p class="text-sm text-gray-600">小计：¥{{ (dish.price * dish.quantity).toFixed(2) }}</p>
+                  </div>
                 </div>
-                <p class="text-sm font-medium text-gray-800">¥{{ (dish.price * dish.quantity).toFixed(2) }}</p>
               </div>
             </div>
           </div>
@@ -339,6 +356,7 @@ const loadData = async () => {
         break;
       case 'report':
         reports.value = await getMyStoreReports();
+        console.log('店铺举报数据:', reports.value);
         break;
       case 'comment':
         comments.value = await getMyComments();
@@ -380,7 +398,7 @@ const getStatusClass = (status: string) => {
     'Processing': 'bg-blue-100 text-blue-700',
     'Approved': 'bg-green-100 text-green-700',
     'Rejected': 'bg-red-100 text-red-700',
-    'Completed': 'bg-gray-100 text-gray-700',
+    'Completed': 'bg-green-100 text-green-700',
     'Illegal': 'bg-red-100 text-red-700'
   };
   return classMap[status] || 'bg-gray-100 text-gray-700';

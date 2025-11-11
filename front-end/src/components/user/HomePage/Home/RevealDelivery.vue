@@ -17,7 +17,7 @@
             配送任务ID: {{ deliveryInfo?.taskId || deliveryInfo?.TaskId || '-' }}
           </div>
         </div>
-        <button @click="close" class="btn-icon text-gray-400 hover:text-gray-600 ml-4">
+        <button @click="close" class="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600 ml-4">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
@@ -52,6 +52,18 @@
               >
                 {{ deliveryStatusMap[String(deliveryInfo?.status ?? -1)]?.label || '未知状态' }}
               </span>
+            </div>
+            <!-- 配送打分（仅已完成时显示） -->
+            <div v-if="deliveryInfo?.status === 3" class="mt-3 text-left">
+              <div class="flex items-center text-gray-700">
+                <span class="font-medium mr-2 text-left">配送打分：</span>
+                <span v-if="deliveryInfo?.taskRating" class="text-left flex items-center">
+                  <span class="text-yellow-400">
+                    <i v-for="i in 5" :key="i" :class="i <= deliveryInfo.taskRating ? 'fas fa-star' : 'far fa-star text-gray-300'"></i>
+                  </span>
+                </span>
+                <span v-else class="text-gray-500">未打分</span>
+              </div>
             </div>
           </div>
 
@@ -161,29 +173,104 @@
       </div>
 
       <!-- 底部按钮 -->
-      <div class="p-4 border-t border-gray-200 flex justify-end">
-        <button @click="close" class="btn-outline btn-medium">关闭</button>
+      <div class="p-4 border-t border-gray-200">
+        <!-- 左下方三个按钮 -->
+        <div v-if="deliveryInfo?.courier" class="flex gap-3 mb-4">
+          <button 
+            @click="openContactRider"
+            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm transition-colors cursor-pointer flex items-center gap-2">
+            <i class="fas fa-comments"></i>
+            <span>联系骑手</span>
+          </button>
+          <button 
+            @click="openRateCourier"
+            :disabled="hasRatedCourier"
+            :class="{
+              'bg-gray-300 cursor-not-allowed': hasRatedCourier,
+              'bg-yellow-500 hover:bg-yellow-600 cursor-pointer': !hasRatedCourier
+            }"
+            class="px-4 py-2 text-white rounded-lg text-sm transition-colors flex items-center gap-2">
+            <i class="fas fa-star"></i>
+            <span>骑手打分</span>
+          </button>
+          <button 
+            @click="openDeliveryComplaint"
+            class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm transition-colors cursor-pointer flex items-center gap-2">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>配送投诉</span>
+          </button>
+        </div>
+        <!-- 右侧关闭按钮 -->
+        <div class="flex justify-end">
+          <button @click="close" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium">关闭</button>
+        </div>
       </div>
     </div>
+
+    <!-- 联系骑手对话框 -->
+    <ReplyDialog 
+      :model-value="showContactRider"
+      @update:model-value="showContactRider = $event"
+      title="联系骑手" 
+      identity="user"
+      :chat-messages="riderChatMessages" 
+      :quick-phrases="['您好，请问配送进度如何？', '请稍等一下']"
+      :emojis="['😊', '👍', '❤️', '🎉']" 
+      @submit="handleRiderReply" />
+
+    <!-- 骑手打分对话框 -->
+    <CourierRatingWindow
+      v-if="deliveryInfo?.courier"
+      :visible="showRateCourier"
+      :courier-id="deliveryInfo.courier.userId || deliveryInfo.courier.userID"
+      :order-id="props.order?.orderId"
+      :task-id="deliveryInfo?.taskId || deliveryInfo?.TaskId"
+      @close="showRateCourier = false"
+      @rated="handleCourierRated" />
+
+    <!-- 配送投诉对话框 -->
+    <DeliveryComplaintWindow
+      v-if="deliveryInfo?.courier"
+      :visible="showDeliveryComplaint"
+      :order-id="props.order?.orderId"
+      :task-id="deliveryInfo?.taskId || deliveryInfo?.TaskId"
+      :courier-id="deliveryInfo.courier.userId || deliveryInfo.courier.userID"
+      @close="showDeliveryComplaint = false"
+      @submitted="handleComplaintSubmitted" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, defineProps, defineEmits } from "vue";
+import { ref, watch, defineProps, defineEmits, computed } from "vue";
 import type { OrderInfo } from "@/api/user";
 import { getOrderDeliveryInfo } from "@/api/user/home";
 import { ElMessage } from "element-plus";
+import ReplyDialog from "./ReplyDialog.vue";
+import CourierRatingWindow from "./CourierRatingWindow.vue";
+import DeliveryComplaintWindow from "./DeliveryComplaintWindow.vue";
 
 const props = defineProps<{ 
     visible: boolean;
     order?: OrderInfo;
 }>();
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "contactRider", "rateCourier", "deliveryComplaint"]);
 
 const loading = ref(false);
 const error = ref<string | null>(null);
 const deliveryInfo = ref<any>(null);
+
+// 对话框状态
+const showContactRider = ref(false);
+const showRateCourier = ref(false);
+const showDeliveryComplaint = ref(false);
+const hasRatedCourier = ref(false); // 是否已评分
+
+// 联系骑手聊天记录（模拟数据）
+const riderChatMessages = ref([
+  { sender: "rider", content: "您好，我是配送骑手，正在为您配送订单", time: "10:30" },
+  { sender: "user", content: "好的，谢谢", time: "10:32" }
+]);
 
 // 配送状态映射
 const deliveryStatusMap: Record<string, { label: string; colorClass: string }> = {
@@ -212,6 +299,86 @@ function close() {
   emit("close");
 }
 
+// 打开联系骑手对话框
+function openContactRider() {
+  showContactRider.value = true;
+}
+
+// 处理骑手回复
+function handleRiderReply(content: string) {
+  const now = new Date();
+  const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  riderChatMessages.value.push({
+    sender: "user",
+    content: content,
+    time: timeStr
+  });
+  // 模拟骑手自动回复
+  setTimeout(() => {
+    riderChatMessages.value.push({
+      sender: "rider",
+      content: "收到，我会尽快处理",
+      time: timeStr
+    });
+  }, 1000);
+  showContactRider.value = false;
+}
+
+// 打开骑手打分对话框
+function openRateCourier() {
+  if (hasRatedCourier.value) {
+    ElMessage.warning("您已经为该骑手打过分了");
+    return;
+  }
+  showRateCourier.value = true;
+}
+
+// 打开配送投诉对话框
+function openDeliveryComplaint() {
+  showDeliveryComplaint.value = true;
+}
+
+// 重新获取配送信息
+async function refreshDeliveryInfo() {
+  if (!props.order) return;
+  
+  try {
+    loading.value = true;
+    const response = await getOrderDeliveryInfo(props.order.orderId);
+    
+    // 检查返回的配送信息是否有效
+    if (!response || (!response.taskId && !response.TaskId)) {
+      return;
+    }
+    
+    deliveryInfo.value = {
+      ...response,
+      order: response.order || props.order
+    };
+    
+    // 检查是否已评分
+    if (response.taskRating !== undefined && response.taskRating !== null) {
+      hasRatedCourier.value = true;
+    }
+  } catch (err: any) {
+    console.error('刷新配送信息失败:', err);
+  } finally {
+    loading.value = false;
+  }
+}
+
+// 处理骑手评分完成
+async function handleCourierRated() {
+  hasRatedCourier.value = true;
+  showRateCourier.value = false;
+  await refreshDeliveryInfo();
+}
+
+// 处理配送投诉完成
+function handleComplaintSubmitted() {
+  showDeliveryComplaint.value = false;
+}
+
 // 监听弹窗打开，获取配送信息
 watch(
   () => props.visible,
@@ -220,6 +387,7 @@ watch(
       loading.value = true;
       error.value = null;
       deliveryInfo.value = null;
+      hasRatedCourier.value = false; // 重置评分状态
       
       try {
         const response = await getOrderDeliveryInfo(props.order.orderId);
@@ -241,6 +409,11 @@ watch(
           order: response.order || props.order
         };
         
+        // 检查是否已评分（如果配送任务有 taskRating 字段）
+        if (response.taskRating !== undefined && response.taskRating !== null) {
+          hasRatedCourier.value = true;
+        }
+        
         // 调试：打印最终的 deliveryInfo
         console.log('最终的 deliveryInfo:', deliveryInfo.value);
         console.log('deliveryInfo.order:', deliveryInfo.value.order);
@@ -255,17 +428,3 @@ watch(
   }
 );
 </script>
-
-<style scoped>
-.btn-outline {
-  @apply px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors;
-}
-
-.btn-medium {
-  @apply text-sm font-medium;
-}
-
-.btn-icon {
-  @apply p-2 rounded-lg hover:bg-gray-100 transition-colors;
-}
-</style>

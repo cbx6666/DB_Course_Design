@@ -63,12 +63,13 @@
 
 <script setup lang="ts">
 import { reactive, defineProps, defineEmits, ref, watch, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 
 import type { AccountInfo, AccountUpdateData } from '@/api/user';
-import { saveAccountInfo } from '@/api/user';
+import { saveAccountInfo, getAccountInfo } from '@/api/user';
 import { useUserStore } from '@/stores/user';
-import { getAccountInfo } from '@/api/user';
-import { handleImageError } from '@/utils/errorHandler';
+import { handleImageError } from '@/utils/imageUtils';
+import { API_CONFIG } from '@/config';
 
 const userStore = useUserStore();
 const userID = userStore.getUserID();
@@ -102,10 +103,10 @@ onMounted(async () => {
         accountInfo.value = result;
         // 确保头像URL是完整的URL
         if (result.avatar && !result.avatar.startsWith('http') && !result.avatar.startsWith('data:')) {
-            result.avatar = `http://localhost:5250${result.avatar}`;
+            result.avatar = `${API_CONFIG.BASE_URL}${result.avatar}`;
         }
     } catch (error) {
-        console.error('获取账户信息失败:', error);
+        // 静默处理错误
     }
 });
 
@@ -116,7 +117,7 @@ watch(
             formData.name = accountInfo.value.name;
             // 确保头像URL是完整的URL
             formData.avatar = accountInfo.value.avatar && !accountInfo.value.avatar.startsWith('http') && !accountInfo.value.avatar.startsWith('data:')
-                ? `http://localhost:5250${accountInfo.value.avatar}`
+                ? `${API_CONFIG.BASE_URL}${accountInfo.value.avatar}`
                 : accountInfo.value.avatar;
         }
     },
@@ -137,20 +138,24 @@ function closeForm() {
 // 保存修改
 async function saveAccount() {
     try {
-        if (!selectedFile.value) {
-            alert('请选择头像文件');
+        // 验证姓名
+        if (!formData.name || formData.name.trim() === '') {
+            ElMessage.error('请输入姓名');
             return;
         }
 
         const updateData: AccountUpdateData = {
             id: formData.id,
-            name: formData.name,
-            avatarFile: selectedFile.value
+            name: formData.name.trim(),
+            avatarFile: selectedFile.value! // 后端会检查文件是否存在
         };
 
         const result = await saveAccountInfo(updateData);
         
-        if (result) {
+        // 检查响应中的 success 字段
+        if (result && result.success) {
+            ElMessage.success('账户信息更新成功');
+            
             // 重新获取用户信息来获取正确的头像URL
             try {
                 const updatedInfo = await getAccountInfo();
@@ -158,20 +163,23 @@ async function saveAccount() {
                 // 确保头像URL是完整的URL
                 formData.avatar = updatedInfo.avatar.startsWith('http') 
                     ? updatedInfo.avatar 
-                    : `http://localhost:5250${updatedInfo.avatar}`;
+                    : `${API_CONFIG.BASE_URL}${updatedInfo.avatar}`;
             } catch (error) {
-                console.error('获取更新后的用户信息失败:', error);
+                // 静默处理错误
             }
 
             emit('update:account', { ...formData })
             closeForm()
         }
         else {
-            alert('保存失败')
+            // 显示后端返回的错误信息
+            const errorMessage = result?.message || '保存失败，请重试';
+            ElMessage.error(errorMessage);
         }
-    } catch (err) {
-        console.error(err)
-        alert('更新账户信息时出错')
+    } catch (err: any) {
+        // 提取错误信息
+        const errorMessage = err?.response?.data?.message || err?.response?.data?.Message || err?.message || '更新账户信息时出错，请重试';
+        ElMessage.error(errorMessage);
     }
 }
 

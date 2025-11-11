@@ -4,6 +4,7 @@ using BackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace BackEnd.Controllers
 {
@@ -38,7 +39,11 @@ namespace BackEnd.Controllers
             try
             {
                 if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    var errorMessage = errors.Any() ? string.Join("; ", errors) : "数据验证失败";
+                    return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = errorMessage });
+                }
 
                 var userId = GetUserIdFromToken();
                 if (userId == null)
@@ -56,9 +61,17 @@ namespace BackEnd.Controllers
             {
                 return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
             }
-            catch (Exception)
+            catch (InvalidOperationException ex)
             {
-                return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = "提交投诉时发生错误" });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponseDto { Success = false, Code = 500, Message = $"提交投诉时发生错误: {ex.Message}" });
             }
         }
 

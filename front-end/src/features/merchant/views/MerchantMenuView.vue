@@ -39,7 +39,7 @@
           </el-button>
         </div>
 
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           <div
             v-for="menu in menus"
             :key="menu.id"
@@ -124,7 +124,7 @@
           </el-button>
         </div>
 
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
           <div
             v-for="category in dishCategories"
             :key="category.categoryID"
@@ -192,13 +192,13 @@
           </el-button>
         </div>
 
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           <div
             v-for="dish in dishes"
             :key="dish.dishId"
-            class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+            class="border border-gray-200 rounded-lg p-3 hover:shadow-lg transition-all bg-white"
           >
-            <div class="aspect-w-16 aspect-h-9 mb-3">
+            <div class="mb-2">
               <div class="w-full h-32 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border border-gray-200">
                 <img 
                   v-if="dish.image && dish.image.trim() !== ''" 
@@ -207,37 +207,39 @@
                   class="w-full h-full object-contain bg-white dish-image"
                   @error="handleDishImageError"
                 />
-                <el-icon v-else class="text-4xl text-gray-400">
+                <el-icon v-else class="text-2xl text-gray-400">
                   <Picture />
                 </el-icon>
               </div>
             </div>
             
-            <h4 class="font-semibold text-gray-800 mb-1">{{ dish.dishName }}</h4>
-            <p class="text-sm text-gray-600 mb-2 line-clamp-2">{{ dish.description }}</p>
+            <h4 class="font-semibold text-gray-800 mb-1 text-sm line-clamp-1">{{ dish.dishName }}</h4>
+            <p class="text-xs text-gray-500 mb-2 line-clamp-1">{{ dish.description }}</p>
             
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-lg font-bold text-[#F9771C]">¥{{ dish.price }}</span>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-base font-bold text-[#F9771C]">¥{{ dish.price }}</span>
               <el-tag 
                 :type="dish.isSoldOut === 0 ? 'danger' : 'success'" 
                 size="small"
+                effect="plain"
               >
                 {{ dish.isSoldOut === 0 ? '售罄' : '在售' }}
               </el-tag>
             </div>
 
-            <div class="flex items-center justify-end space-x-2">
-              <el-button @click="editDish(dish)" size="small">
+            <div class="flex items-center justify-end gap-1 flex-wrap">
+              <el-button @click="editDish(dish)" size="small" type="primary" plain>
                 编辑
               </el-button>
               <el-button 
                 @click="toggleDishStatusHandler(dish)" 
                 :type="dish.isSoldOut === 0 ? 'success' : 'warning'"
                 size="small"
+                plain
               >
                 {{ dish.isSoldOut === 0 ? '上架' : '下架' }}
               </el-button>
-              <el-button @click="deleteDishHandler(dish)" type="danger" size="small">
+              <el-button @click="deleteDishHandler(dish)" type="danger" size="small" plain>
                 删除
               </el-button>
             </div>
@@ -301,10 +303,10 @@
       </template>
     </el-dialog>
 
-    <!-- 新建菜品弹窗 -->
+    <!-- 新建/编辑菜品弹窗 -->
     <el-dialog
       v-model="showCreateDishDialog"
-      title="添加菜品"
+      :title="editingDishId ? '编辑菜品' : '添加菜品'"
       width="600px"
       @close="closeCreateDishDialog"
     >
@@ -333,25 +335,34 @@
         </el-form-item>
 
         <el-form-item label="菜品图片">
-          <el-upload
-            class="avatar-uploader"
-            :show-file-list="false"
-            :before-upload="beforeImageUpload"
-            :http-request="uploadImage"
-            :on-success="handleUploadSuccess"
-            :on-error="handleUploadError"
-          >
-            <img v-if="dishForm.image && dishForm.image.trim() !== ''" :src="getFullImageUrl(dishForm.image)" class="avatar" @error="handleImageError" />
-            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
-          </el-upload>
+          <div class="relative">
+            <el-upload
+              class="avatar-uploader"
+              :show-file-list="false"
+              :before-upload="beforeImageUpload"
+              :http-request="uploadImage"
+            >
+              <div v-if="dishForm.image && dishForm.image.trim() !== ''" class="avatar-container">
+                <img :src="getFullImageUrl(dishForm.image)" class="avatar" @error="handleImageError" />
+                <div class="avatar-overlay">
+                  <el-icon class="avatar-overlay-icon"><Plus /></el-icon>
+                  <span class="avatar-overlay-text">点击更换图片</span>
+                </div>
+              </div>
+              <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+            </el-upload>
+            <div class="absolute bottom-0 left-0">
+              <p class="text-xs text-white bg-black bg-opacity-50 px-2 py-1 rounded">支持 JPG/PNG 格式，大小不超过 2MB</p>
+            </div>
+          </div>
         </el-form-item>
       </el-form>
 
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="closeCreateDishDialog">取消</el-button>
-          <el-button type="primary" @click="createDishHandler" :loading="creatingDish">
-            添加
+          <el-button type="primary" @click="saveDishHandler" :loading="creatingDish || editingDish">
+            {{ editingDishId ? '保存' : '添加' }}
           </el-button>
         </div>
       </template>
@@ -424,6 +435,7 @@ const dishesLoading = ref(false);
 const creatingMenu = ref(false);
 const creatingCategory = ref(false);
 const creatingDish = ref(false);
+const editingDish = ref(false);
 const deletingMenu = ref(false);
 const deletingCategory = ref(false);
 
@@ -431,6 +443,7 @@ const deletingCategory = ref(false);
 const showCreateMenuDialog = ref(false);
 const showCreateCategoryDialog = ref(false);
 const showCreateDishDialog = ref(false);
+const editingDishId = ref<number | null>(null);
 
 // 菜单表单
 const menuForm = ref({
@@ -659,6 +672,7 @@ const openCreateDishDialog = () => {
     return;
   }
   
+  editingDishId.value = null;
   dishForm.value = {
     name: '',
     description: '',
@@ -668,15 +682,26 @@ const openCreateDishDialog = () => {
   showCreateDishDialog.value = true;
 };
 
-// 关闭新建菜品弹窗
+// 关闭新建/编辑菜品弹窗
 const closeCreateDishDialog = () => {
   showCreateDishDialog.value = false;
+  editingDishId.value = null;
+  dishForm.value = {
+    name: '',
+    description: '',
+    price: 0,
+    image: ''
+  };
 };
 
-// 创建菜品
-const createDishHandler = async () => {
+// 保存菜品（创建或编辑）
+const saveDishHandler = async () => {
   try {
-    creatingDish.value = true;
+    if (editingDishId.value) {
+      editingDish.value = true;
+    } else {
+      creatingDish.value = true;
+    }
     
     if (!selectedMenu.value || !selectedCategory.value) {
       ElMessage.error('请先选择一个菜单和菜品种类');
@@ -691,29 +716,63 @@ const createDishHandler = async () => {
     
     const sellerId = merchantInfo.value.sellerId;
     
-    const dishData: NewDishData = {
-      dishName: dishForm.value.name,
-      description: dishForm.value.description,
-      price: dishForm.value.price,
-      isSoldOut: 2, // 默认在售
-      categoryId: selectedCategory.value.categoryID,
-      image: dishForm.value.image
-    };
-    
-    await createDish(dishData, sellerId);
-    ElMessage.success('菜品添加成功');
-    closeCreateDishDialog();
-    await loadDishes();
+    if (editingDishId.value) {
+      // 编辑菜品
+      const dishData = {
+        dishName: dishForm.value.name,
+        description: dishForm.value.description,
+        price: dishForm.value.price,
+        image: dishForm.value.image
+      };
+      
+      await updateDish(editingDishId.value, dishData, sellerId);
+      ElMessage.success('菜品更新成功');
+      closeCreateDishDialog();
+      await loadDishes();
+    } else {
+      // 创建菜品
+      const dishData: NewDishData = {
+        dishName: dishForm.value.name,
+        description: dishForm.value.description,
+        price: dishForm.value.price,
+        isSoldOut: 2, // 默认在售
+        categoryId: selectedCategory.value.categoryID,
+        image: dishForm.value.image
+      };
+      
+      await createDish(dishData, sellerId);
+      ElMessage.success('菜品添加成功');
+      closeCreateDishDialog();
+      await loadDishes();
+    }
   } catch (error) {
-    ElMessage.error('添加菜品失败，请重试');
+    ElMessage.error(editingDishId.value ? '更新菜品失败，请重试' : '添加菜品失败，请重试');
   } finally {
     creatingDish.value = false;
+    editingDish.value = false;
   }
 };
 
 // 编辑菜品
 const editDish = (dish: Dish) => {
-  ElMessage.info('编辑菜品功能开发中...');
+  if (!selectedMenu.value) {
+    ElMessage.warning('请先选择一个菜单');
+    return;
+  }
+  
+  if (!selectedCategory.value) {
+    ElMessage.warning('请先选择一个菜品种类');
+    return;
+  }
+  
+  editingDishId.value = dish.dishId;
+  dishForm.value = {
+    name: dish.dishName,
+    description: dish.description,
+    price: dish.price,
+    image: dish.image || ''
+  };
+  showCreateDishDialog.value = true;
 };
 
 // 设置激活菜单
@@ -882,17 +941,20 @@ const uploadImage = async (options: any) => {
     
     const imageUrl = await uploadDishImage(file);
     dishForm.value.image = imageUrl;
+    ElMessage.success('图片上传成功');
   } catch (error: any) {
     ElMessage.error(`图片上传失败: ${error.message}`);
     throw error;
   }
 };
 
+
 // 处理图片加载错误
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement;
   console.error('图片加载失败:', img.src);
-  img.src = 'https://via.placeholder.com/300x200?text=Image+Error';
+  // 隐藏图片，让占位符显示
+  img.style.display = 'none';
 };
 
 // 处理菜品图片加载错误
@@ -901,18 +963,6 @@ const handleDishImageError = (event: Event) => {
   console.error('菜品图片加载失败:', img.src);
   // 隐藏图片，显示占位符
   img.style.display = 'none';
-};
-
-// 处理上传成功
-const handleUploadSuccess = (response: any, file: any) => {
-  console.log('上传成功回调:', response, file);
-  ElMessage.success('图片上传成功');
-};
-
-// 处理上传失败
-const handleUploadError = (error: any, file: any) => {
-  console.error('上传失败回调:', error, file);
-  ElMessage.error('图片上传失败，请重试');
 };
 
 // 格式化日期
@@ -957,6 +1007,46 @@ onMounted(() => {
   object-fit: contain;
   background-color: white;
   border-radius: 6px;
+}
+
+.avatar-container {
+  position: relative;
+  width: 178px;
+  height: 178px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid #d9d9d9;
+}
+
+.avatar-container:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+  color: white;
+}
+
+.avatar-overlay-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.avatar-overlay-text {
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .avatar-uploader-icon {

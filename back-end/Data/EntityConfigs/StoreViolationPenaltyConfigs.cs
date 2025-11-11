@@ -31,11 +31,13 @@ namespace BackEnd.Data.EntityConfigs
                 .HasDefaultValue(ViolationPenaltyState.Pending);
 
             // 基础属性配置
-            builder.Property(svp => svp.PenaltyReason).HasColumnName("PENALTYREASON").IsRequired().HasMaxLength(255);
+            builder.Property(svp => svp.ReportReason).HasColumnName("REPORTREASON").IsRequired().HasMaxLength(255);
             builder.Property(svp => svp.ReportImages).HasColumnName("REPORTIMAGES").IsRequired(false).HasMaxLength(1000);
-            builder.Property(svp => svp.PenaltyTime).HasColumnName("PENALTYTIME").IsRequired();
+            builder.Property(svp => svp.ReportTime).HasColumnName("REPORTTIME").IsRequired();
+            builder.Property(svp => svp.PenaltyTime).HasColumnName("PENALTYTIME").IsRequired(false);
             builder.Property(svp => svp.SellerPenalty).HasColumnName("SELLERPENALTY").HasMaxLength(50);
             builder.Property(svp => svp.StorePenalty).HasColumnName("STOREPENALTY").HasMaxLength(50);
+            builder.Property(svp => svp.PenaltyReason).HasColumnName("PENALTYREASON").IsRequired(false).HasMaxLength(255);
 
             // 外键配置
             builder.Property(svp => svp.StoreID).HasColumnName("STOREID").IsRequired();

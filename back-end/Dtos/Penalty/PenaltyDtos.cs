@@ -36,9 +36,9 @@ namespace BackEnd.DTOs.Penalty
     }
 
     /// <summary>
-    /// 用户店铺举报列表项DTO（消费者端查看自己的举报）
+    /// 店铺举报列表项DTO（消费者和骑手共用）
     /// </summary>
-    public class CustomerStoreReportListItemDto
+    public class StoreReportListItemDto
     {
         /// <summary>
         /// 处罚ID（举报记录ID）
@@ -89,6 +89,11 @@ namespace BackEnd.DTOs.Penalty
         /// 处理原因（管理员填写的处罚原因，当状态为已完成时，PenaltyReason 就是处理原因）
         /// </summary>
         public string? ProcessingReason { get; set; }
+
+        /// <summary>
+        /// 处罚时间
+        /// </summary>
+        public DateTime? PenaltyTime { get; set; }
     }
 
     // ========== 商家查看 ==========

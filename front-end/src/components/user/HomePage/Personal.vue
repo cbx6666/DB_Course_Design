@@ -118,13 +118,21 @@ async function loadUserInfo() {
     
     if (result) {
       // 使用工具函数规范化头像URL
-      const normalizedAvatar = normalizeImageUrl(result.avatar || '');
+      // 如果头像路径为空或无效，normalizeImageUrl 会返回默认头像
+      let avatarUrl = normalizeImageUrl(result.avatar || '');
+      
+      // 如果头像路径看起来像旧格式（文件名格式），先尝试使用，如果加载失败会触发 handleImageError
+      // 但为了更好的用户体验，如果路径看起来无效，直接使用默认头像
+      if (result.avatar && !result.avatar.startsWith('/') && !result.avatar.startsWith('http')) {
+        // 这是文件名格式，可能不存在，让 handleImageError 处理
+        avatarUrl = normalizeImageUrl(result.avatar);
+      }
       
       // 确保字段映射正确（后端返回 camelCase: name, phoneNumber, avatar）
       userInfo.value = {
         name: result.name || '',
         phoneNumber: result.phoneNumber || 0,
-        avatar: normalizedAvatar
+        avatar: avatarUrl
       };
     }
   } catch (error) {

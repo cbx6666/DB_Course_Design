@@ -58,12 +58,11 @@ namespace BackEnd.Services
                     return Fail("无权对此订单申请售后");
                 }
 
-                // 检查该订单是否已有未完成的售后申请
+                // 检查该订单是否已有售后申请（一个订单只能发起一次）
                 var existingApplications = await _applicationRepository.GetByOrderIdAsync(request.OrderId);
-                var hasPendingApplication = existingApplications.Any(app => app.AfterSaleState != AfterSaleState.Completed);
-                if (hasPendingApplication)
+                if (existingApplications.Any())
                 {
-                    return Fail("该订单已有未完成的售后申请，请等待处理完成后再提交");
+                    return Fail("该订单已有售后申请，一个订单只能发起一次售后申请");
                 }
 
                 // 创建售后申请

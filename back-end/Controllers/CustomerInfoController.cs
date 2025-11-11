@@ -90,6 +90,17 @@ namespace BackEnd.Controllers
             {
                 return BadRequest(ModelState);
             }
+            
+            // 从Token中获取用户ID，确保安全性
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+            {
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "无效的Token" });
+            }
+            
+            // 使用Token中的用户ID，忽略前端传的ID（防止用户修改他人信息）
+            dto.Id = userId.Value;
+            
             var result = await _customerService.UpdateAccountAsync(dto);
             return Ok(result);
         }

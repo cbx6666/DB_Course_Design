@@ -82,6 +82,14 @@ namespace BackEnd.Services
                     return Fail("该配送任务当前状态不支持发起投诉");
                 }
 
+                // 检查该配送任务是否已有投诉（一个配送任务只能发起一次投诉）
+                var existingComplaints = await _complaintRepository.GetByDeliveryTaskIdAsync(deliveryTaskId);
+                var hasComplaintForTask = existingComplaints.Any(c => c.CustomerID == userId);
+                if (hasComplaintForTask)
+                {
+                    return Fail("该配送任务已有投诉，一个配送任务只能发起一次投诉");
+                }
+
                 // 分配给有"投诉处理"权限的管理员
                 var availableAdmins = await _administratorRepository.GetAdministratorsByManagedEntityAsync("配送投诉");
                 if (!availableAdmins.Any())
@@ -142,19 +150,63 @@ namespace BackEnd.Services
         {
             var complaints = await _complaintRepository.GetByCustomerIdAsync(userId);
 
-            var result = complaints.Select(complaint => new CustomerDeliveryComplaintListItemDto
+            var result = complaints.Select(complaint =>
             {
-                ComplaintId = complaint.ComplaintID,
-                OrderId = complaint.DeliveryTask?.OrderID ?? 0,
-                DeliveryTaskId = complaint.DeliveryTaskID,
-                ComplaintReason = complaint.ComplaintReason,
-                Images = string.IsNullOrWhiteSpace(complaint.ComplaintImages)
-                    ? Array.Empty<string>()
-                    : complaint.ComplaintImages.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
-                ComplaintTime = complaint.ComplaintTime,
-                Status = complaint.ComplaintState.ToString(),
-                ProcessingResult = string.IsNullOrWhiteSpace(complaint.ProcessingResult) ? null : complaint.ProcessingResult,
-                ProcessingReason = string.IsNullOrWhiteSpace(complaint.ProcessingReason) ? null : complaint.ProcessingReason
+                // 构建骑手显示名称：姓氏 + 性别（如：张先生）
+                var courierUser = complaint.DeliveryTask?.Courier?.User;
+                string? courierDisplayName = null;
+                
+                if (courierUser != null)
+                {
+                    var fullName = courierUser.FullName;
+                    var gender = courierUser.Gender;
+                    
+                    if (!string.IsNullOrEmpty(fullName))
+                    {
+                        // 提取姓氏（第一个字符）
+                        var surname = fullName.Length > 0 ? fullName[0].ToString() : "";
+                        
+                        // Gender 字段存储的是 "男" 或 "女"，转换为 "先生" 或 "女士"
+                        string? honorific = null;
+                        if (gender == "男")
+                        {
+                            honorific = "先生";
+                        }
+                        else if (gender == "女")
+                        {
+                            honorific = "女士";
+                        }
+                        
+                        if (!string.IsNullOrEmpty(honorific))
+                        {
+                            courierDisplayName = $"{surname}{honorific}";
+                        }
+                        else if (!string.IsNullOrEmpty(surname))
+                        {
+                            courierDisplayName = surname; // 没有性别只显示姓氏
+                        }
+                    }
+                }
+                
+                return new CustomerDeliveryComplaintListItemDto
+                {
+                    ComplaintId = complaint.ComplaintID,
+                    OrderId = complaint.DeliveryTask?.OrderID ?? 0,
+                    DeliveryTaskId = complaint.DeliveryTaskID,
+                    ComplaintReason = complaint.ComplaintReason,
+                    Images = string.IsNullOrWhiteSpace(complaint.ComplaintImages)
+                        ? Array.Empty<string>()
+                        : complaint.ComplaintImages.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                    ComplaintTime = complaint.ComplaintTime,
+                    Status = complaint.ComplaintState.ToString(),
+                    ProcessingResult = string.IsNullOrWhiteSpace(complaint.ProcessingResult) ? null : complaint.ProcessingResult,
+                    ProcessingReason = string.IsNullOrWhiteSpace(complaint.ProcessingReason) ? null : complaint.ProcessingReason,
+                    CourierName = courierDisplayName,
+                    CourierPhone = courierUser?.PhoneNumber.ToString(),
+                    AcceptTime = complaint.DeliveryTask?.AcceptTime,
+                    PickupTime = complaint.DeliveryTask?.PickupTime,
+                    CompletionTime = complaint.DeliveryTask?.CompletionTime
+                };
             }).ToList();
 
             return result;

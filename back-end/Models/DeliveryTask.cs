@@ -64,6 +64,12 @@ namespace BackEnd.Models
         public decimal DeliveryFee { get; set; } = 0.00m;
 
         /// <summary>
+        /// 配送任务评分（1-5，可选）- 消费者对该次配送任务的评分
+        /// </summary>
+        [Range(1, 5)]
+        public int? TaskRating { get; set; }
+
+        /// <summary>
         /// 配送员ID（外键）
         /// </summary>
         public int? CourierID { get; set; }
