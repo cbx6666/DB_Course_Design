@@ -28,9 +28,10 @@ namespace BackEnd.Controllers
         /// <param name="page">页码</param>
         /// <param name="pageSize">每页数量</param>
         /// <param name="keyword">关键词</param>
+        /// <param name="field">筛选字段（content | user.name | orderNo）</param>
         /// <returns>售后服务列表</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAfterSales([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? keyword)
+        public async Task<IActionResult> GetAfterSales([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? keyword, [FromQuery] string? field)
         {
             if (page < 1 || pageSize < 1)
             {
@@ -43,7 +44,7 @@ namespace BackEnd.Controllers
                 return Unauthorized("无效的Token");
             }
 
-            var result = await _afterSaleService.GetAfterSalesAsync(sellerId.Value, page, pageSize, keyword);
+            var result = await _afterSaleService.GetAfterSalesAsync(sellerId.Value, page, pageSize, keyword, field);
             return Ok(result);
         }
 

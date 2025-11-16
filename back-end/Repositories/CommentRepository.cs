@@ -61,20 +61,27 @@ namespace BackEnd.Repositories
         }
 
         /// <summary>
-        /// 根据商家ID获取评论
+        /// 根据商家ID获取评论（优化版本：使用拆分查询，提高性能）
         /// </summary>
         /// <param name="sellerId">商家ID</param>
         /// <returns>评论列表</returns>
         public async Task<IEnumerable<Comment>> GetBySellerAsync(int sellerId)
         {
+            // 使用 AsSplitQuery 拆分查询，避免复杂的 JOIN 和笛卡尔积
+            // 这样可以显著提高查询性能，特别是在关联数据较多时
             return await _context.Comments
-                                .Include(c => c.Store)          // 加载评论所属的店铺
+                                .AsSplitQuery()  // 拆分查询，避免笛卡尔积
+                                .Include(c => c.Store)          // 加载评论所属的店铺（必需，用于筛选）
                                     .ThenInclude(s => s!.Seller)
                                 .Include(c => c.FoodOrder)      // 加载评论所属的订单
+                                    .ThenInclude(o => o!.Cart)
+                                        .ThenInclude(cart => cart!.ShoppingCartItems!)
+                                            .ThenInclude(item => item!.Dish)
                                 .Include(c => c.Commenter)      // 加载发表评论的顾客
+                                    .ThenInclude(cu => cu!.User)
                                 .Where(c => c.Store!.SellerID == sellerId
                                     && c.CommentState == CommentState.Completed)
-                                .OrderBy(c => c.CommentID)
+                                .OrderByDescending(c => c.PostedAt)
                                 .ToListAsync();
         }
 

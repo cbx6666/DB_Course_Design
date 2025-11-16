@@ -744,6 +744,10 @@ const saveDishHandler = async () => {
       ElMessage.success('菜品添加成功');
       closeCreateDishDialog();
       await loadDishes();
+      // 刷新菜品种类列表以更新每个分类的菜品数量
+      await loadDishCategories();
+      // 刷新菜单列表以更新菜品数量
+      await loadMenus();
     }
   } catch (error) {
     ElMessage.error(editingDishId.value ? '更新菜品失败，请重试' : '添加菜品失败，请重试');
@@ -884,6 +888,9 @@ const deleteCategoryHandler = async (category: DishCategoryInfo) => {
       await loadDishCategories();
     }
     
+    // 刷新菜单列表以更新菜品数量
+    await loadMenus();
+    
     // 如果删除的是当前选中的菜品种类，清空选择
     if (selectedCategory.value?.categoryID === category.categoryID) {
       selectedCategory.value = null;
@@ -910,6 +917,10 @@ const deleteDishHandler = async (dish: Dish) => {
     await deleteDish(dish.dishId);
     ElMessage.success('菜品已删除');
     await loadDishes();
+    // 刷新菜品种类列表以更新每个分类的菜品数量
+    await loadDishCategories();
+    // 刷新菜单列表以更新菜品数量
+    await loadMenus();
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('删除失败，请重试');

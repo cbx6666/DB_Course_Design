@@ -38,6 +38,7 @@ namespace BackEnd.Services
             {
                 ReviewId = comment.CommentID.ToString(),
                 Username = comment.Commenter?.User?.Username ?? "未知用户",
+                Avatar = comment.Commenter?.User?.Avatar ?? "/images/user/default.png",
                 Content = comment.Content,
                 Image = comment.CommentImage,
                 Type = GetCommentTypeString(comment.CommentType),
@@ -116,7 +117,8 @@ namespace BackEnd.Services
                 var updatedCommentDto = new AdminCommentDetailDto
                 {
                     ReviewId = existingComment.CommentID.ToString(),
-                    Username = existingComment.Commenter.User.Username,
+                    Username = existingComment.Commenter?.User?.Username ?? "未知用户",
+                    Avatar = existingComment.Commenter?.User?.Avatar ?? "/images/user/default.png",
                     Content = existingComment.Content,
                     Image = existingComment.CommentImage,
                     Type = GetCommentTypeString(existingComment.CommentType),

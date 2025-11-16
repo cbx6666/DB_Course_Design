@@ -45,6 +45,10 @@ namespace BackEnd.Repositories
                                  .Include(a => a.Order)
                                      .ThenInclude(o => o.Customer)
                                          .ThenInclude(c => c.User)
+                                 .Include(a => a.Order)
+                                     .ThenInclude(o => o.Cart)
+                                         .ThenInclude(cart => cart!.ShoppingCartItems!)
+                                             .ThenInclude(item => item!.Dish)
                                  .Include(a => a.EvaluateAfterSales)
                                      .ThenInclude(eas => eas.Admin)
                                  .FirstOrDefaultAsync(a => a.ApplicationID == id);
@@ -77,7 +81,12 @@ namespace BackEnd.Repositories
                 .Include(a => a.Order)
                     .ThenInclude(o => o.Store)
                         .ThenInclude(s => s.Seller)
+                .Include(a => a.Order)
+                    .ThenInclude(o => o.Cart)
+                        .ThenInclude(cart => cart!.ShoppingCartItems!)
+                            .ThenInclude(item => item!.Dish)
                 .Where(a => a.Order.Store.SellerID == sellerId)
+                .OrderByDescending(a => a.ApplicationTime)
                 .ToListAsync();
         }
 

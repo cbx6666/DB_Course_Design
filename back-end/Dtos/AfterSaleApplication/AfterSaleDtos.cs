@@ -112,6 +112,11 @@ namespace BackEnd.DTOs.AfterSaleApplication
         public string OrderNo { get; set; } = null!;
 
         /// <summary>
+        /// 订单ID
+        /// </summary>
+        public int OrderId { get; set; }
+
+        /// <summary>
         /// 用户信息
         /// </summary>
         public UserProfileDto User { get; set; } = null!;
@@ -122,9 +127,19 @@ namespace BackEnd.DTOs.AfterSaleApplication
         public string Reason { get; set; } = null!;
 
         /// <summary>
+        /// 申请图片URL列表
+        /// </summary>
+        public string[] Images { get; set; } = Array.Empty<string>();
+
+        /// <summary>
         /// 申请时间
         /// </summary>
         public string CreatedAt { get; set; } = null!;
+
+        /// <summary>
+        /// 订单菜品详情
+        /// </summary>
+        public List<OrderDishDto> DishDetails { get; set; } = new List<OrderDishDto>();
     }
 
     /// <summary>

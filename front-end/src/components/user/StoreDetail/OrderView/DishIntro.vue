@@ -1,9 +1,9 @@
 <template>
     <div class="mt-5 mr-10 ml-5 w-full bg-white border-2 rounded-lg shadow-sm p-2">
-        <div v-if="menuItems.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-if="menuItems.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             <div v-for="item in menuItems" :key="item.id">
                 <div v-if="item" class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md">
-                    <div class="w-full h-56 overflow-hidden bg-gray-100 flex items-center justify-center">
+                    <div class="w-full h-36 overflow-hidden bg-gray-100 flex items-center justify-center">
                         <img :src="normalizeImageUrl(item.image)" class="max-w-full max-h-full w-auto h-auto object-contain" />
                     </div>
                     <div class="p-4">

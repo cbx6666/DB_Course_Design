@@ -30,9 +30,10 @@ namespace BackEnd.Controllers
         /// 获取处罚记录列表
         /// </summary>
         /// <param name="keyword">搜索关键词</param>
+        /// <param name="field">筛选字段（id | reason）</param>
         /// <returns>处罚记录列表</returns>
         [HttpGet]
-        public async Task<IActionResult> GetPenalties([FromQuery] string? keyword)
+        public async Task<IActionResult> GetPenalties([FromQuery] string? keyword, [FromQuery] string? field)
         {
             var sellerId = GetUserIdFromToken();
             if (sellerId == null)
@@ -40,7 +41,7 @@ namespace BackEnd.Controllers
                 return Unauthorized("无效的Token");
             }
 
-            var penalties = await _merchantPenaltyService.GetPenaltiesAsync(sellerId.Value, keyword);
+            var penalties = await _merchantPenaltyService.GetPenaltiesAsync(sellerId.Value, keyword, field);
             return Ok(penalties);
         }
 

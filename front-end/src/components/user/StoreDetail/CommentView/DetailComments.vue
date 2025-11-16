@@ -3,20 +3,31 @@
     <!-- 评论列表 -->
     <div v-for="comment in pagedComments" :key="comment.id" class="border-b border-gray-200 pb-6 last:border-b-0">
       <div class="flex items-start space-x-4">
-        <img :src="comment.avatar" class="w-12 h-12 rounded-full object-cover" />
+        <img 
+          :src="normalizeImageUrl(comment.avatar)" 
+          :alt="comment.username"
+          class="w-12 h-12 rounded-full object-cover border border-gray-300" 
+          @error="handleImageError"
+        />
         <div class="flex-1">
           <div class="flex items-center space-x-2 mb-2">
             <span class="font-semibold text-gray-900">{{ comment.username }}</span>
             <div class="flex items-center">
-              <i v-for="star in 5" :key="star" :class="star <= comment.rating ? 'text-yellow-400' : 'text-gray-300'"
+              <i v-for="star in 5" :key="star" :class="star <= (comment.rating || 0) ? 'text-yellow-400' : 'text-gray-300'"
                 class="fas fa-star text-sm"></i>
             </div>
-            <span class="text-sm text-gray-500">{{ comment.date }}</span>
+            <span class="text-sm text-gray-500">{{ formatDate(comment.date) }}</span>
           </div>
           <p class="text-left text-gray-700 mb-3">{{ comment.content }}</p>
-          <div v-if="comment.images.length" class="flex space-x-2">
-            <img v-for="(image, index) in comment.images" :key="index" :src="image"
-              class="w-24 h-24 object-cover rounded-lg cursor-pointer" @click="openPcomment(image)" />
+          <div v-if="comment.images && comment.images.length > 0" class="flex space-x-2 flex-wrap gap-2">
+            <img 
+              v-for="(image, index) in comment.images" 
+              :key="index" 
+              :src="normalizeImageUrl(image)"
+              class="w-24 h-24 object-cover rounded-lg cursor-pointer border border-gray-200 hover:opacity-80 transition-opacity" 
+              @click="openPcomment(normalizeImageUrl(image))"
+              @error="handleImageError"
+            />
           </div>
         </div>
       </div>
@@ -53,8 +64,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineProps, watch } from 'vue'
+import { ref, computed, defineProps } from 'vue'
 import type { CommentList } from '@/api/user'
+import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils'
 
 const props = defineProps<{
   commentList: CommentList
@@ -73,6 +85,19 @@ const pagedComments = computed(() => {
 function goPage(page: number) {
   if (page < 1 || page > totalPages.value) return
   currentPage.value = page
+}
+
+// 格式化日期
+function formatDate(date: string | Date) {
+  if (!date) return ''
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toLocaleDateString('zh-CN', { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 // 图片放大

@@ -9,9 +9,17 @@ export interface AfterSaleUserInfo {
 export interface AfterSaleApplication {
     id: number;
     orderNo: string;
+    orderId?: number;
     user?: AfterSaleUserInfo;
     reason: string;
+    images?: string[];
     createdAt: string;
+    dishDetails?: Array<{
+        dishName: string;
+        dishImage: string;
+        quantity: number;
+        price: number;
+    }>;
 }
 
 export interface AfterSaleListResponse {
@@ -23,11 +31,19 @@ export interface AfterSaleListParams {
     page: number;
     pageSize: number;
     keyword?: string;
+    field?: string;
     sellerId: number;
 }
 
 export const getAfterSaleList = async (params: AfterSaleListParams): Promise<AfterSaleListResponse> => {
-    const response = await apiClient.get('/merchant/after-sales', { params });
+    const requestParams = {
+        page: params.page,
+        pageSize: params.pageSize,
+        sellerId: params.sellerId,
+        ...(params.keyword && { keyword: params.keyword }),
+        ...(params.field && { field: params.field })
+    };
+    const response = await apiClient.get('/merchant/after-sales', { params: requestParams });
     return response.data as AfterSaleListResponse;
 };
 

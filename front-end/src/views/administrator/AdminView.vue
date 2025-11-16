@@ -129,9 +129,6 @@
                                     <tr>
                                         <th
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            申请编号</th>
-                                        <th
-                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             订单编号</th>
                                         <th
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -153,22 +150,20 @@
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <tr v-for="item in filteredAfterSales" :key="item.applicationId"
                                         class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{
-                                            item.applicationId }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.orderId }}
+                                        <td class="pl-10 pr-6 py-4 text-left whitespace-nowrap text-sm text-gray-900">{{ item.orderId }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{
+                                        <td class="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-900">{{
                                             item.applicationTime }}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{{
+                                        <td class="px-6 py-4 text-left text-sm text-gray-900 max-w-xs truncate">{{
                                             item.description }}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">{{ item.punishment || '-' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-6 py-4 text-left text-sm text-gray-900">{{ item.punishment || '-' }}</td>
+                                        <td class="px-6 py-4 text-left whitespace-nowrap">
                                             <span :class="getStatusClass(item.status)"
                                                 class="inline-block px-2 py-1 text-xs rounded-full">
                                                 {{ item.status }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                        <td class="px-6 py-4 text-left whitespace-nowrap text-sm font-medium space-x-2">
                                             <button @click="openAfterSaleDetail(item)"
                                                 class="text-orange-600 hover:text-orange-900 cursor-pointer !rounded-button whitespace-nowrap">
                                                 <span class="flex items-center">
@@ -260,22 +255,22 @@
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <tr v-for="item in filteredComplaints" :key="item.complaintId"
                                         class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{
+                                        <td class="pl-10 pr-6 py-4 text-left whitespace-nowrap text-sm font-medium text-gray-900">{{
                                             item.complaintId }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.target }}
+                                        <td class="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-900">{{ item.target }}
                                         </td>
-                                        <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{{ item.content }}
+                                        <td class="px-6 py-4 text-left text-sm text-gray-900 max-w-xs truncate">{{ item.content }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{
+                                        <td class="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-900">{{
                                             item.applicationTime }}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">{{ item.punishment || '-' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-6 py-4 text-left text-sm text-gray-900">{{ item.punishment || '-' }}</td>
+                                        <td class="px-6 py-4 text-left whitespace-nowrap">
                                             <span :class="getStatusClass(item.status)"
                                                 class="inline-block px-2 py-1 text-xs rounded-full">
                                                 {{ item.status }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                        <td class="px-6 py-4 text-left whitespace-nowrap text-sm font-medium space-x-2">
                                             <button @click="openComplaintDetail(item)"
                                                 class="text-orange-600 hover:text-orange-900 cursor-pointer !rounded-button whitespace-nowrap">查看详情</button>
                                         </td>
@@ -365,27 +360,27 @@
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <tr v-for="item in filteredViolations" :key="item.punishmentId"
                                         class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{
+                                        <td class="pl-10 pr-6 py-4 text-left whitespace-nowrap text-sm font-medium text-gray-900">{{
                                             item.punishmentId }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.storeName
+                                        <td class="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-900">{{ item.storeName
                                             }}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{{ item.reason }}
+                                        <td class="px-6 py-4 text-left text-sm text-gray-900 max-w-xs truncate">{{ item.reason }}
                                         </td>
-                                        <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{{
+                                        <td class="px-6 py-4 text-left text-sm text-gray-900 max-w-xs truncate">{{
                                             punishmentOptions.violations.merchant.find(option => option.value === item.merchantPunishment)?.label || item.merchantPunishment }}
                                         </td>
-                                        <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{{
+                                        <td class="px-6 py-4 text-left text-sm text-gray-900 max-w-xs truncate">{{
                                             punishmentOptions.violations.store.find(option => option.value === item.storePunishment)?.label || item.storePunishment }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{
+                                        <td class="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-900">{{
                                             item.punishmentTime }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-6 py-4 text-left whitespace-nowrap">
                                             <span :class="getStatusClass(item.status)"
                                                 class="inline-block px-2 py-1 text-xs rounded-full">
                                                 {{ item.status }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                        <td class="px-6 py-4 text-left whitespace-nowrap text-sm font-medium space-x-2">
                                             <button @click="openViolationDetail(item)"
                                                 class="text-orange-600 hover:text-orange-900 cursor-pointer !rounded-button whitespace-nowrap">
                                                 <span class="flex items-center">
@@ -453,7 +448,7 @@
                                     <tr>
                                         <th
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            评论ID</th>
+                                            评论编号</th>
                                         <th
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             用户名</th>
@@ -480,16 +475,16 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <tr v-for="item in filteredReviews" :key="item.reviewId" class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{
+                                        <td class="pl-10 pr-6 py-4 text-left whitespace-nowrap text-sm font-medium text-gray-900">{{
                                             item.reviewId }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.username
+                                        <td class="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-900">{{ item.username
                                             }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{
+                                        <td class="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-900">{{
                                             item.type
                                             }}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{{ item.content }}
+                                        <td class="px-6 py-4 text-left text-sm text-gray-900 max-w-xs truncate">{{ item.content }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <td class="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-900">
                                             <div class="flex items-center">
                                                 <span class="mr-1">{{ item.rating }}</span>
                                                 <div class="flex text-yellow-400">
@@ -499,15 +494,15 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.submitTime
+                                        <td class="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-900">{{ item.submitTime
                                             }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-6 py-4 text-left whitespace-nowrap">
                                             <span :class="getStatusClass(item.status)"
                                                 class="inline-block px-2 py-1 text-xs rounded-full">
                                                 {{ item.status }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                        <td class="px-6 py-4 text-left whitespace-nowrap text-sm font-medium space-x-2">
                                             <button @click="openReviewDetail(item)"
                                                 class="text-orange-600 hover:text-orange-900 cursor-pointer !rounded-button whitespace-nowrap">
                                                 <span class="flex items-center">
@@ -877,7 +872,14 @@
                 <div class="border-b border-gray-200 pb-6 mb-6">
                     <div class="flex items-start justify-between">
                         <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                            <img 
+                                v-if="currentReview.avatar"
+                                :src="normalizeImageUrl(currentReview.avatar)" 
+                                :alt="currentReview.username"
+                                class="w-12 h-12 rounded-full object-cover border border-gray-300"
+                                @error="handleImageError"
+                            />
+                            <div v-else class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                                 <i class="fas fa-user text-gray-400"></i>
                             </div>
                             <div>
@@ -917,11 +919,17 @@
                         <p class="text-gray-900">{{ currentReview.content }}</p>
                     </div>
                 </div>
-                <div class="mb-6">
+                <div v-if="reviewImages.length > 0" class="mb-6">
                     <h4 class="text-sm font-medium text-gray-700 mb-2">图片附件</h4>
-                    <div class="grid grid-cols-4 gap-4">
-                        <div v-for="(image, index) in reviewImages" :key="index" class="relative aspect-square">
-                            <img :src="image" alt="评论图片" class="w-full h-full object-cover rounded-lg">
+                    <div class="flex justify-center flex-wrap gap-4">
+                        <div v-for="(image, index) in reviewImages" :key="index" class="relative aspect-square w-24 h-24">
+                            <img 
+                                :src="normalizeImageUrl(image)" 
+                                alt="评论图片" 
+                                class="w-full h-full object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                                @error="handleImageError"
+                                @click="previewImage(normalizeImageUrl(image))"
+                            />
                         </div>
                     </div>
                 </div>
@@ -937,11 +945,31 @@
                 </div>
             </div>
         </el-dialog>
+        
+        <!-- 图片预览弹窗 -->
+        <div v-if="previewImageUrl" 
+             class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+             @click.self="closePreview">
+            <div class="relative max-w-4xl max-h-full p-4">
+                <img 
+                    :src="previewImageUrl" 
+                    alt="预览图片" 
+                    class="max-w-full max-h-[90vh] rounded-lg shadow-lg"
+                />
+                <button 
+                    @click="closePreview"
+                    class="absolute top-2 right-2 text-white text-3xl font-bold hover:text-gray-300 transition-colors"
+                >
+                    &times;
+                </button>
+            </div>
+        </div>
     </div>
 
 </template>
 <script lang="ts" setup>
 import { getProjectName } from '@/stores/name';
+import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils';
 
 // =================================================================
 // 步骤 1: 导入必要的模块
@@ -1005,11 +1033,13 @@ interface ViolationItem {
 interface ReviewItem {
     reviewId: string;
     username: string;
+    avatar?: string; // 用户头像
     type: string;
     content: string;
     rating: number;
     submitTime: string;
     status: '待处理' | '已完成' | '违规';
+    image?: string; // 评论图片（逗号分隔的字符串）
 }
 
 // =================================================================
@@ -1096,13 +1126,13 @@ const api = {
         }
     },
 
-    updateAdminInfo: async (data: AdminInfo) => {
+    updateAdminInfo: async (data: Partial<AdminInfo>) => {
         try {
             const response = await apiClient.put<AdminInfo>('/admin/info', data);
             return { success: true, data: response.data };
         } catch (error) {
             console.error('更新管理员信息失败:', error);
-            return { success: false, data: data };
+            return { success: false, data: data as AdminInfo };
         }
     },
 };
@@ -1142,11 +1172,24 @@ const showViolationDetail = ref(false);
 const currentViolation = ref<ViolationItem | null>(null);
 const showReviewDetail = ref(false);
 const currentReview = ref<ReviewItem | null>(null);
-const reviewImages = ref([
-    'https://readdy.ai/api/search-image?query=delicious%20chinese%20food%20dish%20on%20white%20plate%20with%20garnish%20professional%20food%20photography%20with%20natural%20lighting%20high%20end%20restaurant%20presentation&width=200&height=200&seq=review-img-001&orientation=squarish',
-    'https://readdy.ai/api/search-image?query=gourmet%20asian%20cuisine%20plated%20elegantly%20with%20side%20dishes%20professional%20food%20photography%20natural%20lighting%20restaurant%20quality%20presentation&width=200&height=200&seq=review-img-002&orientation=squarish',
-    'https://readdy.ai/api/search-image?query=authentic%20chinese%20restaurant%20interior%20modern%20design%20with%20traditional%20elements%20professional%20photography%20warm%20lighting&width=200&height=200&seq=review-img-003&orientation=squarish'
-]);
+
+// 计算属性：从评论数据中提取图片数组
+const reviewImages = computed(() => {
+    if (!currentReview.value?.image) return [];
+    return currentReview.value.image
+        .split(',')
+        .map(img => img.trim())
+        .filter(img => img.length > 0);
+});
+
+// 图片预览
+const previewImageUrl = ref<string | null>(null);
+const previewImage = (url: string) => {
+    previewImageUrl.value = url;
+};
+const closePreview = () => {
+    previewImageUrl.value = null;
+};
 // 处罚措施选项的状态
 const selectedPunishment = ref('');
 const punishmentReason = ref('');
@@ -1594,7 +1637,7 @@ const handleViolationAction = async (action: 'complete') => {
                 violationsList.value[index] = { ...updatedItem, ...response.data };
                 console.log('更新后的数据:', violationsList.value[index]);
             }
-            ElMessage.success(`处罚已${action === 'process' ? '开始执行' : '执行完成'}`);
+            ElMessage.success('处罚已执行完成');
             showViolationDetail.value = false;
         } else {
             // 如果后端返回失败，则提示用户

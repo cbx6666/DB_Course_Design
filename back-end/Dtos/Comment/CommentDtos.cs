@@ -181,6 +181,11 @@ namespace BackEnd.DTOs.Comment
         public string OrderNo { get; set; } = null!;
 
         /// <summary>
+        /// 订单ID
+        /// </summary>
+        public int? OrderId { get; set; }
+
+        /// <summary>
         /// 用户信息
         /// </summary>
         public UserProfileDto User { get; set; } = null!;
@@ -191,9 +196,24 @@ namespace BackEnd.DTOs.Comment
         public string Content { get; set; } = null!;
 
         /// <summary>
+        /// 评分（1-5）
+        /// </summary>
+        public int? Rating { get; set; }
+
+        /// <summary>
+        /// 评论图片URL列表
+        /// </summary>
+        public string[] Images { get; set; } = Array.Empty<string>();
+
+        /// <summary>
         /// 创建时间
         /// </summary>
         public string CreatedAt { get; set; } = null!;
+
+        /// <summary>
+        /// 订单菜品详情
+        /// </summary>
+        public List<Dish.OrderDishDto> DishDetails { get; set; } = new List<Dish.OrderDishDto>();
     }
 
     /// <summary>
@@ -223,6 +243,11 @@ namespace BackEnd.DTOs.Comment
         /// 用户名
         /// </summary>
         public string Username { get; set; } = null!;
+
+        /// <summary>
+        /// 用户头像
+        /// </summary>
+        public string? Avatar { get; set; }
 
         /// <summary>
         /// 评论内容

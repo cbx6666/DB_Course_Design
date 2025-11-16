@@ -36,8 +36,9 @@ namespace BackEnd.Services
         /// </summary>
         public async Task<List<CustomerCommentDto>> GetCommentListAsync(int storeId)
         {
+            // 只显示审核通过的评论（Completed状态）
             var comments = (await _commentRepository.GetAllAsync())
-                .Where(c => c.StoreID == storeId && !(c.CommentState == CommentState.Illegal))
+                .Where(c => c.StoreID == storeId && c.CommentState == CommentState.Completed)
                 .OrderByDescending(c => c.PostedAt);
 
             return comments.Select(c => new CustomerCommentDto
@@ -59,8 +60,9 @@ namespace BackEnd.Services
         /// </summary>
         public async Task<CommentStateDto> GetCommentStateAsync(int storeId)
         {
+            // 只统计审核通过的评论（Completed状态）
             var comments = (await _commentRepository.GetAllAsync())
-                .Where(c => c.StoreID == storeId)
+                .Where(c => c.StoreID == storeId && c.CommentState == CommentState.Completed)
                 .Select(c => c.Rating);
 
             int perfect = comments.Count(r => r == 5);

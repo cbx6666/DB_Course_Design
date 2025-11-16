@@ -23,16 +23,37 @@ namespace BackEnd.Services
         /// <summary>
         /// 获取处罚记录列表
         /// </summary>
-        public async Task<List<MerchantPenaltyRecordDto>> GetPenaltiesAsync(int sellerId, string? keyword)
+        public async Task<List<MerchantPenaltyRecordDto>> GetPenaltiesAsync(int sellerId, string? keyword, string? field)
         {
             var penalties = await _penaltyRepository.GetBySellerIdAsync(sellerId);
 
+            // 只返回管理员已处理的举报（状态为 Completed）
+            penalties = penalties.Where(p => p.ViolationPenaltyState == Models.Enums.ViolationPenaltyState.Completed).ToList();
+
             if (!string.IsNullOrEmpty(keyword))
             {
-                penalties = penalties.Where(p =>
-                    p.PenaltyID.ToString().Contains(keyword) ||
-                    (p.PenaltyReason ?? "").Contains(keyword))
-                    .ToList();
+                var normalized = keyword;
+                if (field == "id")
+                {
+                    normalized = new string(keyword.Where(char.IsDigit).ToArray());
+                }
+
+                if (!string.IsNullOrWhiteSpace(field))
+                {
+                    penalties = field switch
+                    {
+                        "id" => penalties.Where(p => p.PenaltyID.ToString().Contains(normalized)).ToList(),
+                        "reason" => penalties.Where(p => (p.PenaltyReason ?? "").Contains(keyword)).ToList(),
+                        _ => penalties
+                    };
+                }
+                else
+                {
+                    penalties = penalties.Where(p =>
+                        p.PenaltyID.ToString().Contains(normalized) ||
+                        (p.PenaltyReason ?? "").Contains(keyword))
+                        .ToList();
+                }
             }
 
             return penalties.Select(p => new MerchantPenaltyRecordDto
@@ -58,6 +79,12 @@ namespace BackEnd.Services
 
             var penalty = await _penaltyRepository.GetByIdAsync(penaltyId);
             if (penalty == null)
+            {
+                return null;
+            }
+
+            // 只返回管理员已处理的举报（状态为 Completed）
+            if (penalty.ViolationPenaltyState != Models.Enums.ViolationPenaltyState.Completed)
             {
                 return null;
             }

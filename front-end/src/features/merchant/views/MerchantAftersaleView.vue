@@ -11,7 +11,7 @@
           <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
             <div class="flex space-x-4">
               <button v-for="tab in aftersaleTabs" :key="tab.value" @click="activeAftersaleTab = tab.value" :class="{
-                  'bg-gradient-to-r from-[#F9771C] to-orange-500 text-white shadow-lg': activeAftersaleTab === tab.value,
+                  'bg-[#F9771C] text-white shadow-lg': activeAftersaleTab === tab.value,
                   'bg-gray-100/80 text-gray-700 hover:bg-gray-200/80 hover:text-[#F9771C]': activeAftersaleTab !== tab.value
                 }" class="px-6 py-3 rounded-xl transition-all duration-200 font-medium shadow-sm">
                 {{ tab.label }}
@@ -24,6 +24,11 @@
             <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
               <div class="p-6 border-b border-gray-100">
                 <div class="flex items-center gap-3">
+                  <el-select v-model="penaltyKeywordType" placeholder="选择筛选字段" class="modern-select">
+                    <el-option label="全部" value="" />
+                    <el-option label="处罚编号" value="id" />
+                    <el-option label="处罚原因" value="reason" />
+                  </el-select>
                   <el-input v-model="penaltyFilters.keyword" placeholder="处罚编号/原因关键词" class="modern-input" clearable />
                   <el-button type="warning" class="modern-btn-primary" @click="loadPenalties()">筛选</el-button>
                 </div>
@@ -92,37 +97,95 @@
             <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
               <div class="p-6 border-b border-gray-100">
                 <div class="flex items-center gap-3">
-                  <el-select v-model="asFilters.keyword" placeholder="订单号/用户名/电话" class="modern-select">
+                  <el-select v-model="asKeywordType" placeholder="内容/用户名/订单号" class="modern-select">
                     <el-option label="全部" value="" />
+                    <el-option label="内容" value="content" />
                     <el-option label="订单号" value="orderNo" />
                     <el-option label="用户名" value="user.name" />
-                    <el-option label="电话" value="user.phone" />
                   </el-select>
-                  <el-input v-model="asFilters.keyword" placeholder="订单号/用户名/电话" class="modern-input" clearable />
+                  <el-input v-model="asFilters.keyword" placeholder="内容/用户名/订单号" class="modern-input" clearable />
                   <el-button type="warning" class="modern-btn-primary" @click="loadAfterSales(1)">查询</el-button>
                   <el-button @click="resetAsFilters" class="modern-btn-secondary">重置</el-button>
                 </div>
               </div>
-              <el-table :data="aftersaleList" style="width: 100%" class="modern-table">
-                <el-table-column prop="orderNo" label="订单号" width="200" />
-                <el-table-column label="用户" width="120">
-                  <template #default="scope">
-                    <div class="flex items-center gap-2">
-                      <img v-if="scope.row.user?.avatar" :src="scope.row.user.avatar"
-                        class="w-8 h-8 rounded-full object-cover border shadow-sm" />
-                      <span>{{ scope.row.user?.name }}</span>
+              <div class="p-6 space-y-4">
+                <div v-if="aftersaleList.length === 0" class="text-center py-12 text-gray-500">
+                  <i class="fas fa-clipboard-list text-4xl mb-4"></i>
+                  <p>暂无售后申请</p>
+                </div>
+                <div
+                  v-for="item in aftersaleList"
+                  :key="item.id"
+                  class="bg-white rounded-lg shadow-md border-l-4 border-orange-500 p-6 text-left hover:shadow-lg transition-all duration-200"
+                >
+                  <!-- 用户信息和订单信息 -->
+                  <div class="flex items-start justify-between mb-4 pb-4 border-b border-gray-200">
+                    <div class="flex items-center gap-3 flex-1">
+                      <img
+                        v-if="item.user?.avatar"
+                        :src="normalizeImageUrl(item.user.avatar)"
+                        :alt="item.user.name"
+                        class="w-12 h-12 rounded-full object-cover border border-gray-300"
+                        @error="handleImageError"
+                      />
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                          <span class="font-semibold text-gray-900">{{ item.user?.name || '未知用户' }}</span>
+                        </div>
+                        <div class="space-y-1 text-sm text-gray-600">
+                          <p v-if="item.orderNo">订单号：<span class="font-medium text-gray-800">{{ item.orderNo }}</span></p>
+                          <p>申请时间：<span class="font-medium text-gray-800">{{ item.createdAt }}</span></p>
+                        </div>
+                      </div>
                     </div>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="reason" label="申请原因" />
-                <el-table-column prop="createdAt" label="申请时间" width="160" />
-                <el-table-column label="操作" width="100">
-                  <template #default="scope">
-                    <el-button size="small" class="modern-btn-primary"
-                      @click="openAsDetail(scope.row.id)">详情</el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
+                    <el-button size="small" class="modern-btn-primary" @click="openAsDetail(item.id)">处理</el-button>
+                  </div>
+                  <!-- 申请原因 -->
+                  <div class="mb-4">
+                    <p class="text-gray-700">{{ item.reason }}</p>
+                  </div>
+                  <!-- 申请图片 -->
+                  <div v-if="item.images && item.images.length > 0" class="mb-4 flex flex-wrap gap-2">
+                    <img
+                      v-for="(image, idx) in item.images"
+                      :key="idx"
+                      :src="normalizeImageUrl(image)"
+                      alt="申请图片"
+                      class="w-24 h-24 object-cover rounded border border-gray-300 cursor-pointer hover:opacity-80"
+                      @error="handleImageError"
+                      @click="previewImage(image)"
+                    />
+                  </div>
+                  <!-- 订单菜品列表 -->
+                  <div v-if="item.dishDetails && item.dishDetails.length > 0" class="mb-4">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2">订单菜品：</h4>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                      <div class="space-y-2">
+                        <div
+                          v-for="(dish, dishIdx) in item.dishDetails"
+                          :key="dishIdx"
+                          class="flex items-center gap-3 py-2 border-b border-gray-200 last:border-b-0"
+                        >
+                          <img
+                            :src="normalizeImageUrl(dish.dishImage)"
+                            :alt="dish.dishName"
+                            class="w-16 h-16 object-cover rounded border border-gray-300"
+                            @error="handleImageError"
+                          />
+                          <div class="flex-1">
+                            <p class="font-medium text-gray-800">{{ dish.dishName }}</p>
+                            <p class="text-sm text-gray-600">单价：¥{{ dish.price.toFixed(2) }}</p>
+                          </div>
+                          <div class="text-right">
+                            <p class="font-medium text-gray-800">×{{ dish.quantity }}</p>
+                            <p class="text-sm text-gray-600">小计：¥{{ (dish.price * dish.quantity).toFixed(2) }}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div class="flex justify-between items-center p-4 border-t border-gray-100">
                 <div></div>
                 <el-pagination background layout="prev, pager, next" :page-size="asPageSize" :current-page="asPage"
@@ -166,33 +229,102 @@
             <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
               <div class="p-6 border-b border-gray-100">
                 <div class="flex items-center gap-3">
+                  <el-select v-model="reviewKeywordType" placeholder="选择筛选字段" class="modern-select">
+                    <el-option label="全部" value="" />
+                    <el-option label="内容" value="content" />
+                    <el-option label="订单号" value="orderNo" />
+                    <el-option label="用户名" value="user.name" />
+                  </el-select>
                   <el-input v-model="reviewFilters.keyword" placeholder="内容/订单号" class="modern-input" clearable />
                   <el-button type="warning" @click="fetchReviews(1)" class="modern-btn-primary">筛选</el-button>
                   <el-button @click="resetReviewFilters" class="modern-btn-secondary">重置</el-button>
                 </div>
               </div>
-              <el-table :data="reviews" style="width: 100%" class="modern-table">
-                <el-table-column prop="orderNo" label="订单号" width="200" />
-                <el-table-column label="用户" width="120">
-                  <template #default="scope">
-                    <div class="flex items-center gap-2">
-                      <img v-if="scope.row.user?.avatar" :src="scope.row.user.avatar"
-                        class="w-8 h-8 rounded-full object-cover border shadow-sm" />
-                      <span>{{ scope.row.user?.name }}</span>
+              <div class="p-6 space-y-4">
+                <div v-if="reviews.length === 0" class="text-center py-12 text-gray-500">
+                  <i class="fas fa-comment text-4xl mb-4"></i>
+                  <p>暂无评论</p>
+                </div>
+                <div
+                  v-for="item in reviews"
+                  :key="item.id"
+                  class="bg-white rounded-lg shadow-md border-l-4 border-green-500 p-6 text-left hover:shadow-lg transition-all duration-200"
+                >
+                  <!-- 用户信息和评分 -->
+                  <div class="flex items-start justify-between mb-4 pb-4 border-b border-gray-200">
+                    <div class="flex items-center gap-3 flex-1">
+                      <img
+                        v-if="item.user?.avatar"
+                        :src="normalizeImageUrl(item.user.avatar)"
+                        :alt="item.user.name"
+                        class="w-12 h-12 rounded-full object-cover border border-gray-300"
+                        @error="handleImageError"
+                      />
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                          <span class="font-semibold text-gray-900">{{ item.user?.name || '未知用户' }}</span>
+                          <div class="flex items-center">
+                            <span v-for="i in 5" :key="i" class="text-lg">
+                              <i
+                                :class="i <= (item.rating || 0) ? 'fas fa-star text-yellow-400' : 'far fa-star text-gray-300'"
+                              ></i>
+                            </span>
+                          </div>
+                        </div>
+                        <div class="space-y-1 text-sm text-gray-600">
+                          <p v-if="item.orderNo">订单号：<span class="font-medium text-gray-800">{{ item.orderNo }}</span></p>
+                          <p>评论时间：<span class="font-medium text-gray-800">{{ item.createdAt }}</span></p>
+                        </div>
+                      </div>
                     </div>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="content" label="内容" />
-                <el-table-column prop="createdAt" label="时间" width="160" />
-                <el-table-column label="操作" width="120">
-                  <template #default="scope">
-                    <div class="flex items-center gap-1">
-                      <el-button size="small" class="modern-btn-primary"
-                        @click="openReplyDialog(scope.row)">回复</el-button>
+                    <el-button size="small" class="modern-btn-primary" @click="openReplyDialog(item)">回复</el-button>
+                  </div>
+                  <!-- 评论内容 -->
+                  <div class="mb-4">
+                    <p class="text-gray-700">{{ item.content }}</p>
+                  </div>
+                  <!-- 评论图片 -->
+                  <div v-if="item.images && item.images.length > 0" class="mb-4 flex flex-wrap gap-2">
+                    <img
+                      v-for="(image, idx) in item.images"
+                      :key="idx"
+                      :src="normalizeImageUrl(image)"
+                      alt="评论图片"
+                      class="w-24 h-24 object-cover rounded border border-gray-300 cursor-pointer hover:opacity-80"
+                      @error="handleImageError"
+                      @click="previewImage(image)"
+                    />
+                  </div>
+                  <!-- 订单菜品列表 -->
+                  <div v-if="item.dishDetails && item.dishDetails.length > 0" class="mb-4">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2">订单菜品：</h4>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                      <div class="space-y-2">
+                        <div
+                          v-for="(dish, dishIdx) in item.dishDetails"
+                          :key="dishIdx"
+                          class="flex items-center gap-3 py-2 border-b border-gray-200 last:border-b-0"
+                        >
+                          <img
+                            :src="normalizeImageUrl(dish.dishImage)"
+                            :alt="dish.dishName"
+                            class="w-16 h-16 object-cover rounded border border-gray-300"
+                            @error="handleImageError"
+                          />
+                          <div class="flex-1">
+                            <p class="font-medium text-gray-800">{{ dish.dishName }}</p>
+                            <p class="text-sm text-gray-600">单价：¥{{ dish.price.toFixed(2) }}</p>
+                          </div>
+                          <div class="text-right">
+                            <p class="font-medium text-gray-800">×{{ dish.quantity }}</p>
+                            <p class="text-sm text-gray-600">小计：¥{{ (dish.price * dish.quantity).toFixed(2) }}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </template>
-                </el-table-column>
-              </el-table>
+                  </div>
+                </div>
+              </div>
               <div class="flex justify-between items-center p-4 border-t border-gray-100">
                 <div></div>
                 <el-pagination background layout="prev, pager, next" :page-size="reviewPageSize"
@@ -265,11 +397,43 @@ import { getMerchantInfo, type MerchantInfo } from '@/api/merchant';
 // 布局组件
 import Layout from '@/features/merchant/components/Layout.vue';
 
+// 图片工具函数
+import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils';
+import { API_CONFIG } from '@/config';
+
 // 本地聊天消息类型
 interface LocalChatMessage {
   sender: 'user' | 'merchant';
   content: string;
   time: string;
+}
+
+// 统一关键字规范化：支持按字段类型规范化（ORD/PEN 编号、手机号等）
+function normalizeKeyword(raw: string, type?: string): string | undefined {
+  const value = (raw ?? '').trim();
+  if (!value) return undefined;
+
+  // 按字段类型优先处理
+  if (type === 'orderNo' || type === 'id') {
+    return value.replace(/\D/g, '');
+  }
+  if (type === 'user.phone' || type === 'phone') {
+    return value.replace(/\D/g, '');
+  }
+
+  const upper = value.toUpperCase();
+  // 处理以 ORD / PEN 开头的编号：提取纯数字
+  if (/^(ORD|PEN)\d+$/.test(upper)) {
+    return value.replace(/\D/g, '');
+  }
+
+  // 对看起来像号码的内容（包含空格或短横线）保留数字以增强匹配
+  const digitsOnly = value.replace(/\D/g, '');
+  if (digitsOnly.length >= 4 && /[\d\-\s]+$/.test(value)) {
+    return digitsOnly;
+  }
+
+  return value;
 }
 
 const fetchAllData = async () => {
@@ -307,9 +471,11 @@ const penaltyDetail = ref<PenaltyRecord | null>(null);
 
 async function loadPenalties() {
   const params: { keyword?: string } = {};
-  if (penaltyFilters.keyword) params.keyword = penaltyFilters.keyword.trim();
+  const k = normalizeKeyword(penaltyFilters.keyword, penaltyKeywordType.value || undefined);
+  if (k) params.keyword = k;
+  // 传入筛选字段（id | reason）
+  const list = await getPenaltyList({ keyword: params.keyword, field: penaltyKeywordType.value || undefined });
   try {
-    const list = await getPenaltyList(params);
     penaltyList.value = list || [];
   } catch (error) {
     console.error('加载处罚记录失败:', error);
@@ -374,7 +540,8 @@ async function fetchReviews(page = 1) {
     const params = {
       page: reviewPage.value,
       pageSize: reviewPageSize.value,
-      keyword: reviewFilters.keyword || undefined,
+      keyword: normalizeKeyword(reviewFilters.keyword, reviewKeywordType.value || undefined),
+      field: reviewKeywordType.value || undefined,
       sellerId: merchantInfo.value.sellerId
     };
     
@@ -464,6 +631,11 @@ const aftersaleTabs = [
 ];
 
 const activeAftersaleTab = ref('penalties');
+// 售后筛选字段
+const asKeywordType = ref('');
+// 评论与处罚筛选字段
+const reviewKeywordType = ref('');
+const penaltyKeywordType = ref('');
 
 // 常用语和表情
 const quickPhrases = [
@@ -511,7 +683,8 @@ async function loadAfterSales(page = 1) {
   const params: AfterSaleListParams = {
     page: asPage.value,
     pageSize: asPageSize.value,
-    keyword: asFilters.keyword || undefined,
+    keyword: normalizeKeyword(asFilters.keyword, asKeywordType.value || undefined),
+    field: asKeywordType.value || undefined,
     sellerId: merchantInfo.value.sellerId || 0
   };
   try {
@@ -585,6 +758,11 @@ const punishmentDict: Record<string, string> = {
   permanent_removal: '永久下架',
 };
 
+// 图片预览
+const previewImage = (imageUrl: string) => {
+  const fullUrl = imageUrl.startsWith('http') ? imageUrl : `${API_CONFIG.BASE_URL}${imageUrl}`;
+  window.open(fullUrl, '_blank');
+};
 
 </script>
 

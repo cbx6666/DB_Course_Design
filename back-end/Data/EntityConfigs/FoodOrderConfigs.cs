@@ -44,6 +44,22 @@ namespace BackEnd.Data.EntityConfigs
 
             // 索引配置
             builder.HasIndex(fo => fo.CartID).IsUnique();
+            
+            // 性能优化索引：根据查询模式添加常用字段索引
+            // StoreID 索引：商家查询订单时使用
+            builder.HasIndex(fo => fo.StoreID);
+            
+            // CustomerID 索引：消费者查询订单时使用
+            builder.HasIndex(fo => fo.CustomerID);
+            
+            // 复合索引：商家按时间查询订单（StoreID + OrderTime）
+            builder.HasIndex(fo => new { fo.StoreID, fo.OrderTime });
+            
+            // 复合索引：消费者按时间查询订单（CustomerID + OrderTime）
+            builder.HasIndex(fo => new { fo.CustomerID, fo.OrderTime });
+            
+            // 复合索引：月销量统计查询（StoreID + FoodOrderState + PaymentTime）
+            builder.HasIndex(fo => new { fo.StoreID, fo.FoodOrderState, fo.PaymentTime });
 
             // 关系配置
             ConfigureRelationships(builder);

@@ -31,9 +31,10 @@ namespace BackEnd.Controllers
         /// <param name="page">页码</param>
         /// <param name="pageSize">每页数量</param>
         /// <param name="keyword">搜索关键词</param>
+        /// <param name="field">筛选字段（content | orderNo | user.name）</param>
         /// <returns>评价列表</returns>
         [HttpGet]
-        public async Task<IActionResult> GetReviews([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? keyword)
+        public async Task<IActionResult> GetReviews([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? keyword, [FromQuery] string? field)
         {
             if (page < 1 || pageSize < 1)
             {
@@ -46,7 +47,7 @@ namespace BackEnd.Controllers
                 return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "无效的Token" });
             }
 
-            var result = await _merchantCommentService.GetReviewsAsync(sellerId.Value, page, pageSize, keyword);
+            var result = await _merchantCommentService.GetReviewsAsync(sellerId.Value, page, pageSize, keyword, field);
             return Ok(new ApiResponseDto<object> { Success = true, Code = 200, Message = "获取成功", Data = result });
         }
 

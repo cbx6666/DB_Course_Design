@@ -13,8 +13,9 @@ namespace BackEnd.Services.Interfaces
         /// </summary>
         /// <param name="sellerId">商家ID</param>
         /// <param name="keyword">搜索关键词</param>
+        /// <param name="field">筛选字段（id | reason）</param>
         /// <returns>处罚记录列表</returns>
-        Task<List<MerchantPenaltyRecordDto>> GetPenaltiesAsync(int sellerId, string? keyword);
+        Task<List<MerchantPenaltyRecordDto>> GetPenaltiesAsync(int sellerId, string? keyword, string? field);
 
         /// <summary>
         /// 根据ID获取处罚记录

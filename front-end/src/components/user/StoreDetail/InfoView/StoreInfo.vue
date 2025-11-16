@@ -20,13 +20,6 @@
             </div>
           </div>
           <div class="flex items-center space-x-3">
-            <i class="fas fa-clock text-[#F9771C] w-5"></i>
-            <div>
-              <div class="font-semibold text-gray-900">营业时间</div>
-              <div class="text-gray-600">{{ props.storeInfo.businessHours }}</div>
-            </div>
-          </div>
-          <div class="flex items-center space-x-3">
             <i class="fas fa-star text-[#F9771C] w-5"></i>
             <div>
               <div class="font-semibold text-gray-900">商店评分</div>
@@ -52,10 +45,17 @@
             </div>
           </div>
           <div class="flex items-center space-x-3">
+            <i class="fas fa-clock text-[#F9771C] w-5"></i>
+            <div>
+              <div class="font-semibold text-gray-900">营业时间</div>
+              <div class="text-gray-600">{{ props.storeInfo.businessHours }}</div>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3">
             <i class="fas fa-calendar-alt text-[#F9771C] w-5"></i>
             <div>
               <div class="font-semibold text-gray-900">创建时间</div>
-              <div class="text-gray-600">{{ props.storeInfo.createTime }}</div>
+              <div class="text-gray-600">{{ formatDate(props.storeInfo.createTime) }}</div>
             </div>
           </div>
         </div>
@@ -71,4 +71,20 @@ import type { StoreInfo } from '@/api/user'
 const props = defineProps<{
   storeInfo: StoreInfo
 }>()
+
+// 格式化日期，只显示日期部分
+function formatDate(dateStr: string): string {
+  if (!dateStr) return ''
+  try {
+    const date = new Date(dateStr)
+    if (isNaN(date.getTime())) return dateStr
+    return date.toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+  } catch (error) {
+    return dateStr
+  }
+}
 </script>

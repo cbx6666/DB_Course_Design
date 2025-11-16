@@ -15,8 +15,9 @@ namespace BackEnd.Services.Interfaces
         /// <param name="page">页码</param>
         /// <param name="pageSize">每页数量</param>
         /// <param name="keyword">搜索关键词</param>
+        /// <param name="field">筛选字段（content | user.name | orderNo）</param>
         /// <returns>售后申请列表</returns>
-        Task<PageResultDto<AfterSaleApplicationListItemDto>> GetAfterSalesAsync(int sellerId, int page, int pageSize, string? keyword);
+        Task<PageResultDto<AfterSaleApplicationListItemDto>> GetAfterSalesAsync(int sellerId, int page, int pageSize, string? keyword, string? field);
 
         /// <summary>
         /// 根据ID获取售后申请

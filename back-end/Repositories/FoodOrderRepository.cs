@@ -22,63 +22,69 @@ namespace BackEnd.Repositories
         }
 
         /// <summary>
-        /// 获取所有订单
+        /// 获取所有订单（优化版本：移除不必要的关联数据，使用拆分查询）
         /// </summary>
         /// <returns>订单列表</returns>
         public async Task<IEnumerable<FoodOrder>> GetAllAsync()
         {
+            // 使用 AsSplitQuery 拆分查询，避免复杂的 JOIN，提高性能
+            // 移除 AfterSaleApplications 和 Comments（商家查询订单时通常不需要）
             var orders = await _context.FoodOrders
-                                       .Include(fo => fo.Customer)               // 顾客
-                                       .Include(fo => fo.Cart)                   // 购物车
-                                       .Include(fo => fo.Store)                  // 店铺
-                                       .Include(fo => fo.DeliveryInfo)           // 配送信息
-                                       .Include(fo => fo.AfterSaleApplications)  // 售后申请
-                                       .Include(fo => fo.Comments)               // 评论
+                                       .AsSplitQuery()  // 拆分查询，避免笛卡尔积
+                                       .Include(fo => fo.Store)                  // 店铺（必需，用于筛选）
+                                           .ThenInclude(s => s.Seller)           // 商家信息
+                                       .Include(fo => fo.DeliveryInfo)           // 配送信息（必需）
+                                       .Include(fo => fo.Cart)                   // 购物车（必需，用于获取订单项）
                                        .OrderByDescending(fo => fo.OrderID)
                                        .ToListAsync();
 
-            // 批量加载 DeliveryTasks 和优惠券
-            var orderIds = orders.Select(o => o.OrderID).ToList();
-            
-            var tasks = await _context.DeliveryTasks
-                .Where(d => orderIds.Contains(d.OrderID))
-                .Select(d => new { d.OrderID, d.TaskID, d.Status })
-                .ToListAsync();
-
-            // 批量加载优惠券及其管理信息（处理可空集合）
-            var coupons = await _context.Coupons
-                .Include(c => c.CouponManager)
-                .Where(c => c.OrderID.HasValue && orderIds.Contains(c.OrderID.Value))
-                .ToListAsync();
-
-            // 将优惠券分组到对应的订单
-            var couponsByOrder = coupons
-                .Where(c => c.OrderID.HasValue)
-                .GroupBy(c => c.OrderID!.Value)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            var taskDict = tasks.ToDictionary(t => t.OrderID);
-
-            foreach (var order in orders)
+            // 批量加载 DeliveryTasks 和优惠券（避免N+1查询）
+            if (orders.Any())
             {
-                // 手动分配优惠券到订单（如果订单的 Coupons 集合为 null，则创建新列表）
-                if (couponsByOrder.TryGetValue(order.OrderID, out var orderCoupons))
-                {
-                    order.Coupons ??= new List<Coupon>();
-                    foreach (var coupon in orderCoupons)
-                    {
-                        order.Coupons.Add(coupon);
-                    }
-                }
+                var orderIds = orders.Select(o => o.OrderID).ToList();
+                
+                // 批量加载 DeliveryTasks
+                var tasks = await _context.DeliveryTasks
+                    .Where(d => orderIds.Contains(d.OrderID))
+                    .Select(d => new { d.OrderID, d.TaskID, d.Status })
+                    .ToListAsync();
 
-                if (taskDict.TryGetValue(order.OrderID, out var t))
+                // 批量加载优惠券及其管理信息
+                var coupons = await _context.Coupons
+                    .Include(c => c.CouponManager)
+                    .Where(c => c.OrderID.HasValue && orderIds.Contains(c.OrderID.Value))
+                    .ToListAsync();
+
+                // 将优惠券分组到对应的订单
+                var couponsByOrder = coupons
+                    .Where(c => c.OrderID.HasValue)
+                    .GroupBy(c => c.OrderID!.Value)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                var taskDict = tasks.ToDictionary(t => t.OrderID);
+
+                foreach (var order in orders)
                 {
-                    order.DeliveryTask = new DeliveryTask
+                    // 手动分配优惠券到订单
+                    if (couponsByOrder.TryGetValue(order.OrderID, out var orderCoupons))
                     {
-                        TaskID = t.TaskID,
-                        Status = t.Status,
-                        OrderID = order.OrderID
-                    };
+                        order.Coupons ??= new List<Coupon>();
+                        foreach (var coupon in orderCoupons)
+                        {
+                            order.Coupons.Add(coupon);
+                        }
+                    }
+
+                    // 手动分配 DeliveryTask
+                    if (taskDict.TryGetValue(order.OrderID, out var t))
+                    {
+                        order.DeliveryTask = new DeliveryTask
+                        {
+                            TaskID = t.TaskID,
+                            Status = t.Status,
+                            OrderID = order.OrderID
+                        };
+                    }
                 }
             }
 
