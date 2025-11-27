@@ -22,5 +22,14 @@ namespace BackEnd.Services.Interfaces
         /// <param name="userId">用户ID</param>
         /// <returns>售后申请列表</returns>
         Task<List<CustomerAfterSaleListItemDto>> GetMyAfterSalesAsync(int userId);
+
+        /// <summary>
+        /// 提交（或更新）售后申请评分（仅已完成的申请）
+        /// </summary>
+        /// <param name="applicationId">申请ID</param>
+        /// <param name="userId">用户ID</param>
+        /// <param name="score">评分（0-5）</param>
+        /// <returns>操作结果</returns>
+        Task<ApiResponseDto> SubmitAfterSaleRatingAsync(int applicationId, int userId, int score);
     }
 }

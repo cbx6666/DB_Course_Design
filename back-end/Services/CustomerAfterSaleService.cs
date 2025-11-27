@@ -138,6 +138,8 @@ namespace BackEnd.Services
                 Status = app.AfterSaleState.ToString(),
                 ProcessingResult = app.ProcessingResult ?? "-",
                 ProcessingReason = string.IsNullOrWhiteSpace(app.ProcessingReason) ? null : app.ProcessingReason,
+                MerchantReply = string.IsNullOrWhiteSpace(app.MerchantReply) ? null : app.MerchantReply,
+                ConsumerRating = app.ConsumerRating,
                 DishDetails = app.Order?.Cart?.ShoppingCartItems?
                     .Select(item => new OrderDishDto
                     {
@@ -150,6 +152,40 @@ namespace BackEnd.Services
             }).ToList();
 
             return result;
+        }
+
+        /// <summary>
+        /// 提交（或更新）售后申请评分（仅已完成的申请）
+        /// </summary>
+        public async Task<BackEnd.DTOs.Common.ApiResponseDto> SubmitAfterSaleRatingAsync(int applicationId, int userId, int score)
+        {
+            if (score < 0 || score > 5)
+            {
+                return new BackEnd.DTOs.Common.ApiResponseDto { Success = false, Code = 400, Message = "评分必须在0-5之间" };
+            }
+
+            var app = await _applicationRepository.GetByIdAsync(applicationId);
+            if (app == null)
+            {
+                return new BackEnd.DTOs.Common.ApiResponseDto { Success = false, Code = 404, Message = "售后申请不存在" };
+            }
+
+            // 验证归属（仓储默认包含 Order）
+            if (app.Order?.CustomerID != userId)
+            {
+                return new BackEnd.DTOs.Common.ApiResponseDto { Success = false, Code = 403, Message = "无权为该售后申请评分" };
+            }
+
+            // 仅已完成可评分
+            if (app.AfterSaleState != AfterSaleState.Completed)
+            {
+                return new BackEnd.DTOs.Common.ApiResponseDto { Success = false, Code = 400, Message = "仅已完成的售后申请可评分" };
+            }
+
+            app.ConsumerRating = score;
+            await _applicationRepository.UpdateAsync(app);
+
+            return new BackEnd.DTOs.Common.ApiResponseDto { Success = true, Code = 200, Message = "评分已提交" };
         }
 
         /// <summary>

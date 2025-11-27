@@ -98,5 +98,11 @@ namespace BackEnd.Models
         /// 投诉评估记录集合
         /// </summary>
         public ICollection<Evaluate_Complaint> EvaluateComplaints { get; set; } = new List<Evaluate_Complaint>();
+
+        /// <summary>
+        /// 消费者对本次投诉处理的评分（0-5），为空表示未评分
+        /// </summary>
+        [Range(0, 5)]
+        public int? ConsumerRating { get; set; }
     }
 }

@@ -194,10 +194,10 @@
             <span>骑手打分</span>
           </button>
           <button 
-            @click="openDeliveryComplaint"
+            @click="hasTaskComplaint ? goUserAfterSaleComplaint() : openDeliveryComplaint()"
             class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm transition-colors cursor-pointer flex items-center gap-2">
             <i class="fas fa-exclamation-triangle"></i>
-            <span>配送投诉</span>
+            <span>{{ hasTaskComplaint ? '查看投诉' : '配送投诉' }}</span>
           </button>
         </div>
         <!-- 右侧关闭按钮 -->
@@ -242,12 +242,14 @@
 
 <script setup lang="ts">
 import { ref, watch, defineProps, defineEmits, computed } from "vue";
+import { useRouter } from 'vue-router';
 import type { OrderInfo } from "@/api/user";
 import { getOrderDeliveryInfo } from "@/api/user/home";
 import { ElMessage } from "element-plus";
 import ReplyDialog from "./ReplyDialog.vue";
 import CourierRatingWindow from "./CourierRatingWindow.vue";
 import DeliveryComplaintWindow from "./DeliveryComplaintWindow.vue";
+import { getMyDeliveryComplaints, type DeliveryComplaintListItem } from '@/api/user/afterSale';
 
 const props = defineProps<{ 
     visible: boolean;
@@ -259,6 +261,8 @@ const emit = defineEmits(["close", "contactRider", "rateCourier", "deliveryCompl
 const loading = ref(false);
 const error = ref<string | null>(null);
 const deliveryInfo = ref<any>(null);
+const hasTaskComplaint = ref(false);
+const router = useRouter();
 
 // 对话框状态
 const showContactRider = ref(false);
@@ -337,6 +341,10 @@ function openRateCourier() {
 function openDeliveryComplaint() {
   showDeliveryComplaint.value = true;
 }
+function goUserAfterSaleComplaint() {
+  router.push({ name: 'AfterSale', query: { tab: 'complaint' } });
+  close();
+}
 
 // 重新获取配送信息
 async function refreshDeliveryInfo() {
@@ -355,6 +363,15 @@ async function refreshDeliveryInfo() {
       ...response,
       order: response.order || props.order
     };
+
+    // 检查该订单/任务是否已有投诉
+    try {
+      const complaints: DeliveryComplaintListItem[] = await getMyDeliveryComplaints();
+      const taskId = deliveryInfo.value.taskId || deliveryInfo.value.TaskId;
+      hasTaskComplaint.value = complaints.some(c => c.orderId === props.order?.orderId || (!!taskId && c.deliveryTaskId === taskId));
+    } catch {
+      hasTaskComplaint.value = false;
+    }
     
     // 检查是否已评分
     if (response.taskRating !== undefined && response.taskRating !== null) {
@@ -417,6 +434,16 @@ watch(
         // 调试：打印最终的 deliveryInfo
         console.log('最终的 deliveryInfo:', deliveryInfo.value);
         console.log('deliveryInfo.order:', deliveryInfo.value.order);
+
+        // 计算是否已有该订单/任务的投诉
+        try {
+          const complaints: DeliveryComplaintListItem[] = await getMyDeliveryComplaints();
+          const taskId = deliveryInfo.value.taskId || deliveryInfo.value.TaskId;
+          hasTaskComplaint.value = complaints.some(c => c.orderId === props.order?.orderId || (!!taskId && c.deliveryTaskId === taskId));
+        } catch (e) {
+          console.warn('获取用户配送投诉失败', e);
+          hasTaskComplaint.value = false;
+        }
       } catch (err: any) {
         console.error('获取配送信息失败:', err);
         error.value = '获取配送信息失败：' + (err?.message || '未知错误');

@@ -1,3 +1,4 @@
+using BackEnd.DTOs.DishCategory;
 using BackEnd.Models;
 
 namespace BackEnd.Repositories.Interfaces
@@ -82,5 +83,12 @@ namespace BackEnd.Repositories.Interfaces
         /// <param name="menuId">菜单ID</param>
         /// <returns>菜单菜品种类关联列表</returns>
         Task<IEnumerable<Menu_DishCategory>> GetMenuDishCategoriesByMenuIdAsync(int menuId);
+
+        /// <summary>
+        /// 获取店铺的菜品分类列表（轻量级查询）
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <returns>分类列表</returns>
+        Task<List<CategoryResponseDto>> GetCategoriesByStoreIdAsync(int storeId);
     }
 }

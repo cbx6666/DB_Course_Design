@@ -1,192 +1,318 @@
 <template>
   <Layout>
-    <!-- 配券中心 -->
-    <div>
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">配券中心</h2>
-        <div class="flex items-center space-x-3">
-          <el-button @click="openCreateForm" type="primary" :icon="Plus">
-            新建优惠券
-          </el-button>
-        </div>
-      </div>
-
-      <!-- 统计卡片 -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg白e rounded-lg shadow-sm p-6 border-l-4 border-[#F9771C]">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-gray-500">总优惠券</p>
-              <p class="text-2xl font-bold">{{ stats.total || 0 }}</p>
-            </div>
-            <el-icon class="text-[#F9771C] text-3xl">
-              <Collection />
-            </el-icon>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500">
-          <div class="flex items中心 justify-between">
-            <div>
-              <p class="text-sm text-gray-500">有效优惠券</p>
-              <p class="text-2xl font-bold">{{ stats.active || 0 }}</p>
-            </div>
-            <el-icon class="text-green-500 text-3xl">
-              <Check />
-            </el-icon>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-yellow-500">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-gray-500">未开始</p>
-              <p class="text-2xl font-bold">{{ stats.upcoming || 0 }}</p>
-            </div>
-            <el-icon class="text-yellow-500 text-3xl">
-              <Clock />
-            </el-icon>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-red-500">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-gray-500">已过期</p>
-              <p class="text-2xl font-bold">{{ stats.expired || 0 }}</p>
-            </div>
-            <el-icon class="text-red-500 text-3xl">
-              <Close />
-            </el-icon>
-          </div>
-        </div>
-      </div>
-
-      <!-- 优惠券列表 -->
-      <div class="bg-white rounded-lg shadow-sm">
-        <div class="p-6 border-b border-gray-200">
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-800">优惠券列表</h3>
-            <div class="flex items-center space-x-4">
-              <el-select v-model="selectedStatus" placeholder="筛选状态" @change="filterCoupons">
-                <el-option label="全部" value="all" />
-                <el-option label="有效" value="active" />
-                <el-option label="未开始" value="upcoming" />
-                <el-option label="已过期" value="expired" />
-              </el-select>
-              <el-button @click="refreshCoupons" :loading="loading" icon="Refresh" />
-            </div>
-          </div>
-        </div>
-
-        <div class="p-6">
-          <!-- 错误提示 -->
-          <div v-if="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div class="flex items-center justify-between">
-              <p class="text-red-600">{{ errorMessage }}</p>
-              <el-button @click="retryLoad" size="small" type="primary">重试</el-button>
+    <div class="min-h-screen bg-gray-100 py-10">
+      <div class="max-w-[1400px] mx-auto px-8 space-y-6">
+        <div class="coupon-top flex flex-col gap-4">
+          <div class="flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-gray-800">配券中心</h2>
+            <div class="flex items-center space-x-3">
+              <el-button @click="openCreateForm" type="primary" :icon="Plus">
+                新建优惠券
+              </el-button>
             </div>
           </div>
 
-          <!-- 优惠券列表 -->
-          <div v-if="!loading && coupons.length > 0" class="space-y-4">
-            <div
-              v-for="coupon in filteredCoupons"
-              :key="coupon.id"
-              class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-            >
-              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center space-x-4">
-                  <div class="bg-[#F9771C] text-white px-4 py-2 rounded-lg">
-                    <p class="text-lg font-bold">
-                      {{ coupon.type === 'discount' ? `${coupon.value.toFixed(1)}折` : `¥${coupon.value}` }}
-                    </p>
-                    <p class="text-xs">{{ coupon.type === 'discount' ? '折扣券' : '满减券' }}</p>
-                  </div>
+          <!-- 统计卡片 -->
+          <div class="coupon-stats overflow-x-auto mb-2 pb-1 scrollbar-hide">
+            <div class="flex gap-5 min-w-[1050px]">
+              <div class="stat-card border border-orange-200">
+                <div class="stat-card__accent bg-orange-100"></div>
+                <div class="flex items-center justify-between relative">
                   <div>
-                    <h4 class="font-semibold text-gray-800">{{ coupon.name }}</h4>
-                    <p class="text-sm text-gray-500">{{ coupon.description }}</p>
+                    <p class="text-xs text-gray-500">总优惠券</p>
+                    <p class="text-3xl font-extrabold text-gray-900">{{ stats.total || 0 }}</p>
+                    <p class="text-[11px] text-gray-400 mt-1">累计创建数量</p>
+                  </div>
+                  <div class="stat-icon bg-orange-50 text-[#F9771C]">
+                    <Collection />
                   </div>
                 </div>
-                <div class="text-right">
-                  <el-tag :type="getStatusType(coupon.status)" size="small">
-                    {{ getStatusText(coupon.status) }}
-                  </el-tag>
-                  <p class="text-sm text-gray-500 mt-1">{{ formatTime(coupon.startTime) }}</p>
+              </div>
+
+              <div class="stat-card border border-green-200">
+                <div class="stat-card__accent bg-green-100"></div>
+                <div class="flex items-center justify-between relative">
+                  <div>
+                    <p class="text-xs text-gray-500">有效优惠券</p>
+                    <p class="text-3xl font-extrabold text-gray-900">{{ stats.active || 0 }}</p>
+                    <p class="text-[11px] text-gray-400 mt-1">正在投放中</p>
+                  </div>
+                  <div class="stat-icon bg-green-50 text-green-500">
+                    <Check />
+                  </div>
                 </div>
               </div>
 
-              <!-- 优惠券详情 -->
-              <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p class="text-sm text-gray-600">使用条件</p>
-                  <p class="font-medium">满¥{{ coupon.minAmount || 0 }}可用</p>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-600">有效期</p>
-                  <p class="font-medium">{{ formatDateRange(coupon.startTime, coupon.endTime) }}</p>
-                </div>
-              </div>
-
-              <!-- 使用统计 -->
-              <div class="grid grid-cols-3 gap-4 mb-4">
-                <div class="text-center">
-                  <p class="text-sm text-gray-600">发放数量</p>
-                  <p class="font-semibold">{{ coupon.totalQuantity || 0 }}</p>
-                </div>
-                <div class="text-center">
-                  <p class="text-sm text-gray-600">已使用</p>
-                  <p class="font-semibold">{{ coupon.usedQuantity || 0 }}</p>
-                </div>
-                <div class="text-center">
-                  <p class="text-sm text-gray-600">剩余</p>
-                  <p class="font-semibold">{{ (coupon.totalQuantity || 0) - (coupon.usedQuantity || 0) }}</p>
+              <div class="stat-card border border-yellow-200">
+                <div class="stat-card__accent bg-yellow-100"></div>
+                <div class="flex items-center justify-between relative">
+                  <div>
+                    <p class="text-xs text-gray-500">未开始</p>
+                    <p class="text-3xl font-extrabold text-gray-900">{{ stats.upcoming || 0 }}</p>
+                    <p class="text-[11px] text-gray-400 mt-1">等待生效</p>
+                  </div>
+                  <div class="stat-icon bg-yellow-50 text-yellow-500">
+                    <Clock />
+                  </div>
                 </div>
               </div>
 
-              <!-- 操作按钮 -->
-              <div class="flex items-center justify-end space-x-2">
-                <el-button 
-                  v-if="coupon.status === 'upcoming'"
-                  @click="activateCoupon(coupon.id)"
-                  type="primary"
-                  size="small"
-                >
-                  启用
-                </el-button>
-                <el-button 
-                  v-if="coupon.status === 'active'"
-                  @click="deactivateCoupon(coupon.id)"
-                  type="warning"
-                  size="small"
-                >
-                  停用
-                </el-button>
-                <el-button @click="editCoupon(coupon)" size="small">
-                  编辑
-                </el-button>
-                <el-button @click="deleteCouponItem(coupon.id)" type="danger" size="small">
-                  删除
-                </el-button>
+              <div class="stat-card border border-red-200">
+                <div class="stat-card__accent bg-red-100"></div>
+                <div class="flex items-center justify-between relative">
+                  <div>
+                    <p class="text-xs text-gray-500">已过期</p>
+                    <p class="text-3xl font-extrabold text-gray-900">{{ stats.expired || 0 }}</p>
+                    <p class="text-[11px] text-gray-400 mt-1">自动下线数量</p>
+                  </div>
+                  <div class="stat-icon bg-red-50 text-red-500">
+                    <Close />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="coupon-layout">
+          <div class="coupon-main space-y-4">
+            <!-- 优惠券列表 -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-100">
+              <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                  <h3 class="text-lg font-semibold text-gray-800">优惠券列表</h3>
+                  <div class="flex items-center space-x-4">
+                    <el-select v-model="selectedStatus" placeholder="筛选状态" @change="filterCoupons">
+                      <el-option label="全部" value="all" />
+                      <el-option label="有效" value="active" />
+                      <el-option label="未开始" value="upcoming" />
+                      <el-option label="已过期" value="expired" />
+                    </el-select>
+                    <el-button @click="refreshCoupons" :loading="loading" icon="Refresh" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-6">
+                <!-- 错误提示 -->
+                <div v-if="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div class="flex items-center justify-between">
+                    <p class="text-red-600">{{ errorMessage }}</p>
+                    <el-button @click="retryLoad" size="small" type="primary">重试</el-button>
+                  </div>
+                </div>
+
+                <!-- 优惠券列表 -->
+                <template v-if="!loading">
+                  <template v-if="coupons.length > 0">
+                    <div class="space-y-5">
+                      <div
+                        v-for="coupon in filteredCoupons"
+                        :key="coupon.id"
+                        class="coupon-card"
+                      >
+                        <div class="relative">
+                          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                            <div class="flex items-start gap-4 flex-1">
+                              <div class="coupon-badge-wrapper">
+                                <div class="coupon-badge">
+                                  <p class="text-2xl font-extrabold leading-tight">
+                                    {{ coupon.type === 'discount' ? `${coupon.value.toFixed(1)}折` : `¥${formatAmount(coupon.value)}` }}
+                                  </p>
+                                  <p class="text-xs opacity-80 mt-1">{{ coupon.type === 'discount' ? '折扣券' : '满减券' }}</p>
+                                </div>
+                              </div>
+                              <div class="space-y-2 flex-1 min-w-0">
+                              <h4 class="coupon-title" :title="coupon.name">
+                                {{ coupon.name }}
+                              </h4>
+                                <p class="text-sm text-gray-500 leading-relaxed text-left w-full" :title="coupon.description || '暂无描述'">
+                                  {{ coupon.description || '暂无描述' }}
+                                </p>
+                                <div class="flex flex-wrap gap-2 text-xs text-gray-600">
+                                  <span class="tag-chip bg-orange-50 text-orange-600">满¥{{ coupon.minAmount || 0 }}可用</span>
+                                  <span class="tag-chip bg-gray-100 text-gray-600">{{ coupon.type === 'discount' ? '折扣券' : '满减券' }}</span>
+                                  <span class="tag-chip bg-blue-50 text-blue-600">共 {{ coupon.totalQuantity || 0 }} 张</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="text-right space-y-2 pt-8 md:pt-0">
+                              <div class="text-xs text-gray-500 leading-5">
+                                <p>生效：{{ formatTime(coupon.startTime) }}</p>
+                                <p>结束：{{ formatTime(coupon.endTime) }}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="coupon-status-tag">
+                            <el-tag :type="getStatusType(coupon.status)" size="small" effect="dark">
+                              {{ getStatusText(coupon.status) }}
+                            </el-tag>
+                          </div>
+                        </div>
+
+                        <div class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div class="info-box">
+                            <p class="info-label">使用条件</p>
+                            <p class="info-value">订单满 ¥{{ formatAmount(coupon.minAmount || 0) }} 可用</p>
+                            <p class="info-sub">店内堂食/外卖均可使用</p>
+                          </div>
+                          <div class="info-box">
+                            <p class="info-label">有效期</p>
+                            <p class="info-value">{{ formatDateRange(coupon.startTime, coupon.endTime) }}</p>
+                            <p class="info-sub">可配合店内其他活动</p>
+                          </div>
+                          <div class="info-box">
+                            <p class="info-label">领取限制</p>
+                            <p class="info-value">单用户最多 1 张</p>
+                            <p class="info-sub">领取后过期自动退回名额</p>
+                          </div>
+                        </div>
+
+                        <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <div class="flex items-center justify-between text-sm text-gray-600">
+                              <span>发放数量</span>
+                              <span class="font-semibold text-gray-900">{{ coupon.totalQuantity || 0 }}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm text-gray-600 mt-2">
+                              <span>已使用</span>
+                              <span class="font-semibold text-gray-900">{{ coupon.usedQuantity || 0 }}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm text-gray-600 mt-2">
+                              <span>剩余</span>
+                              <span class="font-semibold text-gray-900">{{ Math.max((coupon.totalQuantity || 0) - (coupon.usedQuantity || 0), 0) }}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+                              <span>使用率</span>
+                              <span class="font-semibold text-gray-900">{{ getUsagePercent(coupon) }}%</span>
+                            </div>
+                            <div class="progress-track">
+                              <div class="progress-bar" :style="{ width: `${getUsagePercent(coupon)}%` }"></div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-2">实时统计领取/核销情况，帮助及时调整投放策略</p>
+                          </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-end gap-2 pt-4 mt-4 border-t border-dashed border-gray-200">
+                          <el-button 
+                            v-if="coupon.status === 'upcoming'"
+                            @click="activateCoupon(coupon.id)"
+                            type="primary"
+                            size="small"
+                          >
+                            启用
+                          </el-button>
+                          <el-button @click="editCoupon(coupon)" size="small">
+                            编辑
+                          </el-button>
+                          <el-button @click="deleteCouponItem(coupon.id)" type="danger" size="small">
+                            删除
+                          </el-button>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <div class="text-center py-12">
+                      <el-icon class="text-gray-400 text-6xl mb-4">
+                        <Collection />
+                      </el-icon>
+                      <p class="text-gray-500 text-lg">暂无优惠券</p>
+                      <p class="text-gray-400 text-sm">点击"新建优惠券"创建您的第一张优惠券</p>
+                    </div>
+                  </template>
+                </template>
+                <template v-else>
+                  <div class="text-center py-12">
+                    <el-icon class="text-gray-400 text-6xl mb-4 animate-spin">
+                      <Loading />
+                    </el-icon>
+                    <p class="text-gray-500">加载优惠券中...</p>
+                  </div>
+                </template>
               </div>
             </div>
           </div>
 
-          <!-- 空状态 -->
-          <div v-else-if="!loading && coupons.length === 0" class="text-center py-12">
-            <el-icon class="text-gray-400 text-6xl mb-4">
-              <Collection />
-            </el-icon>
-            <p class="text-gray-500 text-lg">暂无优惠券</p>
-            <p class="text-gray-400 text-sm">点击"新建优惠券"创建您的第一张优惠券</p>
-          </div>
+          <!-- 右侧辅助信息 -->
+          <div class="coupon-aside space-y-4">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <h3 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <i class="fas fa-bolt text-orange-500"></i>
+                快捷操作
+              </h3>
+              <div class="space-y-2">
+                <button
+                  @click="openCreateForm"
+                  class="w-full bg-orange-50 hover:bg-orange-100 text-orange-700 px-3 py-2 rounded-lg text-xs transition-colors text-left flex items-center justify-between"
+                >
+                  <span>创建新优惠券</span>
+                  <i class="fas fa-chevron-right text-orange-400"></i>
+                </button>
+                <button
+                  @click="selectedStatus = 'active'; filterCoupons()"
+                  class="w-full bg-green-50 hover:bg-green-100 text-green-700 px-3 py-2 rounded-lg text-xs transition-colors text-left flex items-center justify-between"
+                >
+                  <span>查看正在投放</span>
+                  <i class="fas fa-chevron-right text-green-400"></i>
+                </button>
+                <button
+                  @click="selectedStatus = 'expired'; filterCoupons()"
+                  class="w-full bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded-lg text-xs transition-colors text-left flex items-center justify-between"
+                >
+                  <span>清理已过期</span>
+                  <i class="fas fa-chevron-right text-red-400"></i>
+                </button>
+              </div>
+            </div>
 
-          <!-- 加载状态 -->
-          <div v-else-if="loading" class="text-center py-12">
-            <el-icon class="text-gray-400 text-6xl mb-4 animate-spin">
-              <Loading />
-            </el-icon>
-            <p class="text-gray-500">加载优惠券中...</p>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <h3 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <i class="fas fa-lightbulb text-yellow-500"></i>
+                投放建议
+              </h3>
+              <div class="space-y-3 text-xs text-gray-600">
+                <div class="flex items-start gap-2">
+                  <i class="fas fa-check-circle text-green-500 mt-0.5 shrink-0"></i>
+                  <p>保持至少 2 张有效优惠券，满足不同消费层级</p>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="fas fa-check-circle text-green-500 mt-0.5 shrink-0"></i>
+                  <p>针对午晚高峰设置短期折扣券，提升转化率</p>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="fas fa-check-circle text-green-500 mt-0.5 shrink-0"></i>
+                  <p>监控核销率，及时调整优惠力度与发放数量</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="monthly-card rounded-xl shadow-sm border border-gray-100 p-4">
+              <h3 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <i class="fas fa-chart-line text-blue-500"></i>
+                本月投放概况
+              </h3>
+              <div class="space-y-3 text-xs text-gray-600">
+                <div class="flex items-center justify-between">
+                  <span>在投优惠券</span>
+                  <span class="font-semibold text-gray-900">{{ stats.active || 0 }} 张</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>待上线</span>
+                  <span class="font-semibold text-gray-900">{{ stats.upcoming || 0 }} 张</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>已下线</span>
+                  <span class="font-semibold text-gray-900">{{ stats.expired || 0 }} 张</span>
+                </div>
+                <div class="h-px bg-gray-100"></div>
+                <p class="monthly-tip text-[11px] text-gray-400 leading-relaxed">
+                  建议每周至少复盘一次核销数据，结合商家活动及时调整优惠方案。
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -538,25 +664,6 @@ const activateCoupon = async (couponId: number) => {
   }
 };
 
-// 停用优惠券
-const deactivateCoupon = async (couponId: number) => {
-  try {
-    await ElMessageBox.confirm('确定要停用这个优惠券吗？', '确认停用', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    });
-
-    // TODO: 调用真实API停用优惠券
-    ElMessage.success('优惠券已停用');
-    await loadCoupons();
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('操作失败，请重试');
-    }
-  }
-};
-
 // 删除优惠券
 const deleteCouponItem = async (couponId: number) => {
   try {
@@ -610,6 +717,18 @@ const formatDateRange = (startTime: string, endTime: string) => {
   return `${start} - ${end}`;
 };
 
+const formatAmount = (value?: number) => {
+  if (value === undefined || value === null) return '0';
+  return Number.isInteger(value) ? `${value}` : Number(value).toFixed(2);
+};
+
+const getUsagePercent = (coupon: CouponInfo) => {
+  const total = coupon.totalQuantity || 0;
+  if (!total) return 0;
+  const used = coupon.usedQuantity || 0;
+  return Math.min(100, Math.max(0, Math.round((used / total) * 100)));
+};
+
 // 初始化数据
 onMounted(() => {
   loadCoupons();
@@ -638,6 +757,205 @@ onMounted(() => {
 :deep(.el-picker-panel__footer .el-button) {
   z-index: 10001 !important;
   position: relative;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.stat-card {
+  position: relative;
+  min-width: 250px;
+  background: #fff;
+  border-radius: 1.25rem;
+  padding: 1.6rem;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+.stat-card__accent {
+  position: absolute;
+  inset: auto -1rem -1rem auto;
+  width: 120px;
+  height: 120px;
+  border-radius: 9999px;
+  filter: blur(20px);
+  opacity: 0.45;
+}
+
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.coupon-card {
+  background: #fff;
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.coupon-card:hover {
+  box-shadow: 0 25px 45px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
+}
+
+.coupon-badge {
+  min-width: 120px;
+  background: linear-gradient(135deg, #f9771c, #ffb347);
+  color: #fff;
+  padding: 1rem;
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(249, 119, 28, 0.35);
+}
+
+.coupon-badge-wrapper {
+  width: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.coupon-status-tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.coupon-title {
+  width: 100%;
+  text-align: left;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  color: #f97316;
+  background: linear-gradient(120deg, rgba(249, 119, 28, 0.18), rgba(255, 255, 255, 0));
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.85rem;
+  box-shadow: inset 0 -1px 0 rgba(249, 119, 28, 0.25);
+  display: inline-block;
+  text-shadow: 0 1px 1px rgba(249, 119, 28, 0.2);
+}
+
+.monthly-card {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(249, 115, 22, 0.08));
+  border-color: rgba(59, 130, 246, 0.25);
+}
+
+.monthly-tip {
+  text-align: left;
+  color: #475569;
+}
+
+.tag-chip {
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.info-box {
+  border: 1px solid #f1f5f9;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+}
+
+.info-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.info-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.info-sub {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.2rem;
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #f9771c, #facc15);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.coupon-top {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.coupon-top > div:first-child {
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.coupon-stats {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.coupon-layout {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.coupon-main {
+  flex: 0 0 760px;
+  max-width: 100%;
+}
+
+.coupon-aside {
+  flex: 0 0 300px;
+  position: sticky;
+  top: 96px;
+}
+
+@media (max-width: 1023px) {
+  .coupon-layout {
+    flex-direction: column;
+  }
+
+  .coupon-main,
+  .coupon-aside {
+    flex: 0 0 auto;
+    width: 100%;
+    position: static;
+  }
 }
 </style>
 

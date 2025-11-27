@@ -72,5 +72,26 @@ namespace BackEnd.Controllers
             }
         }
 
+        /// <summary>
+        /// 提交售后申请评分（仅已完成的申请）
+        /// </summary>
+        /// <param name="id">申请ID</param>
+        /// <param name="request">评分请求</param>
+        [HttpPost("{id}/rating")]
+        public async Task<IActionResult> SubmitRating(int id, [FromBody] SubmitAfterSaleRatingDto request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "请求数据不能为空" });
+            }
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+            {
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "无效的Token" });
+            }
+            var result = await _afterSaleService.SubmitAfterSaleRatingAsync(id, userId.Value, request.Score);
+            return result.Success ? Ok(result) : StatusCode(result.Code, result);
+        }
+
     }
 }

@@ -57,7 +57,15 @@ namespace BackEnd.Services
                     Status = complaint.ComplaintState == ComplaintState.Pending ? "待处理" : "已完成",
                     Punishment = complaint.ProcessingResult ?? "-",
                     PunishmentReason = complaint.ProcessingReason ?? "",
-                    Fine = complaint.FineAmount?.ToString("F2") ?? "0.00"
+                    Fine = complaint.FineAmount?.ToString("F2") ?? "0.00",
+                    Images = string.IsNullOrWhiteSpace(complaint.ComplaintImages)
+                        ? Array.Empty<string>()
+                        : complaint.ComplaintImages!.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                    CourierName = complaint.Courier?.User?.FullName ?? complaint.Courier?.User?.Username,
+                    CourierPhone = complaint.Courier?.User != null ? complaint.Courier.User.PhoneNumber.ToString() : null,
+                    AcceptTime = complaint.DeliveryTask?.AcceptTime.ToString("yyyy-MM-dd HH:mm"),
+                    PickupTime = complaint.DeliveryTask?.PickupTime?.ToString("yyyy-MM-dd HH:mm"),
+                    CompletionTime = complaint.DeliveryTask?.CompletionTime?.ToString("yyyy-MM-dd HH:mm")
                 };
             }).ToList();
 

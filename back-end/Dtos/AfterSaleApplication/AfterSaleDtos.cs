@@ -89,6 +89,16 @@ namespace BackEnd.DTOs.AfterSaleApplication
         public string? ProcessingReason { get; set; }
 
         /// <summary>
+        /// 商家回复
+        /// </summary>
+        public string? MerchantReply { get; set; }
+
+        /// <summary>
+        /// 消费者评分（0-5）
+        /// </summary>
+        public int? ConsumerRating { get; set; }
+
+        /// <summary>
         /// 订单菜品列表
         /// </summary>
         public List<OrderDishDto> DishDetails { get; set; } = new List<OrderDishDto>();
@@ -122,6 +132,11 @@ namespace BackEnd.DTOs.AfterSaleApplication
         public UserProfileDto User { get; set; } = null!;
 
         /// <summary>
+        /// 账户用户名（与收货人真实姓名区分）
+        /// </summary>
+        public string? AccountUserName { get; set; }
+
+        /// <summary>
         /// 申请原因
         /// </summary>
         public string Reason { get; set; } = null!;
@@ -140,22 +155,37 @@ namespace BackEnd.DTOs.AfterSaleApplication
         /// 订单菜品详情
         /// </summary>
         public List<OrderDishDto> DishDetails { get; set; } = new List<OrderDishDto>();
+
+        /// <summary>
+        /// 状态（待处理/商家反馈/已完成）
+        /// </summary>
+        public string? Status { get; set; }
+
+        /// <summary>
+        /// 商家回复
+        /// </summary>
+        public string? MerchantReply { get; set; }
+
+        /// <summary>
+        /// 管理员处理措施（已完成时返回）
+        /// </summary>
+        public string? Punishment { get; set; }
+
+        /// <summary>
+        /// 管理员处理原因（已完成时返回）
+        /// </summary>
+        public string? PunishmentReason { get; set; }
     }
 
     /// <summary>
-    /// 处理售后请求DTO（商家端处理）
+    /// 商家回复请求 DTO（仅支持在待处理状态下填写商家回复）
     /// </summary>
-    public class ProcessAfterSaleDto
+    public class MerchantReplyDto
     {
         /// <summary>
-        /// 操作：approve/reject/negotiate
+        /// 商家回复内容
         /// </summary>
-        public string Action { get; set; } = null!;
-
-        /// <summary>
-        /// 备注
-        /// </summary>
-        public string Remark { get; set; } = null!;
+        public string Remark { get; set; } = string.Empty;
     }
 
     // ========== 管理员侧 ==========
@@ -199,6 +229,31 @@ namespace BackEnd.DTOs.AfterSaleApplication
         /// 处罚原因
         /// </summary>
         public string PunishmentReason { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 用户信息（用于头像与姓名、电话展示）
+        /// </summary>
+        public UserProfileDto? User { get; set; }
+
+        /// <summary>
+        /// 申请图片URL列表
+        /// </summary>
+        public string[] Images { get; set; } = Array.Empty<string>();
+
+        /// <summary>
+        /// 订单菜品列表
+        /// </summary>
+        public List<OrderDishDto> DishDetails { get; set; } = new List<OrderDishDto>();
+
+        /// <summary>
+        /// 商家回复
+        /// </summary>
+        public string? MerchantReply { get; set; }
+
+        /// <summary>
+        /// 消费者评分（0-5）
+        /// </summary>
+        public int? ConsumerRating { get; set; }
     }
 
     /// <summary>
@@ -236,5 +291,16 @@ namespace BackEnd.DTOs.AfterSaleApplication
         /// 更新后的售后申请详情
         /// </summary>
         public AfterSaleApplicationDetailDto? Data { get; set; }
+    }
+
+    /// <summary>
+    /// 提交售后申请评分请求 DTO（消费者端）
+    /// </summary>
+    public class SubmitAfterSaleRatingDto
+    {
+        /// <summary>
+        /// 评分（0-5）
+        /// </summary>
+        public int Score { get; set; }
     }
 }

@@ -26,7 +26,9 @@ export interface Comment {
     date: string;
     content: string;
     avatar: string;
-    images: string[]
+    images: string[];
+    merchantReply?: string;
+    merchantReplyTime?: string;
 }
 
 export interface CommentList {

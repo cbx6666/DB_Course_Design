@@ -1,15 +1,20 @@
 <template>
   <Layout>
     <!-- 菜品管理 -->
-    <div>
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">菜品管理</h2>
-        <div class="flex items-center space-x-3">
-          <el-button @click="openCreateMenuDialog" type="primary" :icon="Plus">
-            新建菜单
-          </el-button>
-        </div>
-      </div>
+    <div class="menu-page min-h-screen bg-gray-100 py-8">
+      <div class="max-w-[1400px] mx-auto px-4">
+        <div class="menu-layout">
+          <div class="menu-main flex-shrink-0 space-y-6">
+            <div class="flex justify-between items-center">
+              <div>
+                <h2 class="text-2xl font-bold text-gray-900">菜品管理中心</h2>
+              </div>
+              <div class="flex items-center space-x-3">
+                <el-button @click="openCreateMenuDialog" type="primary" :icon="Plus">
+                  新建菜单
+                </el-button>
+              </div>
+            </div>
 
       <!-- 菜单选择区域 -->
       <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -242,6 +247,76 @@
               <el-button @click="deleteDishHandler(dish)" type="danger" size="small" plain>
                 删除
               </el-button>
+            </div>
+          </div>
+        </div>
+      </div>
+          </div>
+
+          <!-- 右侧辅助面板 -->
+          <div class="menu-aside space-y-4 lg:w-72 shrink-0 lg:sticky lg:top-24 self-start">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <h3 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <i class="fas fa-lightbulb text-yellow-500"></i>
+                快捷操作
+              </h3>
+              <div class="space-y-2">
+                <button
+                  @click="openCreateMenuDialog"
+                  class="w-full bg-orange-50 hover:bg-orange-100 text-orange-700 px-3 py-2 rounded-lg text-xs transition-colors text-left flex items-center justify-between">
+                  <span>新建菜单</span>
+                  <i class="fas fa-chevron-right text-orange-400"></i>
+                </button>
+                <button
+                  @click="openCreateCategoryDialog"
+                  class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-xs transition-colors text-left flex items-center justify-between">
+                  <span>添加菜品种类</span>
+                  <i class="fas fa-chevron-right text-blue-400"></i>
+                </button>
+                <button
+                  @click="openCreateDishDialog"
+                  class="w-full bg-green-50 hover:bg-green-100 text-green-700 px-3 py-2 rounded-lg text-xs transition-colors text-left flex items-center justify-between">
+                  <span>添加菜品</span>
+                  <i class="fas fa-chevron-right text-green-400"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-slate-50 via-white to-white rounded-xl border border-gray-100 p-4">
+              <h3 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <i class="fas fa-chart-pie text-orange-500"></i>
+                当前概况
+              </h3>
+              <div class="space-y-3 text-xs text-gray-600">
+                <div class="flex items-center justify-between">
+                  <span>菜单总数</span>
+                  <span class="font-semibold text-gray-900">{{ menus.length }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>选中菜单</span>
+                  <span class="font-semibold text-gray-900">{{ selectedMenu?.name || '未选择' }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>菜品种类</span>
+                  <span class="font-semibold text-gray-900">{{ dishCategories.length }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>菜品数量</span>
+                  <span class="font-semibold text-gray-900">{{ selectedMenu?.dishCount ?? 0 }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <h3 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <i class="fas fa-bullhorn text-red-500"></i>
+                运营建议
+              </h3>
+              <ul class="space-y-2 text-xs text-gray-600 list-disc pl-4 text-left">
+                <li>定期更新菜单描述与图片，保持新鲜感</li>
+                <li>保持至少 3 个热销菜品在首屏展示</li>
+                <li>及时下架库存不足或售罄菜品</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -1102,6 +1177,52 @@ onMounted(() => {
 
 .avatar-uploader .avatar:hover {
   opacity: 0.9;
+}
+
+.menu-page {
+  width: 100%;
+}
+
+.menu-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+}
+
+.menu-main,
+.menu-aside {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .menu-layout {
+    flex-direction: row;
+    gap: 28px;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+  }
+
+  .menu-main {
+    flex: 0 0 820px;
+    max-width: 820px;
+  }
+
+  .menu-aside {
+    flex: 0 0 300px;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .menu-main,
+  .menu-aside {
+    flex: 0 0 auto;
+    width: 100%;
+    position: static;
+  }
 }
 </style>
 

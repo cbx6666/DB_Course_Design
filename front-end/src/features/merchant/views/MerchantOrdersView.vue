@@ -208,7 +208,7 @@
             </el-table-column>
             <el-table-column label="订单管理" min-width="160" align="left">
               <template #default="scope">
-                <div class="space-y-1">
+                <div class="space-y-2">
                   <!-- 订单状态 -->
                   <div>
                     <span
@@ -218,19 +218,23 @@
                   </div>
                   
                   <!-- 接单/出餐按钮 -->
-                  <div class="flex flex-col">
-                    <button v-if="scope.row.orderState === 0" @click="acceptOrder(scope.row.orderId)"
-                      class="btn-small shrink-0 w-full py-1.5"
-                      style="background-color: #f59e0b !important; color: white !important; border-radius: 8px !important;">
+                  <div class="flex flex-col gap-1">
+                    <button 
+                      v-if="scope.row.orderState === 0" 
+                      @click="acceptOrder(scope.row.orderId)"
+                      class="w-full px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium rounded-lg transition-colors shadow-sm hover:shadow">
                       接单
                     </button>
-                    <button v-else-if="scope.row.orderState === 1" @click="markAsReady(scope.row.orderId)"
-                      class="btn-small shrink-0 w-full py-1.5"
-                      style="background-color: #f59e0b !important; color: white !important; border-radius: 8px !important;">
+                    <button 
+                      v-else-if="scope.row.orderState === 1" 
+                      @click="markAsReady(scope.row.orderId)"
+                      class="w-full px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium rounded-lg transition-colors shadow-sm hover:shadow">
                       出餐
                     </button>
-                    <button v-else-if="scope.row.orderState === 2" disabled
-                      class="btn-secondary btn-small shrink-0 opacity-60 cursor-not-allowed w-full py-1.5">
+                    <button 
+                      v-else-if="scope.row.orderState === 2" 
+                      disabled
+                      class="w-full px-3 py-1.5 bg-gray-100 text-gray-400 text-xs font-medium rounded-lg cursor-not-allowed">
                       已出餐
                     </button>
                   </div>
@@ -239,7 +243,7 @@
             </el-table-column>
             <el-table-column label="配送管理" min-width="160">
               <template #default="scope">
-                <div class="space-y-1">
+                <div class="space-y-2">
                   <!-- 简单的发布状态 -->
                   <div>
                     <span v-if="scope.row.deliveryTaskId"
@@ -253,21 +257,25 @@
                   </div>
                   
                   <!-- 配送操作按钮 -->
-                  <div class="flex flex-col">
-                    <button v-if="!scope.row.deliveryTaskId && scope.row.orderState !== 0"
-                      @click="openPublishDialog(scope.row)" class="btn-small shrink-0 w-full py-1.5"
-                      style="background-color: #f59e0b !important; color: white !important; border-radius: 8px !important;">
+                  <div class="flex flex-col gap-1">
+                    <button 
+                      v-if="!scope.row.deliveryTaskId && scope.row.orderState !== 0"
+                      @click="openPublishDialog(scope.row)" 
+                      class="w-full px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium rounded-lg transition-colors shadow-sm hover:shadow">
                       发布配送
                     </button>
-                    <button v-else-if="!scope.row.deliveryTaskId && scope.row.orderState === 0" disabled
-                      class="btn-secondary btn-small shrink-0 opacity-60 cursor-not-allowed w-full py-1.5">
+                    <button 
+                      v-else-if="!scope.row.deliveryTaskId && scope.row.orderState === 0" 
+                      disabled
+                      class="w-full px-3 py-1.5 bg-gray-100 text-gray-400 text-xs font-medium rounded-lg cursor-not-allowed">
                       请先接单
                     </button>
                     
                     <!-- 查看配送按钮 -->
-                    <button v-if="scope.row.deliveryTaskId" @click="openDeliveryInfo(scope.row)"
-                      class="btn-small shrink-0 w-full py-1.5"
-                      style="background-color: #f8bbd0 !important; color: white !important; border-radius: 8px !important;">
+                    <button 
+                      v-if="scope.row.deliveryTaskId" 
+                      @click="openDeliveryInfo(scope.row)"
+                      class="w-full px-3 py-1.5 bg-white border border-orange-200 hover:bg-orange-50 text-orange-600 text-xs font-medium rounded-lg transition-colors shadow-sm hover:shadow">
                       查看配送
                     </button>
                   </div>

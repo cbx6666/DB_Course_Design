@@ -43,10 +43,18 @@ namespace BackEnd.Data.EntityConfigs
                 .IsRequired(false)
                 .HasColumnType("decimal(18, 2)");
 
+            // 消费者评分
+            builder.Property(dc => dc.ConsumerRating).HasColumnName("CONSUMERRATING").IsRequired(false);
+
             // 外键配置
             builder.Property(dc => dc.CourierID).HasColumnName("COURIERID").IsRequired();
             builder.Property(dc => dc.CustomerID).HasColumnName("CUSTOMERID").IsRequired();
             builder.Property(dc => dc.DeliveryTaskID).HasColumnName("DELIVERYTASKID").IsRequired();
+
+            // 一个配送任务同一用户仅允许一条投诉（全局唯一）
+            builder.HasIndex(dc => new { dc.DeliveryTaskID, dc.CustomerID })
+                .HasDatabaseName("UX_DeliveryTask_Customer_Unique")
+                .IsUnique();
 
             // 关系配置
             ConfigureRelationships(builder);

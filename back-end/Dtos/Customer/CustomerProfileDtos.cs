@@ -22,6 +22,16 @@ namespace BackEnd.DTOs.Customer
         /// 用户头像
         /// </summary>
         public string? Avatar { get; set; }
+
+        /// <summary>
+        /// 性别（可选）
+        /// </summary>
+        public string? Gender { get; set; }
+
+        /// <summary>
+        /// 全名（可选）
+        /// </summary>
+        public string? FullName { get; set; }
     }
 
     /// <summary>

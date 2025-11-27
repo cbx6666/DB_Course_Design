@@ -61,27 +61,26 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
-        /// 处理售后服务申请
+        /// 商家提交回复（仅待处理状态可提交，提交后置为商家反馈）
         /// </summary>
         /// <param name="id">售后服务ID</param>
-        /// <param name="processDto">处理信息</param>
+        /// <param name="replyDto">商家回复</param>
         /// <returns>处理结果</returns>
-        [HttpPost("{id}/decide")]
-        public async Task<IActionResult> ProcessAfterSale(int id, [FromBody] ProcessAfterSaleDto processDto)
+        [HttpPost("{id}/reply")]
+        public async Task<IActionResult> SubmitMerchantReply(int id, [FromBody] MerchantReplyDto replyDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "请求参数错误" });
             }
 
-            if (processDto.Action != "approve" && processDto.Action != "reject" && processDto.Action != "negotiate")
+            if (string.IsNullOrWhiteSpace(replyDto.Remark))
             {
-                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "无效的处理动作" });
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "回复内容不能为空" });
             }
 
-            var result = await _afterSaleService.ProcessAfterSaleAsync(id, processDto);
+            var result = await _afterSaleService.SubmitMerchantReplyAsync(id, replyDto);
             return Ok(result);
         }
-
     }
 }

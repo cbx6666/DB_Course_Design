@@ -38,9 +38,16 @@ namespace BackEnd.Data.EntityConfigs
             // 处理相关属性配置
             builder.Property(asa => asa.ProcessingResult).HasColumnName("PROCESSINGRESULT").IsRequired(false).HasMaxLength(255);
             builder.Property(asa => asa.ProcessingReason).HasColumnName("PROCESSINGREASON").IsRequired(false).HasMaxLength(255);
+            builder.Property(asa => asa.MerchantReply).HasColumnName("MERCHANTREPLY").IsRequired(false).HasMaxLength(1000);
+            builder.Property(asa => asa.ConsumerRating).HasColumnName("CONSUMERRATING").IsRequired(false);
 
             // 外键配置
             builder.Property(asa => asa.OrderID).HasColumnName("ORDERID").IsRequired();
+
+            // 一个订单只能有一条售后申请（全局唯一，不区分状态）
+            builder.HasIndex(asa => asa.OrderID)
+                .HasDatabaseName("UX_AfterSale_Order_Once")
+                .IsUnique();
 
             // 关系配置
             ConfigureRelationships(builder);

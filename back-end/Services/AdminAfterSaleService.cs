@@ -20,6 +20,15 @@ namespace BackEnd.Services
             _afterSaleApplicationRepository = afterSaleApplicationRepository;
         }
 
+        private static long? TryParsePhone(string? phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone)) return null;
+            var digits = new string(phone.Where(char.IsDigit).ToArray());
+            if (string.IsNullOrWhiteSpace(digits)) return null;
+            if (long.TryParse(digits, out var num)) return num;
+            return null;
+        }
+
         /// <summary>
         /// 获取管理员的售后申请列表
         /// </summary>
@@ -32,18 +41,72 @@ namespace BackEnd.Services
                 return Enumerable.Empty<AfterSaleApplicationDetailDto>();
             }
 
+            // 列表只返回轻量字段，避免加载图片和菜品造成性能问题
             var applicationDtos = applicationsFromDb.Select(app => new AfterSaleApplicationDetailDto
             {
                 ApplicationId = app.ApplicationID.ToString(),
                 OrderId = app.OrderID.ToString(),
                 ApplicationTime = app.ApplicationTime.ToString("yyyy-MM-dd HH:mm"),
                 Description = app.Description,
-                Status = app.AfterSaleState == AfterSaleState.Pending ? "待处理" : "已完成",
+                Status = app.AfterSaleState switch
+                {
+                    AfterSaleState.Pending => "待处理",
+                    AfterSaleState.MerchantFeedback => "商家反馈",
+                    _ => "已完成"
+                },
                 Punishment = app.ProcessingResult ?? "-",
-                PunishmentReason = app.ProcessingReason ?? ""
+                PunishmentReason = app.ProcessingReason ?? "",
+                ConsumerRating = app.ConsumerRating
             });
 
             return applicationDtos;
+        }
+
+        /// <summary>
+        /// 获取单条售后申请详情（含图片与菜品）
+        /// </summary>
+        public async Task<AfterSaleApplicationDetailDto?> GetApplicationDetailAsync(int applicationId)
+        {
+            var app = await _afterSaleApplicationRepository.GetByIdAsync(applicationId);
+            if (app == null)
+            {
+                return null;
+            }
+
+            return new AfterSaleApplicationDetailDto
+            {
+                ApplicationId = app.ApplicationID.ToString(),
+                OrderId = app.OrderID.ToString(),
+                ApplicationTime = app.ApplicationTime.ToString("yyyy-MM-dd HH:mm"),
+                Description = app.Description,
+                Status = app.AfterSaleState == Models.Enums.AfterSaleState.Pending
+                    ? "待处理"
+                    : (app.AfterSaleState == Models.Enums.AfterSaleState.MerchantFeedback ? "商家反馈" : "已完成"),
+                Punishment = app.ProcessingResult ?? "-",
+                PunishmentReason = app.ProcessingReason ?? "",
+                MerchantReply = app.MerchantReply,
+                ConsumerRating = app.ConsumerRating,
+                User = new DTOs.Customer.UserProfileDto
+                {
+                    Name = app.Order?.DeliveryInfo?.Name ?? (app.Order?.Customer?.User?.Username ?? "未知用户"),
+                    PhoneNumber = TryParsePhone(app.Order?.DeliveryInfo?.PhoneNumber) ?? (app.Order?.Customer?.User?.PhoneNumber ?? 0),
+                    Avatar = app.Order?.Customer?.User?.Avatar,
+                    Gender = app.Order?.DeliveryInfo?.Gender ?? app.Order?.Customer?.User?.Gender,
+                    FullName = app.Order?.Customer?.User?.FullName
+                },
+                Images = string.IsNullOrWhiteSpace(app.ApplicationImages)
+                    ? Array.Empty<string>()
+                    : app.ApplicationImages!.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                DishDetails = app.Order?.Cart?.ShoppingCartItems?
+                    .Select(item => new DTOs.Dish.OrderDishDto
+                    {
+                        DishName = item.Dish?.DishName ?? "未知菜品",
+                        DishImage = item.Dish?.DishImage ?? "",
+                        Quantity = item.Quantity,
+                        Price = item.Dish?.Price ?? 0m
+                    })
+                    .ToList() ?? new List<DTOs.Dish.OrderDishDto>()
+            };
         }
 
         /// <summary>
@@ -113,7 +176,28 @@ namespace BackEnd.Services
                     ApplicationTime = existingApplication.ApplicationTime.ToString("yyyy-MM-dd HH:mm"),
                     Description = existingApplication.Description,
                     Status = "已完成",
-                    Punishment = existingApplication.ProcessingResult ?? "-"
+                    Punishment = existingApplication.ProcessingResult ?? "-",
+                    PunishmentReason = existingApplication.ProcessingReason ?? "",
+                    User = new DTOs.Customer.UserProfileDto
+                    {
+                        Name = existingApplication.Order?.DeliveryInfo?.Name ?? (existingApplication.Order?.Customer?.User?.Username ?? "未知用户"),
+                        PhoneNumber = TryParsePhone(existingApplication.Order?.DeliveryInfo?.PhoneNumber) ?? (existingApplication.Order?.Customer?.User?.PhoneNumber ?? 0),
+                        Avatar = existingApplication.Order?.Customer?.User?.Avatar,
+                        Gender = existingApplication.Order?.DeliveryInfo?.Gender ?? existingApplication.Order?.Customer?.User?.Gender,
+                        FullName = existingApplication.Order?.Customer?.User?.FullName
+                    },
+                    Images = string.IsNullOrWhiteSpace(existingApplication.ApplicationImages)
+                        ? Array.Empty<string>()
+                        : existingApplication.ApplicationImages!.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                    DishDetails = existingApplication.Order?.Cart?.ShoppingCartItems?
+                        .Select(item => new DTOs.Dish.OrderDishDto
+                        {
+                            DishName = item.Dish?.DishName ?? "未知菜品",
+                            DishImage = item.Dish?.DishImage ?? "",
+                            Quantity = item.Quantity,
+                            Price = item.Dish?.Price ?? 0m
+                        })
+                        .ToList() ?? new List<DTOs.Dish.OrderDishDto>()
                 };
 
                 return new UpdateAfterSaleApplicationResponseDto

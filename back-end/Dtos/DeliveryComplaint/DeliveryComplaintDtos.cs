@@ -123,27 +123,6 @@ namespace BackEnd.DTOs.DeliveryComplaint
     // ========== 骑手侧 ==========
 
     /// <summary>
-    /// 投诉中的处罚信息DTO（骑手端）
-    /// </summary>
-    public class ComplaintPunishmentDto
-    {
-        /// <summary>
-        /// 处罚类型
-        /// </summary>
-        public string Type { get; set; } = null!;
-
-        /// <summary>
-        /// 处罚描述
-        /// </summary>
-        public string Description { get; set; } = null!;
-
-        /// <summary>
-        /// 持续时间（可选）
-        /// </summary>
-        public string? Duration { get; set; }
-    }
-
-    /// <summary>
     /// 配送投诉信息DTO（骑手端查看）
     /// </summary>
     public class CourierComplaintDto
@@ -169,9 +148,34 @@ namespace BackEnd.DTOs.DeliveryComplaint
         public string ComplaintReason { get; set; } = null!;
 
         /// <summary>
-        /// 处罚信息（可选）
+        /// 处理结果（可选）
         /// </summary>
-        public ComplaintPunishmentDto? Punishment { get; set; }
+        public string? ProcessingResult { get; set; }
+
+        /// <summary>
+        /// 配送地址
+        /// </summary>
+        public string? DeliveryAddress { get; set; }
+
+        /// <summary>
+        /// 接单时间
+        /// </summary>
+        public string? AcceptTime { get; set; }
+
+        /// <summary>
+        /// 到店时间
+        /// </summary>
+        public string? PickupTime { get; set; }
+
+        /// <summary>
+        /// 送达时间
+        /// </summary>
+        public string? CompletionTime { get; set; }
+
+        /// <summary>
+        /// 取餐地址（店铺地址）
+        /// </summary>
+        public string? PickupAddress { get; set; }
     }
 
     // ========== 管理员侧 ==========
@@ -220,6 +224,36 @@ namespace BackEnd.DTOs.DeliveryComplaint
         /// 罚款
         /// </summary>
         public string Fine { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 投诉图片URL列表
+        /// </summary>
+        public string[] Images { get; set; } = Array.Empty<string>();
+
+        /// <summary>
+        /// 骑手姓名
+        /// </summary>
+        public string? CourierName { get; set; }
+
+        /// <summary>
+        /// 骑手电话
+        /// </summary>
+        public string? CourierPhone { get; set; }
+
+        /// <summary>
+        /// 接单时间
+        /// </summary>
+        public string? AcceptTime { get; set; }
+
+        /// <summary>
+        /// 实际到店时间
+        /// </summary>
+        public string? PickupTime { get; set; }
+
+        /// <summary>
+        /// 实际送达时间
+        /// </summary>
+        public string? CompletionTime { get; set; }
     }
 
     /// <summary>

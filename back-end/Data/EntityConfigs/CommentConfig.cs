@@ -45,6 +45,12 @@ namespace BackEnd.Data.EntityConfigs
             builder.Property(c => c.FoodOrderID).HasColumnName("FOODORDERID").IsRequired(false);
             builder.Property(c => c.CommenterID).HasColumnName("COMMENTERID").IsRequired();
 
+            // 每个订单仅允许一条评论（当 FOODORDERID 非空时唯一）
+            builder.HasIndex(c => c.FoodOrderID)
+                .HasDatabaseName("UX_Comment_Order_Once")
+                .HasFilter("[FOODORDERID] IS NOT NULL")
+                .IsUnique();
+
             // 关系配置
             ConfigureRelationships(builder);
         }

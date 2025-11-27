@@ -1,5 +1,7 @@
 using BackEnd.Data;
+using BackEnd.DTOs.Menu;
 using BackEnd.Models;
+using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -100,6 +102,68 @@ namespace BackEnd.Repositories
         public async Task SaveAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// 获取指定店铺的轻量化菜品信息
+        /// </summary>
+        public async Task<(List<MenuBasicResponseDto> Items, bool HasMore)> GetMenuBasicByStoreIdAsync(int storeId, int? categoryId, int page, int pageSize)
+        {
+            var dishes = await _context.Menus
+                .AsNoTracking()
+                .Where(m => m.StoreID == storeId && m.IsActive)
+                .SelectMany(m => m.MenuDishCategories)
+                .Select(mdc => mdc.DishCategory)
+                .SelectMany(dc => dc.Dishes)
+                .Where(d => !categoryId.HasValue || d.CategoryID == categoryId.Value)
+                .Select(d => new
+                {
+                    d.DishID,
+                    d.DishName,
+                    d.Description,
+                    d.Price,
+                    d.DishImage,
+                    d.CategoryID,
+                    d.IsSoldOut
+                })
+                .OrderBy(d => d.CategoryID)
+                .ThenBy(d => d.DishID)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize + 1)
+                .ToListAsync();
+
+            var hasMore = dishes.Count > pageSize;
+            var trimmed = hasMore ? dishes.Take(pageSize) : dishes;
+
+            var mapped = trimmed
+                .Select(d => new MenuBasicResponseDto
+                {
+                    Id = d.DishID,
+                    Name = d.DishName,
+                    Description = d.Description,
+                    Price = d.Price,
+                    Image = d.DishImage ?? string.Empty,
+                    CategoryId = d.CategoryID,
+                    IsSoldOut = d.IsSoldOut == DishIsSoldOut.IsSoldOut ? 0 : 2
+                })
+                .ToList();
+
+            return (mapped, hasMore);
+        }
+
+        /// <summary>
+        /// 根据店铺ID获取菜品
+        /// </summary>
+        public async Task<IEnumerable<Dish>> GetDishesByStoreIdAsync(int storeId)
+        {
+            // 只获取激活状态的菜单中的菜品
+            return await _context.Menus
+                .Where(m => m.StoreID == storeId && m.IsActive)
+                .SelectMany(m => m.MenuDishCategories)
+                .SelectMany(mdc => mdc.DishCategory.Dishes)
+                .Distinct()
+                .AsNoTracking()
+                .ToListAsync();
         }
     }
 }

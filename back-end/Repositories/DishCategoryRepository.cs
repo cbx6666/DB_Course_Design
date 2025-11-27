@@ -1,4 +1,5 @@
 using BackEnd.Data;
+using BackEnd.DTOs.DishCategory;
 using BackEnd.Models;
 using BackEnd.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -151,6 +152,27 @@ namespace BackEnd.Repositories
                 .Include(mdc => mdc.DishCategory)
                     .ThenInclude(dc => dc.Dishes)
                 .ToListAsync();
+        }
+
+        /// <summary>
+        /// 获取店铺的菜品分类列表（轻量级查询，避免加载全部关联数据）
+        /// </summary>
+        public async Task<List<CategoryResponseDto>> GetCategoriesByStoreIdAsync(int storeId)
+        {
+            var categories = await _context.Menus
+                .AsNoTracking()
+                .Where(m => m.StoreID == storeId && m.IsActive)
+                .SelectMany(m => m.MenuDishCategories)
+                .Select(mdc => new CategoryResponseDto
+                {
+                    Id = mdc.DishCategory.CategoryID,
+                    Name = mdc.DishCategory.CategoryName
+                })
+                .Distinct()
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+
+            return categories;
         }
     }
 }

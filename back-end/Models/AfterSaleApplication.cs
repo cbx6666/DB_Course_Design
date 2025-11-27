@@ -54,6 +54,12 @@ namespace BackEnd.Models
         public string? ProcessingReason { get; set; }
 
         /// <summary>
+        /// 商家回复（商家反馈时填写）
+        /// </summary>
+        [StringLength(1000)]
+        public string? MerchantReply { get; set; }
+
+        /// <summary>
         /// 订单ID（外键）
         /// </summary>
         [Required]
@@ -69,5 +75,11 @@ namespace BackEnd.Models
         /// 售后申请评估记录集合
         /// </summary>
         public ICollection<Evaluate_AfterSale> EvaluateAfterSales { get; set; } = new List<Evaluate_AfterSale>();
+
+        /// <summary>
+        /// 消费者对本次售后处理的评分（0-5），为空表示未评分
+        /// </summary>
+        [Range(0, 5)]
+        public int? ConsumerRating { get; set; }
     }
 }

@@ -15,6 +15,13 @@ namespace BackEnd.Services.Interfaces
         Task<IEnumerable<AfterSaleApplicationDetailDto>> GetApplicationsForAdminAsync(int adminId);
 
         /// <summary>
+        /// 根据申请ID获取售后详情
+        /// </summary>
+        /// <param name="applicationId">申请ID</param>
+        /// <returns>售后详情</returns>
+        Task<AfterSaleApplicationDetailDto?> GetApplicationDetailAsync(int applicationId);
+
+        /// <summary>
         /// 更新售后申请
         /// </summary>
         /// <param name="request">更新请求</param>

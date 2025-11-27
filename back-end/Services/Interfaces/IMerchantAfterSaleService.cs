@@ -27,11 +27,11 @@ namespace BackEnd.Services.Interfaces
         Task<AfterSaleApplicationListItemDto?> GetAfterSaleByIdAsync(int id);
 
         /// <summary>
-        /// 处理售后申请
+        /// 商家在待处理状态下提交回复（状态将置为商家反馈）
         /// </summary>
         /// <param name="id">售后申请ID</param>
-        /// <param name="processDto">处理请求</param>
+        /// <param name="replyDto">商家回复内容</param>
         /// <returns>处理结果</returns>
-        Task<ApiResponseDto> ProcessAfterSaleAsync(int id, ProcessAfterSaleDto processDto);
+        Task<ApiResponseDto> SubmitMerchantReplyAsync(int id, MerchantReplyDto replyDto);
     }
 }

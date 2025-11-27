@@ -1,5 +1,6 @@
 using BackEnd.Data;
 using BackEnd.DTOs.Customer;
+using BackEnd.DTOs.Menu;
 using BackEnd.DTOs.Store;
 using BackEnd.Models;
 using BackEnd.Models.Enums;
@@ -109,23 +110,6 @@ namespace BackEnd.Repositories
             return await _context.Stores
                                  .AsNoTracking()
                                  .FirstOrDefaultAsync(s => s.StoreID == storeId);
-        }
-
-        /// <summary>
-        /// 根据店铺ID获取菜品
-        /// </summary>
-        /// <param name="storeId">店铺ID</param>
-        /// <returns>菜品列表</returns>
-        public async Task<IEnumerable<Dish>> GetDishesByStoreIdAsync(int storeId)
-        {
-            // 只获取激活状态的菜单中的菜品
-            return await _context.Menus
-                .Where(m => m.StoreID == storeId && m.IsActive)
-                .SelectMany(m => m.MenuDishCategories)
-                .SelectMany(mdc => mdc.DishCategory.Dishes)
-                .Distinct()
-                .AsNoTracking()
-                .ToListAsync();
         }
 
         /// <summary>

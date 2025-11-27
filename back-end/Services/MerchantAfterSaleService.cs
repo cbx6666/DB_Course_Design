@@ -29,6 +29,15 @@ namespace BackEnd.Services
             _customerRepository = customerRepository;
         }
 
+        private static long? TryParsePhone(string? phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone)) return null;
+            var digits = new string(phone.Where(char.IsDigit).ToArray());
+            if (string.IsNullOrWhiteSpace(digits)) return null;
+            if (long.TryParse(digits, out var num)) return num;
+            return null;
+        }
+
         /// <summary>
         /// 获取售后申请列表
         /// </summary>
@@ -82,10 +91,13 @@ namespace BackEnd.Services
                 OrderId = c.OrderID,
                 User = new UserProfileDto
                 {
-                    Name = c.Order?.Customer?.User?.Username ?? "未知用户",
-                    PhoneNumber = c.Order?.Customer?.User?.PhoneNumber ?? 0,
-                    Avatar = c.Order?.Customer?.User?.Avatar
+                    Name = c.Order?.DeliveryInfo?.Name ?? (c.Order?.Customer?.User?.Username ?? "未知用户"),
+                    PhoneNumber = TryParsePhone(c.Order?.DeliveryInfo?.PhoneNumber) ?? (c.Order?.Customer?.User?.PhoneNumber ?? 0),
+                    Avatar = c.Order?.Customer?.User?.Avatar,
+                    Gender = c.Order?.DeliveryInfo?.Gender ?? c.Order?.Customer?.User?.Gender,
+                    FullName = c.Order?.Customer?.User?.FullName
                 },
+                AccountUserName = c.Order?.Customer?.User?.Username,
                 Reason = c.Description ?? "无售后原因描述",
                 Images = string.IsNullOrWhiteSpace(c.ApplicationImages)
                     ? Array.Empty<string>()
@@ -99,7 +111,12 @@ namespace BackEnd.Services
                         Quantity = item.Quantity,
                         Price = item.Dish?.Price ?? 0m
                     })
-                    .ToList() ?? new List<OrderDishDto>()
+                    .ToList() ?? new List<OrderDishDto>(),
+                Status = c.AfterSaleState == BackEnd.Models.Enums.AfterSaleState.Pending ? "待处理"
+                        : (c.AfterSaleState == BackEnd.Models.Enums.AfterSaleState.MerchantFeedback ? "待审核" : "已完成"),
+                MerchantReply = c.MerchantReply,
+                Punishment = c.ProcessingResult,
+                PunishmentReason = c.ProcessingReason
             }).ToList();
 
             return new PageResultDto<AfterSaleApplicationListItemDto>
@@ -127,10 +144,13 @@ namespace BackEnd.Services
                 OrderId = app.OrderID,
                 User = new UserProfileDto
                 {
-                    Name = app.Order?.Customer?.User?.Username ?? "未知用户",
-                    PhoneNumber = app.Order?.Customer?.User?.PhoneNumber ?? 0,
-                    Avatar = app.Order?.Customer?.User?.Avatar
+                    Name = app.Order?.DeliveryInfo?.Name ?? (app.Order?.Customer?.User?.Username ?? "未知用户"),
+                    PhoneNumber = TryParsePhone(app.Order?.DeliveryInfo?.PhoneNumber) ?? (app.Order?.Customer?.User?.PhoneNumber ?? 0),
+                    Avatar = app.Order?.Customer?.User?.Avatar,
+                    Gender = app.Order?.DeliveryInfo?.Gender ?? app.Order?.Customer?.User?.Gender,
+                    FullName = app.Order?.Customer?.User?.FullName
                 },
+                AccountUserName = app.Order?.Customer?.User?.Username,
                 Reason = app.Description ?? "无售后原因描述",
                 Images = string.IsNullOrWhiteSpace(app.ApplicationImages)
                     ? Array.Empty<string>()
@@ -144,14 +164,19 @@ namespace BackEnd.Services
                         Quantity = item.Quantity,
                         Price = item.Dish?.Price ?? 0m
                     })
-                    .ToList() ?? new List<OrderDishDto>()
+                    .ToList() ?? new List<OrderDishDto>(),
+                Status = app.AfterSaleState == BackEnd.Models.Enums.AfterSaleState.Pending ? "待处理"
+                        : (app.AfterSaleState == BackEnd.Models.Enums.AfterSaleState.MerchantFeedback ? "待审核" : "已完成"),
+                MerchantReply = app.MerchantReply,
+                Punishment = app.ProcessingResult,
+                PunishmentReason = app.ProcessingReason
             };
         }
 
         /// <summary>
-        /// 处理售后申请
+        /// 商家提交回复（仅当售后为待处理状态时允许）
         /// </summary>
-        public async Task<ApiResponseDto> ProcessAfterSaleAsync(int id, ProcessAfterSaleDto processDto)
+        public async Task<ApiResponseDto> SubmitMerchantReplyAsync(int id, MerchantReplyDto replyDto)
         {
             var app = await _afterSaleRepository.GetByIdAsync(id);
             if (app == null)
@@ -164,11 +189,25 @@ namespace BackEnd.Services
                 };
             }
 
+            if (app.AfterSaleState != BackEnd.Models.Enums.AfterSaleState.Pending)
+            {
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Code = 400,
+                    Message = "当前状态不允许商家回复"
+                };
+            }
+
+            app.MerchantReply = replyDto.Remark;
+            app.AfterSaleState = BackEnd.Models.Enums.AfterSaleState.MerchantFeedback;
+            await _afterSaleRepository.UpdateAsync(app);
+
             return new ApiResponseDto
             {
                 Success = true,
                 Code = 200,
-                Message = "处理成功"
+                Message = "商家回复已提交，等待管理员处理"
             };
         }
     }

@@ -52,6 +52,7 @@ namespace BackEnd.Repositories
             return await _context.Comments
                                  .Include(c => c.ReplyToComment)
                                  .Include(c => c.Store)
+                                     .ThenInclude(s => s!.Seller)
                                  .Include(c => c.FoodOrder)
                                  .Include(c => c.Commenter)
                                      .ThenInclude(cu => cu.User)
@@ -79,8 +80,10 @@ namespace BackEnd.Repositories
                                             .ThenInclude(item => item!.Dish)
                                 .Include(c => c.Commenter)      // 加载发表评论的顾客
                                     .ThenInclude(cu => cu!.User)
+                                .Include(c => c.CommentReplies) // 加载商家回复
                                 .Where(c => c.Store!.SellerID == sellerId
-                                    && c.CommentState == CommentState.Completed)
+                                    && c.CommentState == CommentState.Completed
+                                    && c.CommentType == CommentType.Store)  // 只查询用户评论，不包含回复
                                 .OrderByDescending(c => c.PostedAt)
                                 .ToListAsync();
         }
@@ -140,6 +143,7 @@ namespace BackEnd.Repositories
                     .ThenInclude(o => o.Cart!)
                         .ThenInclude(cart => cart.ShoppingCartItems!)
                             .ThenInclude(item => item.Dish)
+                .Include(c => c.CommentReplies)  // 加载商家回复
                 .Where(c => c.CommenterID == commenterId && c.CommentType == CommentType.Store)
                 .OrderByDescending(c => c.PostedAt)
                 .ToListAsync();
@@ -157,6 +161,12 @@ namespace BackEnd.Repositories
                 .Include(rc => rc.Comment)
                     .ThenInclude(c => c.Commenter)
                         .ThenInclude(customer => customer.User)
+                .Include(rc => rc.Comment)
+                    .ThenInclude(c => c.Store)
+                .Include(rc => rc.Comment)
+                    .ThenInclude(c => c.ReplyToComment)
+                        .ThenInclude(rtc => rtc!.Commenter)
+                            .ThenInclude(customer => customer.User)
                 .Select(rc => rc.Comment)
                 .ToListAsync();
         }
@@ -198,6 +208,19 @@ namespace BackEnd.Repositories
             return await _context.Comments
                 .Where(c => c.StoreID == storeId)
                 .ToListAsync();
+        }
+
+        /// <summary>
+        /// 检查是否已存在对指定评论的回复
+        /// </summary>
+        /// <param name="commentId">原始评论ID（用户评论的ID）</param>
+        /// <returns>如果存在回复则返回回复，否则返回null</returns>
+        public async Task<Comment?> GetReplyByCommentIdAsync(int commentId)
+        {
+            return await _context.Comments
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.ReplyToCommentID == commentId 
+                    && c.CommentType == CommentType.Comment);
         }
     }
 }

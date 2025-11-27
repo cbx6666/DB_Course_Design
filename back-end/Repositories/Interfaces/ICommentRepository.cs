@@ -89,5 +89,12 @@ namespace BackEnd.Repositories.Interfaces
         /// <param name="storeId">店铺ID</param>
         /// <returns>评论列表</returns>
         Task<List<Comment>> GetByStoreIdAsync(int storeId);
+
+        /// <summary>
+        /// 检查是否已存在对指定评论的回复
+        /// </summary>
+        /// <param name="commentId">原始评论ID</param>
+        /// <returns>如果存在回复则返回回复，否则返回null</returns>
+        Task<Comment?> GetReplyByCommentIdAsync(int commentId);
     }
 }

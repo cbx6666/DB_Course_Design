@@ -32,17 +32,11 @@ namespace BackEnd.Services
 
             var complaintDtos = complaints.Select(complaint =>
             {
-                ComplaintPunishmentDto? punishmentDto = null;
-
-                if (!string.IsNullOrEmpty(complaint.ProcessingResult) && complaint.ProcessingResult != "-")
-                {
-                    punishmentDto = new ComplaintPunishmentDto
-                    {
-                        Description = complaint.ProcessingResult,
-                        Type = "官方处理结果",
-                        Duration = null
-                    };
-                }
+                // 获取配送任务的详细信息
+                var task = complaint.DeliveryTask;
+                var order = task?.Order;
+                var deliveryInfo = order?.DeliveryInfo;
+                var store = order?.Store;
 
                 return new CourierComplaintDto
                 {
@@ -50,7 +44,14 @@ namespace BackEnd.Services
                     DeliveryTaskID = complaint.DeliveryTaskID.ToString(),
                     ComplaintTime = complaint.ComplaintTime.ToString("yyyy-MM-dd HH:mm"),
                     ComplaintReason = complaint.ComplaintReason,
-                    Punishment = punishmentDto
+                    ProcessingResult = (!string.IsNullOrEmpty(complaint.ProcessingResult) && complaint.ProcessingResult != "-") 
+                        ? complaint.ProcessingResult 
+                        : null,
+                    DeliveryAddress = deliveryInfo?.Address,
+                    AcceptTime = task?.AcceptTime.ToString("yyyy-MM-dd HH:mm"),
+                    PickupTime = task?.PickupTime?.ToString("yyyy-MM-dd HH:mm"),
+                    CompletionTime = task?.CompletionTime?.ToString("yyyy-MM-dd HH:mm"),
+                    PickupAddress = store?.StoreAddress
                 };
             }).ToList();
 

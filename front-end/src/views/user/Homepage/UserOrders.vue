@@ -1,16 +1,17 @@
 <template>
-    <main class="pt-20 min-h-screen">
-        <div class="max-w-screen-xl mx-auto px-6 py-8">
-            <h1 class="text-3xl font-bold text-gray-800 mb-8 text-left">我的订单</h1>
+    <div class="min-h-screen bg-gray-100 pt-20 pb-12">
+        <main class="orders-layout max-w-6xl mx-auto px-4">
+            <section class="orders-main space-y-6">
+            <h1 class="text-xl font-bold text-gray-900 mb-4 text-center">我的订单</h1>
 
             <!-- 订单状态标签 -->
-            <div class="flex space-x-1 mb-8 bg-white rounded-lg p-2 shadow-sm">
+            <div class="flex overflow-x-auto space-x-2 mb-6 scrollbar-hide sticky top-20 z-10 py-2">
                 <button v-for="(status, index) in orderStatuses" :key="index" @click="activeOrderStatus = status.key"
                     :class="{
-                        'bg-orange-500 text-white': activeOrderStatus === status.key,
-                        'text-gray-600 hover:bg-gray-100': activeOrderStatus !== status.key
+                        'bg-orange-500 text-white font-bold shadow-md transform scale-105': activeOrderStatus === status.key,
+                        'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50': activeOrderStatus !== status.key
                     }"
-                    class="px-6 py-2 rounded-lg font-medium transition-colors cursor-pointer !rounded-button whitespace-nowrap">
+                    class="flex-1 px-4 py-2.5 rounded-full text-sm transition-all duration-200 whitespace-nowrap text-center min-w-[100px]">
                     {{ status.label }}
                 </button>
             </div>
@@ -21,76 +22,97 @@
             </div>
 
             <!-- 订单列表 -->
-            <div v-else class="space-y-4">
-                <div v-for="order in filteredOrders" :key="order.orderId"
-                    class="bg-white rounded-lg shadow-md p-6 text-left">
+            <div v-else>
+                <div
+                    v-if="paginatedOrders.length === 0"
+                    class="bg-white rounded-2xl border border-dashed border-gray-200 shadow-sm py-14 px-6 text-center text-gray-500"
+                >
+                    <i class="fas fa-clipboard-list text-4xl text-orange-400 mb-3"></i>
+                    <p class="text-base font-semibold text-gray-800">暂时没有相关订单</p>
+                    <p class="text-sm text-gray-500 mt-1">可以去首页挑选喜欢的美食再回来查看哦～</p>
+                </div>
+
+                <div v-else class="space-y-6">
+                <div v-for="order in paginatedOrders" :key="order.orderId"
+                    class="bg-white rounded-xl p-4 text-left transition-all duration-200 mb-4 border border-gray-100 shadow-sm hover:shadow-md">
 
                     <!-- 顶部商家信息 -->
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
+                    <div class="flex justify-between items-start mb-3 pb-3 border-b border-dashed border-gray-200">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-md bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100">
                               <img :src="normalizeImageUrl(order.storeImage)" :alt="order.storeName"
                                   class="max-w-full max-h-full w-auto h-auto object-contain" @error="handleImageError" />
                             </div>
                             <div>
-                                <h3 class="font-bold text-lg">{{ order.storeName }}</h3>
-                                <p class="text-gray-600 text-sm">订单号：<span class="font-medium text-gray-800">{{ order.orderId }}</span></p>
-                                <p class="text-gray-600 text-sm">下单时间：{{ order.paymentTime }}</p>
+                                <h3 class="font-bold text-base text-gray-900">{{ order.storeName }}</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">订单号：<span class="font-mono">{{ order.orderId }}</span></p>
+                                <p class="text-xs text-gray-500">下单时间：{{ order.paymentTime }}</p>
                             </div>
                         </div>
                         <span :class="{
                             'text-gray-500': order.orderState === 0,
-                            'text-yellow-500': (order.orderState !== 0 && (order.deliveryStatus === null || order.deliveryStatus === undefined || order.deliveryStatus === 0)),
-                            'text-orange-500': order.deliveryStatus === 1 || order.deliveryStatus === 2,
-                            'text-green-500': order.deliveryStatus === 3,
-                        }" class="font-medium">
+                            'text-yellow-600': (order.orderState !== 0 && (order.deliveryStatus === null || order.deliveryStatus === undefined || order.deliveryStatus === 0)),
+                            'text-orange-600': order.deliveryStatus === 1 || order.deliveryStatus === 2,
+                            'text-green-600': order.deliveryStatus === 3,
+                        }" class="px-2 py-1 rounded text-xs font-medium ml-2 whitespace-nowrap bg-gray-50">
                             {{ getOrderStatusText(order) }}
                         </span>
                     </div>
 
                     <!-- 菜品展示 + 金额 + 操作按钮 -->
-                    <div class="border-t pt-4 flex justify-between items-center">
+                    <div class="flex flex-col gap-3">
+                        <div class="flex justify-between items-start">
                         <!-- 左边：菜品 -->
-                        <div class="flex space-x-2 items-start">
-                            <div v-for="(dish, idx) in order.dishDetails.slice(0, 8)" :key="idx" class="flex flex-col items-center">
-                                <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
+                            <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-1 flex-1 min-w-0">
+                                <div v-for="(dish, idx) in order.dishDetails.slice(0, 8)" :key="idx" class="flex flex-col items-center min-w-[4.5rem]">
+                                    <div class="relative w-16 h-16 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100">
                                     <img :src="normalizeImageUrl(dish.dishImage)" :alt="dish.dishName"
-                                        class="max-w-full max-h-full w-auto h-auto object-contain" @error="handleImageError" />
+                                            class="w-full h-full object-cover" @error="handleImageError" />
+                                        <span v-if="dish.quantity > 1" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] px-1 rounded-bl-lg font-bold">x{{ dish.quantity }}</span>
                                 </div>
-                                <div class="w-12 mt-1 text-center">
-                                    <p class="text-xs text-gray-700 truncate" :title="dish.dishName">{{ dish.dishName }}</p>
-                                    <p v-if="dish.quantity > 1" class="text-xs text-gray-500">×{{ dish.quantity }}</p>
+                                    <div class="w-16 mt-1.5 text-center">
+                                        <p class="text-xs text-gray-800 truncate w-full font-medium" :title="dish.dishName">{{ dish.dishName }}</p>
+                                        <p class="text-[10px] text-gray-500 mt-0.5 font-mono">
+                                            ¥{{ Number.isInteger(dish.price) ? dish.price : dish.price.toFixed(2) }}
+                                        </p>
                                 </div>
                             </div>
                             <!-- 超过 8 个时显示省略 -->
                             <div v-if="order.dishDetails.length > 8"
-                                class="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 text-sm">
-                                +{{ order.dishDetails.length - 8 }}
+                                    class="w-16 h-16 flex flex-col items-center justify-center rounded-lg bg-gray-50 text-gray-500 text-xs border border-gray-100 min-w-[4.5rem] cursor-pointer hover:bg-gray-100 transition-colors"
+                                    @click="openOrderDetail(order.orderId)">
+                                    <span class="text-lg font-bold">+{{ order.dishDetails.length - 8 }}</span>
+                                    <span class="text-[10px]">查看更多</span>
+                                </div>
+                            </div>
+                            <!-- 右边：共X件 -->
+                            <div class="ml-3 flex h-16 items-center shrink-0">
+                                <span class="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">共 {{ order.dishDetails.reduce((acc, d) => acc + d.quantity, 0) }} 件</span>
                             </div>
                         </div>
 
                         <!-- 右边：金额 + 操作按钮 -->
-                        <div class="text-right">
+                        <div class="flex flex-col items-end border-t border-gray-50 pt-3">
                             <!-- 费用明细 -->
-                            <div class="mb-2 text-xs text-gray-600 space-y-1">
+                            <div class="w-full mb-3 text-xs text-gray-500 flex flex-col gap-1 items-end">
                                 <!-- 商品原始总价（不含优惠券折扣） -->
-                                <div class="flex items-center justify-end">
-                                    <span>商品：</span>
-                                    <span class="ml-1">¥{{ order.totalAmount.toFixed(2) }}</span>
+                                <div class="flex items-center justify-end w-full">
+                                    <span>商品</span>
+                                    <span class="ml-2 text-gray-900">¥{{ Number.isInteger(order.totalAmount) ? order.totalAmount : order.totalAmount.toFixed(2) }}</span>
                                 </div>
                                 <!-- 配送费 -->
-                                <div class="flex items-center justify-end">
-                                    <span>配送费：</span>
-                                    <span class="ml-1">¥{{ (order.deliveryFee || 0).toFixed(2) }}</span>
+                                <div class="flex items-center justify-end w-full">
+                                    <span>配送费</span>
+                                    <span class="ml-2 text-gray-900">¥{{ Number.isInteger(order.deliveryFee || 0) ? (order.deliveryFee || 0) : (order.deliveryFee || 0).toFixed(2) }}</span>
                                 </div>
                                 <!-- 优惠券信息 -->
-                                <div v-if="order.usedCoupon" class="flex items-center justify-end">
-                                    <span class="inline-flex items-center px-2 py-1 rounded bg-yellow-50 text-yellow-700 border border-yellow-200">
-                                        <i class="fas fa-ticket-alt mr-1"></i>
+                                <div v-if="order.usedCoupon" class="flex items-center justify-end w-full mt-1">
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-yellow-50 text-yellow-700 border border-yellow-200 text-[10px]">
+                                        <i class="fas fa-ticket-alt mr-1 text-[9px]"></i>
                                         <span>{{ order.usedCoupon.couponName || '优惠券' }}</span>
-                                        <span class="ml-1">
+                                        <span class="ml-1 font-bold">
                                             <span v-if="order.usedCoupon.discountType === 'fixed'">
-                                                -¥{{ order.usedCoupon.discountValue.toFixed(0) }}
+                                                -¥{{ Number.isInteger(order.usedCoupon.discountValue) ? order.usedCoupon.discountValue : order.usedCoupon.discountValue.toFixed(2) }}
                                             </span>
                                             <span v-else-if="order.usedCoupon.discountType === 'discount'">
                                                 {{ (order.usedCoupon.discountValue * 10).toFixed(1) }}折
@@ -98,51 +120,53 @@
                                         </span>
                                     </span>
                                 </div>
+                                <!-- 实付金额 -->
+                                <div class="flex items-center justify-end w-full mt-2 pt-2 border-t border-dashed border-gray-100">
+                                    <span class="text-gray-900 font-medium flex items-baseline">
+                                        <span class="text-xs mr-1">实付</span>
+                                        <span class="text-lg font-bold">¥{{ Number.isInteger(getActualAmount(order)) ? getActualAmount(order) : getActualAmount(order).toFixed(2) }}</span>
+                                    </span>
+                                </div>
                             </div>
-                            <!-- 实付金额 -->
-                            <p class="font-bold text-lg">¥{{ getActualAmount(order).toFixed(2) }}</p>
 
                             <!-- 统一的操作按钮区域 -->
-                            <div class="flex justify-end gap-2 mt-2 flex-wrap">
+                            <div class="flex justify-end gap-2 flex-wrap">
                                 <!-- 联系商家按钮 -->
                                 <button @click="openMerchantDialog(order.orderId)"
-                                    class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded text-sm transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1">
+                                    class="bg-white border border-orange-200 hover:bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-xs transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1 shadow-sm hover:shadow">
                                     <i class="fas fa-store"></i>
                                     <span>联系商家</span>
                                 </button>
 
-                                <!-- 订单售后按钮（仅已完成订单可点击） -->
+                                <!-- 订单售后按钮 -->
                                 <button 
                                     @click="openOrderDetail(order.orderId)"
                                     :disabled="order.deliveryStatus !== 3"
-                                    :title="order.deliveryStatus !== 3 ? '订单完成后才可以进行售后服务' : '订单售后'"
-                                    :class="{
-                                        'bg-gray-300 cursor-not-allowed': order.deliveryStatus !== 3,
-                                        'bg-blue-500 hover:bg-blue-600 cursor-pointer': order.deliveryStatus === 3
-                                    }"
-                                    class="text-white px-3 py-1.5 rounded text-sm transition-colors whitespace-nowrap flex items-center gap-1">
-                                    <i class="fas fa-info-circle"></i>
-                                    <span>订单售后</span>
+                                    :class="[
+                                        order.deliveryStatus === 3
+                                            ? 'bg-white border border-orange-200 hover:bg-orange-50 text-orange-600 cursor-pointer shadow-sm hover:shadow'
+                                            : 'bg-gray-50 border border-gray-200 text-gray-400 cursor-not-allowed'
+                                    ]"
+                                    class="px-3 py-1.5 rounded-full text-xs transition-colors whitespace-nowrap flex items-center gap-1">
+                                    <span>售后服务</span>
                                 </button>
 
                                 <!-- 查看配送信息按钮 -->
                                 <button 
                                     @click="openDeliveryInfo(order.orderId)"
                                     :disabled="order.deliveryStatus === null || order.deliveryStatus === undefined || order.deliveryStatus === 0"
-                                    :title="(order.deliveryStatus === null || order.deliveryStatus === undefined || order.deliveryStatus === 0) ? '暂时没有骑手接单，接单后可查看配送信息' : '查看配送信息'"
-                                    :class="{
-                                        'bg-gray-300 cursor-not-allowed': order.deliveryStatus === null || order.deliveryStatus === undefined || order.deliveryStatus === 0,
-                                        'bg-green-500 hover:bg-green-600 cursor-pointer': order.deliveryStatus !== null && order.deliveryStatus !== undefined && order.deliveryStatus !== 0
-                                    }"
-                                    class="text-white px-3 py-1.5 rounded text-sm transition-colors whitespace-nowrap flex items-center gap-1">
-                                    <i class="fas fa-truck"></i>
-                                    <span>查看配送信息</span>
+                                    :class="[
+                                        (order.deliveryStatus !== null && order.deliveryStatus !== undefined && order.deliveryStatus !== 0)
+                                            ? 'bg-white border border-orange-200 hover:bg-orange-50 text-orange-600 cursor-pointer shadow-sm hover:shadow'
+                                            : 'bg-gray-50 border border-gray-200 text-gray-400 cursor-not-allowed'
+                                    ]"
+                                    class="px-3 py-1.5 rounded-full text-xs transition-colors whitespace-nowrap flex items-center gap-1">
+                                    <span>配送信息</span>
                                 </button>
 
                                 <!-- 再来一单按钮 -->
                                 <button @click="reorder(order)"
-                                    class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded text-sm transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1">
-                                    <i class="fas fa-redo"></i>
+                                    class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1 shadow-sm hover:shadow">
                                     <span>再来一单</span>
                                 </button>
                             </div>
@@ -204,13 +228,123 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- 分页控制 -->
+                <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-8 mb-4">
+                    <button 
+                        @click="currentPage--"
+                        :disabled="currentPage === 1"
+                        :class="[
+                            currentPage === 1
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-white border border-orange-200 hover:bg-orange-50 text-orange-600 cursor-pointer shadow-sm hover:shadow'
+                        ]"
+                        class="px-3 py-1.5 rounded-full text-xs transition-colors">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    
+                    <div class="flex gap-1">
+                        <button 
+                            v-for="page in totalPages" 
+                            :key="page"
+                            @click="currentPage = page"
+                            :class="[
+                                currentPage === page
+                                    ? 'bg-orange-500 text-white font-bold shadow-sm'
+                                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                            ]"
+                            class="w-8 h-8 rounded-full text-xs transition-colors cursor-pointer flex items-center justify-center">
+                            {{ page }}
+                        </button>
+                    </div>
+                    
+                    <button 
+                        @click="currentPage++"
+                        :disabled="currentPage === totalPages"
+                        :class="[
+                            currentPage === totalPages
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-white border border-orange-200 hover:bg-orange-50 text-orange-600 cursor-pointer shadow-sm hover:shadow'
+                        ]"
+                        class="px-3 py-1.5 rounded-full text-xs transition-colors">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                </div>
+            </div>
+            </section>
+
+            <aside class="orders-aside space-y-4">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <h3 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-clipboard-check text-orange-500"></i>
+                        最近订单概况
+                    </h3>
+                    <div class="space-y-3 text-xs text-gray-600">
+                        <div class="flex items-center justify-between">
+                            <span>全部订单</span>
+                            <span class="font-semibold text-gray-900">{{ orders.length }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span>本月完成</span>
+                            <span class="font-semibold text-gray-900">{{ completedCount }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span>待配送</span>
+                            <span class="font-semibold text-gray-900">{{ pendingDeliveryCount }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <h3 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-lightbulb text-yellow-500"></i>
+                        温馨提示
+                    </h3>
+                    <ul class="space-y-2 text-xs text-gray-600 list-disc pl-4 text-left">
+                        <li>订单完成后，若对菜品不满意，请及时进行售后申请，会由商家反馈和客服审核处理</li>
+                        <li>配送信息可实时查看骑手位置，可通过平台及时与骑手联系</li>
+                        <li>若对配送不满意，可对骑手进行配送投诉，每个配送任务只能进行一次投诉</li>
+                        <li>若发现商家存在违规行为，请及时对店铺举报</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <h3 class="text-sm font-bold text-gray-900 mb-3 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i class="fas fa-brain text-purple-500"></i>
+                            智能分析
+                        </span>
+                        <span class="text-xs text-gray-400">本月</span>
+                    </h3>
+                    <div class="space-y-3 text-xs text-gray-600">
+                        <div class="flex items-center justify-between">
+                            <span>本月总花销</span>
+                            <span class="font-semibold text-gray-900">¥{{ monthlyExpense }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span>已领优惠</span>
+                            <span class="font-semibold text-green-600">-¥{{ monthlyDiscount }}</span>
+                        </div>
+                        <div class="pt-2 border-t border-dashed border-gray-100">
+                            <p class="text-[11px] text-gray-400 mb-1">最常下单店铺</p>
+                            <p class="text-sm font-semibold text-gray-900">{{ favoriteStore?.name || '暂无数据' }}</p>
+                            <p class="text-xs text-gray-500">本月下单 {{ favoriteStore?.count || 0 }} 次</p>
+                        </div>
+                        <div class="pt-2 border-t border-dashed border-gray-100">
+                            <p class="text-[11px] text-gray-400 mb-1">常点菜品</p>
+                            <p class="text-sm font-semibold text-gray-900">{{ favoriteDish?.name || '暂无数据' }}</p>
+                            <p class="text-xs text-gray-500">本月点单 {{ favoriteDish?.count || 0 }} 次</p>
+                </div>
             </div>
         </div>
+            </aside>
     </main>
+    </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/user";
 import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils'
@@ -218,6 +352,7 @@ import { ElMessage } from 'element-plus';
 
 import type { OrderInfo } from "@/api/user";
 import { getOrderInfo } from "@/api/user";
+import { getMyDeliveryComplaints, type DeliveryComplaintListItem } from '@/api/user/afterSale';
 
 import ReportWindow from "@/components/user/HomePage/Home/ReportWindow.vue";
 import ReviewWindow from "@/components/user/HomePage/Home/ReviewWindow.vue";
@@ -231,6 +366,7 @@ const userStore = useUserStore();
 const userID = userStore.getUserID();
 
 const orders = ref<OrderInfo[]>([]);
+const myComplaints = ref<DeliveryComplaintListItem[]>([]);
 const activeOrderStatus = ref("all");
 const showLoading = ref(true);
 const showReviewWindow = ref<Record<number, boolean>>({});
@@ -240,6 +376,10 @@ const showRevealDelivery = ref<Record<number, boolean>>({});
 const showOrderDetail = ref<Record<number, boolean>>({});
 const dialogVisibleMerchant = ref<Record<number, boolean>>({});
 const dialogVisibleRider = ref<Record<number, boolean>>({});
+
+// 分页相关
+const currentPage = ref(1);
+const itemsPerPage = ref(5);
 
 const orderStatuses = [
     { key: "all", label: "全部订单" },
@@ -277,8 +417,12 @@ const getOrderStatusText = (order: OrderInfo) => {
 
 const fetchOrders = async () => {
     try {
-        const res: OrderInfo[] = await getOrderInfo();
-        orders.value = res;
+        const [res, complaints] = await Promise.all([
+            getOrderInfo(),
+            getMyDeliveryComplaints()
+        ]);
+        orders.value = res as OrderInfo[];
+        myComplaints.value = complaints || [];
         showLoading.value = false;
     } catch (err) {
         alert("获取订单失败");
@@ -318,6 +462,84 @@ const filteredOrders = computed(() => {
     });
 });
 
+const completedCount = computed(() => orders.value.filter(order => order.deliveryStatus === 3).length);
+const pendingDeliveryCount = computed(() => orders.value.filter(order => order.deliveryStatus === 1 || order.deliveryStatus === 2).length);
+
+const monthlyExpense = computed(() => {
+    const now = new Date();
+    return orders.value
+        .filter(order => {
+            const date = new Date(order.paymentTime);
+            return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+        })
+        .reduce((sum, order) => sum + getActualAmount(order), 0)
+        .toFixed(2);
+});
+
+const monthlyDiscount = computed(() => {
+    const now = new Date();
+    return orders.value
+        .filter(order => {
+            const date = new Date(order.paymentTime);
+            return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+        })
+        .reduce((sum, order) => {
+            if (!order.usedCoupon) return sum;
+            const coupon = order.usedCoupon;
+            if (coupon.discountType === 'fixed') {
+                return sum + coupon.discountValue;
+            }
+            if (coupon.discountType === 'discount') {
+                return sum + order.totalAmount * (1 - coupon.discountValue);
+            }
+            return sum;
+        }, 0)
+        .toFixed(2);
+});
+
+const favoriteStore = computed(() => {
+    if (!orders.value.length) return null;
+    const counts: Record<string, { name: string; count: number }> = {};
+    orders.value.forEach(order => {
+        if (!counts[order.storeId]) {
+            counts[order.storeId] = { name: order.storeName, count: 0 };
+        }
+        counts[order.storeId].count += 1;
+    });
+    return Object.values(counts).sort((a, b) => b.count - a.count)[0];
+});
+
+const favoriteDish = computed(() => {
+    if (!orders.value.length) return null;
+    const counts: Record<string, { name: string; count: number }> = {};
+    orders.value.forEach(order => {
+        order.dishDetails.forEach(dish => {
+            if (!counts[dish.dishName]) {
+                counts[dish.dishName] = { name: dish.dishName, count: 0 };
+            }
+            counts[dish.dishName].count += dish.quantity;
+        });
+    });
+    return Object.values(counts).sort((a, b) => b.count - a.count)[0];
+});
+
+// 分页后的订单列表
+const paginatedOrders = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage.value;
+    const end = start + itemsPerPage.value;
+    return filteredOrders.value.slice(start, end);
+});
+
+// 总页数
+const totalPages = computed(() => {
+    return Math.ceil(filteredOrders.value.length / itemsPerPage.value);
+});
+
+// 监听筛选状态变化，重置到第一页
+watch(activeOrderStatus, () => {
+    currentPage.value = 1;
+});
+
 // 获取订单实际支付金额 = 原始商品总价 + 配送费 - 优惠券折扣
 const getActualAmount = (order: OrderInfo): number => {
     const subtotal = order.totalAmount; // 原始商品总价
@@ -355,6 +577,12 @@ function openReportWindow(orderID: number) {
 }
 function openAfterSale(orderID: number) {
     showAfterSale.value[orderID] = true;
+}
+function hasDeliveryComplaint(order: OrderInfo): boolean {
+    return myComplaints.value.some(c => c.orderId === order.orderId);
+}
+function goUserAfterSale(tab?: string) {
+    router.push({ name: 'AfterSale', query: tab ? { tab } : undefined });
 }
 function openDeliveryInfo(orderID: number) {
     showRevealDelivery.value[orderID] = true;
@@ -403,3 +631,47 @@ function handleRiderReply(content: string) {
     });
 }
 </script>
+
+<style scoped>
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.orders-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.orders-main,
+.orders-aside {
+    width: 100%;
+}
+
+@media (min-width: 1024px) {
+    .orders-layout {
+        flex-direction: row;
+        gap: 28px;
+        align-items: flex-start;
+    }
+
+    .orders-main {
+        flex: 0 0 820px;
+        max-width: 820px;
+    }
+
+    .orders-aside {
+        flex: 0 0 300px;
+        max-width: 300px;
+        position: sticky;
+        top: 120px;
+    }
+}
+</style>

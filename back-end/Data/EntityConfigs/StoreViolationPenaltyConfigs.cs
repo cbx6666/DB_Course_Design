@@ -44,6 +44,18 @@ namespace BackEnd.Data.EntityConfigs
             builder.Property(svp => svp.CustomerID).HasColumnName("CUSTOMERID").IsRequired(false);
             builder.Property(svp => svp.CourierID).HasColumnName("COURIERID").IsRequired(false);
 
+            // 仅 Pending 唯一约束（带筛选的唯一索引）
+            // 保证同一 用户-店铺 在 Pending 状态下最多一条举报；骑手-店铺同理
+            builder.HasIndex(svp => new { svp.StoreID, svp.CustomerID })
+                .HasDatabaseName("UX_StoreCustomer_Pending")
+                .HasFilter("[CUSTOMERID] IS NOT NULL AND [VIOLATIONPENALTYSTATE] = 'Pending'")
+                .IsUnique();
+
+            builder.HasIndex(svp => new { svp.StoreID, svp.CourierID })
+                .HasDatabaseName("UX_StoreCourier_Pending")
+                .HasFilter("[COURIERID] IS NOT NULL AND [VIOLATIONPENALTYSTATE] = 'Pending'")
+                .IsUnique();
+
             // 关系配置
             ConfigureRelationships(builder);
         }

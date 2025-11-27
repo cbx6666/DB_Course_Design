@@ -44,13 +44,6 @@ namespace BackEnd.Repositories.Interfaces
         Task<Store?> GetStoreInfoForUserAsync(int storeId);
 
         /// <summary>
-        /// 根据店铺获取菜品
-        /// </summary>
-        /// <param name="storeId">店铺ID</param>
-        /// <returns>菜品列表</returns>
-        Task<IEnumerable<Dish>> GetDishesByStoreIdAsync(int storeId);
-
-        /// <summary>
         /// 添加店铺
         /// </summary>
         /// <param name="store">店铺</param>

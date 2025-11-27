@@ -19,7 +19,7 @@
             <span class="text-sm text-gray-500">{{ formatDate(comment.date) }}</span>
           </div>
           <p class="text-left text-gray-700 mb-3">{{ comment.content }}</p>
-          <div v-if="comment.images && comment.images.length > 0" class="flex space-x-2 flex-wrap gap-2">
+          <div v-if="comment.images && comment.images.length > 0" class="flex space-x-2 flex-wrap gap-2 mb-3">
             <img 
               v-for="(image, index) in comment.images" 
               :key="index" 
@@ -28,6 +28,17 @@
               @click="openPcomment(normalizeImageUrl(image))"
               @error="handleImageError"
             />
+          </div>
+          <!-- 商家回复（只显示已通过的） -->
+          <div v-if="comment.merchantReply" class="mt-3 pt-3 border-t border-orange-200">
+            <div class="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-3 border border-orange-200">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="fas fa-store text-orange-600 text-xs"></i>
+                <span class="font-semibold text-orange-700 text-sm">商家回复</span>
+                <span v-if="comment.merchantReplyTime" class="text-xs text-orange-600 ml-auto">{{ formatDate(comment.merchantReplyTime) }}</span>
+              </div>
+              <p class="text-sm text-gray-800 leading-relaxed">{{ comment.merchantReply }}</p>
+            </div>
           </div>
         </div>
       </div>

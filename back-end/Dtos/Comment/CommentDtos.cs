@@ -52,6 +52,16 @@ namespace BackEnd.DTOs.Comment
         /// 评论图片
         /// </summary>
         public string[] Images { get; set; } = Array.Empty<string>();
+
+        /// <summary>
+        /// 商家回复内容（只显示已通过的）
+        /// </summary>
+        public string? MerchantReply { get; set; }
+
+        /// <summary>
+        /// 商家回复时间
+        /// </summary>
+        public string? MerchantReplyTime { get; set; }
     }
 
     /// <summary>
@@ -108,6 +118,16 @@ namespace BackEnd.DTOs.Comment
         /// 订单菜品详情
         /// </summary>
         public List<OrderDishDto> DishDetails { get; set; } = new List<OrderDishDto>();
+
+        /// <summary>
+        /// 商家回复内容（只显示已通过的）
+        /// </summary>
+        public string? MerchantReply { get; set; }
+
+        /// <summary>
+        /// 商家回复时间
+        /// </summary>
+        public string? MerchantReplyTime { get; set; }
     }
 
     /// <summary>
@@ -214,6 +234,26 @@ namespace BackEnd.DTOs.Comment
         /// 订单菜品详情
         /// </summary>
         public List<Dish.OrderDishDto> DishDetails { get; set; } = new List<Dish.OrderDishDto>();
+
+        /// <summary>
+        /// 商家回复内容
+        /// </summary>
+        public string? MerchantReply { get; set; }
+
+        /// <summary>
+        /// 商家回复时间
+        /// </summary>
+        public string? MerchantReplyTime { get; set; }
+
+        /// <summary>
+        /// 商家回复状态（待审核/已完成/违规）
+        /// </summary>
+        public string? MerchantReplyStatus { get; set; }
+
+        /// <summary>
+        /// 回复数量
+        /// </summary>
+        public int Replies { get; set; }
     }
 
     /// <summary>
@@ -224,6 +264,27 @@ namespace BackEnd.DTOs.Comment
         /// <summary>
         /// 回复内容
         /// </summary>
+        [Required]
+        [StringLength(500)]
+        public string Content { get; set; } = null!;
+    }
+
+    /// <summary>
+    /// 创建商家回复请求DTO
+    /// </summary>
+    public class CreateMerchantReplyDto
+    {
+        /// <summary>
+        /// 原评论ID
+        /// </summary>
+        [Required]
+        public int CommentId { get; set; }
+
+        /// <summary>
+        /// 回复内容
+        /// </summary>
+        [Required]
+        [StringLength(500)]
         public string Content { get; set; } = null!;
     }
 
@@ -278,6 +339,31 @@ namespace BackEnd.DTOs.Comment
         /// 审核状态
         /// </summary>
         public string Status { get; set; } = null!;
+
+        /// <summary>
+        /// 原评论内容（如果是回复评论）
+        /// </summary>
+        public string? OriginalCommentContent { get; set; }
+
+        /// <summary>
+        /// 原评论用户名（如果是回复评论）
+        /// </summary>
+        public string? OriginalCommentUsername { get; set; }
+
+        /// <summary>
+        /// 原评论时间（如果是回复评论）
+        /// </summary>
+        public string? OriginalCommentTime { get; set; }
+
+        /// <summary>
+        /// 店铺名称（如果是商家回复）
+        /// </summary>
+        public string? StoreName { get; set; }
+
+        /// <summary>
+        /// 店铺图片（如果是商家回复）
+        /// </summary>
+        public string? StoreImage { get; set; }
     }
 
     /// <summary>

@@ -29,17 +29,22 @@
           </div>
           <div v-else class="space-y-4">
             <div v-for="item in cartItems" :key="item.id" class="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg">
-                             <img :src="normalizeImageUrl(item.image)" class="w-12 h-12 object-contain rounded" />
-              <div class="flex-1">
-                <h4 class="font-medium text-gray-900 text-sm">{{ item.name }}</h4>
-                <p class="text-[#F9771C] font-semibold">¥{{ item.price }}</p>
+              <img :src="normalizeImageUrl(item.image)" 
+                   :alt="item.name"
+                   class="w-12 h-12 object-cover rounded"
+                   @error="(e) => (e.target as HTMLImageElement).src = fallbackImage" />
+              <div class="flex-1 min-w-0">
+                <h4 class="font-medium text-gray-900 text-sm truncate">{{ item.name }}</h4>
+                <p class="text-[#F9771C] font-semibold text-sm">
+                  ¥{{ item.price > 0 ? item.price.toFixed(2) : '-.--' }}
+                </p>
               </div>
-              <div class="flex items-center space-x-2">
+              <div class="flex items-center space-x-2 shrink-0">
                 <button @click="emit('decrease', item)"
                   class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-300 cursor-pointer">
                   <i class="fas fa-minus text-xs"></i>
                 </button>
-                <span class="w-6 text-center text-sm">{{ item.quantity }}</span>
+                <span class="w-6 text-center text-sm font-medium">{{ item.quantity }}</span>
                 <button @click="emit('increase', item)"
                   class="w-6 h-6 rounded-full bg-[#F9771C] text-white flex items-center justify-center hover:bg-orange-600 cursor-pointer">
                   <i class="fas fa-plus text-xs"></i>
@@ -65,11 +70,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineProps, defineEmits } from 'vue'
+import { ref, computed, watch, defineProps, defineEmits } from 'vue'
 import { useRouter } from 'vue-router'
 import { normalizeImageUrl } from '@/utils/imageUtils';
 
 import type { MenuItem, ShoppingCart } from '@/api/user'
+import { getMenuItemPage } from '@/api/user'
 
 const router = useRouter();
 const props = defineProps<{
@@ -84,15 +90,63 @@ const emit = defineEmits<{
 }>();
 
 const showCart = ref(false);
+const cartDishDetails = ref<Record<number, MenuItem>>({})
+const loadingDishes = ref(false)
 
 // 购物车里显示的菜品
-const cartItems = computed(() => {
-  return props.cart.items
-    .map(ci => {
-      const dish = props.menuItems.find(d => d.id === ci.dishId)
-      return dish ? { ...dish, quantity: ci.quantity } : null
+const fallbackImage = 'https://via.placeholder.com/48x48?text=Dish'
+
+// 当购物车打开时，加载缺失的菜品信息
+watch(showCart, async (isOpen) => {
+  if (!isOpen || !props.cart?.items?.length) return
+  
+  const missingDishIds = props.cart.items
+    .filter(ci => !props.menuItems?.find(m => m.id === ci.dishId))
+    .map(ci => ci.dishId)
+  
+  if (missingDishIds.length === 0) return
+  
+  // 加载缺失的菜品信息
+  loadingDishes.value = true
+  try {
+    const response = await getMenuItemPage(props.storeID, { page: 1, pageSize: 1000 })
+    const dishes = response?.items ?? []
+    
+    const dishMap: Record<number, MenuItem> = {}
+    dishes.forEach(dish => {
+      dishMap[dish.id] = dish
     })
-    .filter((item): item is MenuItem & { quantity: number } => item !== null)
+    cartDishDetails.value = dishMap
+  } catch (error) {
+    console.warn('加载购物车菜品详情失败:', error)
+  } finally {
+    loadingDishes.value = false
+  }
+})
+
+const cartItems = computed(() => {
+  if (!props.cart || !props.cart.items) return []
+  
+  return props.cart.items.map(ci => {
+    // 先从 menuItems 查找，再从 cartDishDetails 查找
+    const dish = props.menuItems?.find(d => d.id === ci.dishId) ?? cartDishDetails.value[ci.dishId]
+    
+    // 计算单价：优先使用菜品价格，否则从购物车总价计算
+    let price = 0
+    if (dish?.price != null) {
+      price = dish.price
+    } else if (ci.totalPrice != null && ci.quantity > 0) {
+      price = ci.totalPrice / ci.quantity
+    }
+    
+    return {
+      id: ci.dishId,
+      name: dish?.name ?? `菜品 #${ci.dishId}`,
+      image: dish?.image ?? fallbackImage,
+      price,
+      quantity: ci.quantity
+    }
+  })
 })
 
 // 购物车总价

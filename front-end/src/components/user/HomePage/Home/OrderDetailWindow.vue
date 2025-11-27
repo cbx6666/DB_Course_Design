@@ -107,28 +107,28 @@
         <!-- 操作按钮 -->
         <div class="flex justify-between items-center mt-6 pt-4 border-t">
             <div class="flex gap-2">
-                <!-- 申请售后按钮 -->
+                <!-- 售后：已有则查看，否则申请 -->
                 <button
-                    @click="handleAfterSale"
+                    @click="hasAfterSale ? goUserAfterSale('afterSale') : handleAfterSale()"
                     class="px-4 py-2 rounded-lg bg-orange-500 text-white text-sm hover:bg-orange-600 transition-colors cursor-pointer flex items-center gap-1">
                     <i class="fas fa-headset"></i>
-                    <span>申请售后</span>
+                    <span>{{ hasAfterSale ? '查看售后' : '申请售后' }}</span>
                 </button>
 
-                <!-- 举报店铺按钮 -->
+                <!-- 举报：有 Pending 则查看，否则发起 -->
                 <button
-                    @click="handleReport"
+                    @click="hasPendingReport ? goUserAfterSale('report') : handleReport()"
                     class="px-4 py-2 rounded-lg bg-red-500 text-white text-sm hover:bg-red-600 transition-colors cursor-pointer flex items-center gap-1">
                     <i class="fas fa-exclamation-circle"></i>
-                    <span>举报店铺</span>
+                    <span>{{ hasPendingReport ? '查看举报' : '举报店铺' }}</span>
                 </button>
 
-                <!-- 发布评论按钮 -->
+                <!-- 评论：已有则查看，否则发布 -->
                 <button
-                    @click="handleReview"
+                    @click="hasComment ? goUserAfterSale('comment') : handleReview()"
                     class="px-4 py-2 rounded-lg bg-blue-500 text-white text-sm hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1">
                     <i class="fas fa-star"></i>
-                    <span>发布评论</span>
+                    <span>{{ hasComment ? '查看评论' : '发布评论' }}</span>
                 </button>
             </div>
             <button
@@ -141,9 +141,11 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, computed } from "vue";
+import { defineProps, defineEmits, computed, ref, watch } from "vue";
+import { useRouter } from 'vue-router';
 import { normalizeImageUrl, handleImageError } from '@/utils/imageUtils';
 import type { OrderInfo } from "@/api/user";
+import { getMyAfterSales, getMyStoreReports, getMyComments } from '@/api/user/afterSale';
 
 const props = defineProps<{
     visible: boolean;
@@ -151,6 +153,32 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(["close", "afterSale", "report", "review"]);
+
+const router = useRouter();
+
+// 状态标记：是否已有售后/评论/待处理举报
+const hasAfterSale = ref(false);
+const hasComment = ref(false);
+const hasPendingReport = ref(false);
+
+// 打开弹窗时查询当前订单/店铺的相关记录是否存在
+watch(() => props.visible, async (v) => {
+    if (!v) return;
+    try {
+        const [afs, reps, cms] = await Promise.all([
+            getMyAfterSales(),
+            getMyStoreReports(),
+            getMyComments()
+        ]);
+        hasAfterSale.value = afs.some(a => a.orderId === props.order.orderId);
+        hasComment.value = cms.some(c => c.orderId === props.order.orderId);
+        hasPendingReport.value = reps.some(r => r.storeId === props.order.storeId && (r.status?.toLowerCase?.() === 'pending' || r.status === '待处理'));
+    } catch {
+        hasAfterSale.value = false;
+        hasComment.value = false;
+        hasPendingReport.value = false;
+    }
+}, { immediate: false });
 
 function close() {
     emit("close");
@@ -168,6 +196,12 @@ function handleReport() {
 
 function handleReview() {
     emit("review");
+    close();
+}
+
+// 跳转用户售后中心（带上目标tab）
+function goUserAfterSale(tab?: string) {
+    router.push({ name: 'AfterSale', query: tab ? { tab } : undefined });
     close();
 }
 

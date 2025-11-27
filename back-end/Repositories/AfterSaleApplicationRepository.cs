@@ -43,6 +43,7 @@ namespace BackEnd.Repositories
         {
             return await _context.AfterSaleApplications
                                  .Include(a => a.Order)
+                                     .ThenInclude(o => o.DeliveryInfo)
                                      .ThenInclude(o => o.Customer)
                                          .ThenInclude(c => c.User)
                                  .Include(a => a.Order)
@@ -63,6 +64,7 @@ namespace BackEnd.Repositories
         {
             return await _context.AfterSaleApplications
                                  .Include(a => a.Order)
+                                     .ThenInclude(o => o.DeliveryInfo)
                                  .Where(a => a.OrderID == orderId)
                                  .ToListAsync();
         }
@@ -76,6 +78,7 @@ namespace BackEnd.Repositories
         {
             return await _context.AfterSaleApplications
                 .Include(a => a.Order)
+                    .ThenInclude(o => o.DeliveryInfo)
                     .ThenInclude(o => o.Customer)
                         .ThenInclude(c => c.User)
                 .Include(a => a.Order)
@@ -98,6 +101,7 @@ namespace BackEnd.Repositories
         public async Task AddAsync(AfterSaleApplication application)
         {
             await _context.AfterSaleApplications.AddAsync(application);
+            await SaveAsync();
         }
 
         /// <summary>
@@ -140,6 +144,8 @@ namespace BackEnd.Repositories
         {
             return await _context.AfterSaleApplications
                 .Include(a => a.Order)
+                    .ThenInclude(o => o.DeliveryInfo)
+                .Include(a => a.Order)
                     .ThenInclude(o => o.Store)
                 .Include(a => a.Order)
                     .ThenInclude(o => o.Cart)
@@ -157,9 +163,11 @@ namespace BackEnd.Repositories
         /// <returns>售后申请列表</returns>
         public async Task<List<AfterSaleApplication>> GetByAdminIdAsync(int adminId)
         {
+            // 列表查询保持轻量，不加载图片和菜品等重数据
             return await _context.Evaluate_AfterSales
                 .Where(eas => eas.AdminID == adminId)
                 .Select(eas => eas.Application)
+                .OrderByDescending(a => a.ApplicationTime)
                 .ToListAsync();
         }
     }

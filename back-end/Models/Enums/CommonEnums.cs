@@ -56,7 +56,7 @@ namespace BackEnd.Models.Enums
         /// <summary>
         /// 未售罄
         /// </summary>
-        IsNotSoldOut = 2
+        IsNotSoldOut = 1
     }
 
     /// <summary>
@@ -227,9 +227,14 @@ namespace BackEnd.Models.Enums
         Pending = 0,
 
         /// <summary>
+        /// 商家反馈（待管理员处理）
+        /// </summary>
+        MerchantFeedback = 1,
+
+        /// <summary>
         /// 已完成
         /// </summary>
-        Completed = 1
+        Completed = 2
     }
 
     /// <summary>

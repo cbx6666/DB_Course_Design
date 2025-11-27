@@ -49,5 +49,15 @@ namespace BackEnd.Services.Interfaces
         /// <param name="storeId">店铺ID</param>
         /// <returns>菜单列表</returns>
         Task<List<MenuResponseDto>> GetMenuAsync(int storeId);
+
+        /// <summary>
+        /// 获取轻量化的菜品基础信息（用于客户端快速加载）
+        /// </summary>
+        /// <param name="storeId">店铺ID</param>
+        /// <param name="categoryId">分类ID，可选</param>
+        /// <param name="page">页码，默认1</param>
+        /// <param name="pageSize">每页数量</param>
+        /// <returns>菜品基础信息及是否可继续加载</returns>
+        Task<(List<MenuBasicResponseDto> Items, bool HasMore)> GetMenuBasicAsync(int storeId, int? categoryId, int page, int pageSize);
     }
 }

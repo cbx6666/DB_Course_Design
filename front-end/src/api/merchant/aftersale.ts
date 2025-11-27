@@ -2,8 +2,11 @@ import apiClient from '../client';
 
 export interface AfterSaleUserInfo {
     name: string;
-    phone: string;
+    phoneNumber?: number;
+    phone?: string;
     avatar?: string;
+    gender?: string;
+    fullName?: string;
 }
 
 export interface AfterSaleApplication {
@@ -11,9 +14,14 @@ export interface AfterSaleApplication {
     orderNo: string;
     orderId?: number;
     user?: AfterSaleUserInfo;
+    accountUserName?: string;
     reason: string;
     images?: string[];
     createdAt: string;
+    status?: string;
+    merchantReply?: string;
+    punishment?: string;
+    punishmentReason?: string;
     dishDetails?: Array<{
         dishName: string;
         dishImage: string;
@@ -52,12 +60,11 @@ export const getAfterSaleDetail = async (id: number): Promise<AfterSaleApplicati
     return response.data as AfterSaleApplication;
 };
 
-export const decideAfterSale = async (
+export const replyAfterSale = async (
     id: number,
-    action: 'approve' | 'reject' | 'negotiate',
     payload: { remark: string }
 ): Promise<void> => {
-    await apiClient.post(`/merchant/after-sales/${id}/decide`, { action, ...payload });
+    await apiClient.post(`/merchant/after-sales/${id}/reply`, payload);
 };
 
 

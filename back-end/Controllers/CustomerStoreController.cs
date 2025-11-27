@@ -2,6 +2,7 @@ using BackEnd.DTOs.Store;
 using BackEnd.DTOs.Comment;
 using BackEnd.DTOs.Customer;
 using BackEnd.DTOs.Common;
+using BackEnd.DTOs.Menu;
 using BackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -127,6 +128,35 @@ namespace BackEnd.Controllers
                 return NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "当前无菜品" });
 
             return Ok(new ApiResponseDto<object> { Success = true, Code = 200, Message = "获取成功", Data = result });
+        }
+
+        /// <summary>
+        /// 获取轻量化菜单（基础字段，适合快速加载）
+        /// </summary>
+        [HttpGet("{storeId}/menu/basic")]
+        public async Task<ActionResult<ApiResponseDto<object>>> GetMenuBasic(
+            [FromRoute] int storeId,
+            [FromQuery] int? categoryId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
+        {
+            if (storeId <= 0)
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "参数无效" });
+            if (page <= 0 || pageSize <= 0)
+                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "分页参数无效" });
+
+            var result = await _customerStoreService.GetMenuBasicAsync(storeId, categoryId, page, pageSize);
+            return Ok(new ApiResponseDto<object>
+            {
+                Success = true,
+                Code = 200,
+                Message = "获取成功",
+                Data = new
+                {
+                    items = result.Items,
+                    hasMore = result.HasMore
+                }
+            });
         }
     }
 }

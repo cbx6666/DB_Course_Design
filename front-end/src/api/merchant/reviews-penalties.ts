@@ -15,6 +15,10 @@ export interface Review {
         quantity: number;
         price: number;
     }>;
+    merchantReply?: string;
+    merchantReplyTime?: string;
+    merchantReplyStatus?: string;
+    replies?: number;
 }
 
 export interface PageResult<T> {

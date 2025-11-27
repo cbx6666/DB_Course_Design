@@ -28,17 +28,63 @@
 
       <button
         class="w-full bg-[#F9771C] hover:bg-[#F9771C]/90 text-white font-semibold py-3 text-lg rounded"
-        @click="emit('checkout')"
+        @click="showConfirmDialog = true"
         :disabled="total === 0"
       >
         {{ `立即支付 ¥${total.toFixed(2)}` }}
       </button>
     </div>
   </div>
+
+  <!-- 支付确认弹窗 -->
+  <div v-if="showConfirmDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click.self="showConfirmDialog = false">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-[500px] mx-4 transform transition-all">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-money-bill-wave text-orange-500 text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">确认支付</h3>
+        <p class="text-sm text-gray-600 mb-4">请确认订单信息及支付金额</p>
+        
+        <!-- 支付详情 -->
+        <div class="bg-gray-50 rounded-lg p-4 space-y-2 text-sm text-left">
+          <div class="flex justify-between">
+            <span class="text-gray-600">商品总价</span>
+            <span class="font-medium">¥{{ subtotal.toFixed(2) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">配送费</span>
+            <span class="font-medium">¥{{ deliveryFee.toFixed(2) }}</span>
+          </div>
+          <div v-if="discount > 0" class="flex justify-between">
+            <span class="text-gray-600">优惠金额</span>
+            <span class="font-medium text-orange-500">-¥{{ discount.toFixed(2) }}</span>
+          </div>
+          <div class="border-t border-gray-200 pt-2 flex justify-between items-center">
+            <span class="text-gray-900 font-semibold">实付金额</span>
+            <span class="text-xl font-bold text-orange-500">¥{{ total.toFixed(2) }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex gap-3">
+        <button 
+          @click="showConfirmDialog = false"
+          class="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-full text-sm transition-colors cursor-pointer">
+          取消
+        </button>
+        <button 
+          @click="confirmPayment"
+          class="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-full text-sm transition-colors cursor-pointer shadow-sm">
+          确认支付
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, defineEmits } from 'vue';
+import { computed, ref, defineProps, defineEmits } from 'vue';
 
 import type { CouponInfo } from '@/api/user';
 
@@ -53,6 +99,15 @@ console.log(props);
 const emit = defineEmits<{
   (e: 'checkout'): void;
 }>();
+
+// 支付确认对话框状态
+const showConfirmDialog = ref(false);
+
+// 确认支付
+const confirmPayment = () => {
+  showConfirmDialog.value = false;
+  emit('checkout');
+};
 
 // 计算优惠金额
 const discount = computed(() => {

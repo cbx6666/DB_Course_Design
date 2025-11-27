@@ -158,9 +158,9 @@
                                             item.description }}</td>
                                         <td class="px-6 py-4 text-left text-sm text-gray-900">{{ item.punishment || '-' }}</td>
                                         <td class="px-6 py-4 text-left whitespace-nowrap">
-                                            <span :class="getStatusClass(item.status)"
+                                            <span :class="getStatusClass(getAfterSaleStatusText(item.status))"
                                                 class="inline-block px-2 py-1 text-xs rounded-full">
-                                                {{ item.status }}
+                                                {{ getAfterSaleStatusText(item.status) }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 text-left whitespace-nowrap text-sm font-medium space-x-2">
@@ -265,8 +265,7 @@
                                             item.applicationTime }}</td>
                                         <td class="px-6 py-4 text-left text-sm text-gray-900">{{ item.punishment || '-' }}</td>
                                         <td class="px-6 py-4 text-left whitespace-nowrap">
-                                            <span :class="getStatusClass(item.status)"
-                                                class="inline-block px-2 py-1 text-xs rounded-full">
+                                            <span :class="getStatusClass(item.status)" class="px-3 py-1 rounded-full text-sm">
                                                 {{ item.status }}
                                             </span>
                                         </td>
@@ -375,8 +374,7 @@
                                         <td class="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-900">{{
                                             item.punishmentTime }}</td>
                                         <td class="px-6 py-4 text-left whitespace-nowrap">
-                                            <span :class="getStatusClass(item.status)"
-                                                class="inline-block px-2 py-1 text-xs rounded-full">
+                                            <span :class="getStatusClass(item.status)" class="px-3 py-1 rounded-full text-sm">
                                                 {{ item.status }}
                                             </span>
                                         </td>
@@ -454,7 +452,7 @@
                                             用户名</th>
                                         <th
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            评论类型 <!-- 【修改】这里由“店铺名称”改为“评论类型” -->
+                                            评论类型 <!-- 【修改】这里由"店铺名称"改为"评论类型" -->
                                         </th>
                                         <th
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -485,7 +483,8 @@
                                         <td class="px-6 py-4 text-left text-sm text-gray-900 max-w-xs truncate">{{ item.content }}
                                         </td>
                                         <td class="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-900">
-                                            <div class="flex items-center">
+                                            <span v-if="item.type === '回复评论'" class="text-gray-500">无</span>
+                                            <div v-else class="flex items-center">
                                                 <span class="mr-1">{{ item.rating }}</span>
                                                 <div class="flex text-yellow-400">
                                                     <i v-for="star in 5" :key="star"
@@ -497,8 +496,7 @@
                                         <td class="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-900">{{ item.submitTime
                                             }}</td>
                                         <td class="px-6 py-4 text-left whitespace-nowrap">
-                                            <span :class="getStatusClass(item.status)"
-                                                class="inline-block px-2 py-1 text-xs rounded-full">
+                                            <span :class="getStatusClass(item.status)" class="px-3 py-1 rounded-full text-sm">
                                                 {{ item.status }}
                                             </span>
                                         </td>
@@ -553,10 +551,12 @@
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-lg font-semibold text-gray-700 mb-1">事务评分</p>
-                                    <p class="text-sm text-gray-600">
-                                        {{ currentUser.averageRating && currentUser.averageRating > 0 ? currentUser.averageRating : '暂未获得评分' }}
-                                    </p>
+                                    <div class="text-center">
+                                        <p class="text-lg font-semibold text-gray-700 mb-1">事务评分</p>
+                                        <p class="text-3xl font-extrabold text-orange-600">
+                                            {{ currentUser.averageRating && currentUser.averageRating > 0 ? currentUser.averageRating : '暂未获得评分' }}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 
@@ -627,53 +627,141 @@
         </div>
         <!-- 售后详情弹窗 -->
         <el-dialog v-model="showAfterSaleDetail" title="售后详情" width="800px" class="after-sale-detail-dialog">
-            <div v-if="currentAfterSale" class="after-sale-detail">
-                <div class="border-b border-gray-200 pb-6 mb-6">
-                    <div class="flex items-start justify-between">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-headset text-gray-400"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-900">售后申请编号：{{
-                                    currentAfterSale.applicationId }}
-                                </h3>
-                                <p class="text-sm text-gray-500">订单编号：{{ currentAfterSale.orderId }}</p>
-                            </div>
-                        </div>
-                        <span :class="getStatusClass(currentAfterSale.status)" class="px-3 py-1 rounded-full text-sm">
-                            {{ currentAfterSale.status }}
+            <div v-if="currentAfterSale" class="after-sale-detail space-y-6 bg-gray-50/50 p-1">
+                <!-- 顶部信息卡片：申请基础信息 -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 relative overflow-hidden">
+                    <!-- 状态标签 (绝对定位到右上角) -->
+                    <div class="absolute top-0 right-0">
+                        <span :class="getStatusClass(getAfterSaleStatusText(currentAfterSale.status))" class="px-4 py-1.5 rounded-bl-xl text-xs font-medium shadow-sm block">
+                            {{ getAfterSaleStatusText(currentAfterSale.status) }}
                         </span>
                     </div>
+
+                    <div class="flex justify-between items-start mb-4 pb-4 border-b border-gray-100 pt-6">
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-sm font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded">申请编号</span>
+                                <span class="text-lg font-bold text-gray-900 font-mono">{{ currentAfterSale.applicationId }}</span>
+                            </div>
+                            <p class="text-xs text-gray-500">申请时间：{{ currentAfterSale.applicationTime }}</p>
+                            </div>
+                        <div class="text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="text-xs text-gray-400">订单</span>
+                                <span class="text-sm font-medium text-gray-900 font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100">
+                                    {{ currentAfterSale.orderId }}
+                        </span>
+                    </div>
+                            <div class="flex items-center justify-end gap-2 mt-2" v-if="currentAfterSale.user">
+                                <span class="text-xs text-gray-500">{{ currentAfterSale.user.name }}</span>
+                                <span class="text-xs text-gray-300">|</span>
+                                <span class="text-xs text-gray-500 font-mono">{{ currentAfterSale.user.phoneNumber }}</span>
                 </div>
-                <div class="grid grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">申请时间</h4>
-                        <div class="p-4 bg-gray-50 rounded-lg">
-                            <p class="text-gray-900">{{ currentAfterSale.applicationTime }}</p>
                         </div>
                     </div>
+
+                    <!-- 申请内容 -->
+                    <div class="space-y-4">
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">售后类型</h4>
-                        <div class="p-4 bg-gray-50 rounded-lg">
-                            <p class="text-gray-900">退款申请</p>
+                            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">申请描述</h4>
+                            <p class="text-sm text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-100 leading-relaxed">
+                                {{ currentAfterSale.description }}
+                            </p>
+                        </div>
+                        
+                        <!-- 图片 -->
+                        <div v-if="(currentAfterSale.images?.length || 0) > 0">
+                            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">凭证图片</h4>
+                            <div class="flex justify-center gap-3">
+                                <div v-for="(img, idx) in currentAfterSale.images" :key="idx" class="relative w-20 h-20">
+                                    <img :src="normalizeImageUrl(img)" class="w-full h-full object-cover rounded-lg border border-gray-200 cursor-zoom-in hover:opacity-90" @click="previewImage(normalizeImageUrl(img))" />
+                    </div>
+                </div>
+                    </div>
+
+                        <!-- 菜品 -->
+                        <div v-if="(currentAfterSale.dishDetails?.length || 0) > 0">
+                            <div class="mb-2 flex items-center gap-2">
+                                <span class="text-xs font-semibold text-gray-700">菜品信息</span>
+                                <div class="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+                </div>
+                            <div class="flex justify-between items-start p-3 bg-gradient-to-br from-gray-50 to-white rounded-lg border border-gray-100">
+                                <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-1 flex-1 min-w-0">
+                                    <div v-for="(dish, idx) in (currentAfterSale.dishDetails || []).slice(0, 8)" :key="idx" class="flex flex-col items-center min-w-[4.5rem]">
+                                        <div class="relative w-16 h-16 rounded-lg bg-white flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm">
+                                            <img :src="normalizeImageUrl(dish.dishImage)" :alt="dish.dishName"
+                                                class="w-full h-full object-cover" @error="handleImageError" />
+                                            <span v-if="dish.quantity > 1" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] px-1 rounded-bl-lg font-bold">x{{ dish.quantity }}</span>
+                        </div>
+                                        <div class="w-16 mt-1.5 text-center">
+                                            <p class="text-xs text-gray-800 truncate w-full font-medium" :title="dish.dishName">{{ dish.dishName }}</p>
+                                            <p class="text-[10px] text-gray-500 mt-0.5 font-mono">
+                                                ¥{{ Number.isInteger(dish.price) ? dish.price : Number(dish.price).toFixed(2) }}
+                                            </p>
+                    </div>
+                </div>
+                                    <div v-if="(currentAfterSale.dishDetails?.length || 0) > 8"
+                                        class="w-16 h-16 flex flex-col items-center justify-center rounded-lg bg-white text-gray-500 text-xs border border-gray-200 min-w-[4.5rem] shadow-sm">
+                                        <span class="text-lg font-bold">+{{ (currentAfterSale.dishDetails?.length || 0) - 8 }}</span>
+                                        <span class="text-[10px]">更多</span>
+                                </div>
+                                </div>
+                                <div class="ml-3 flex h-16 items-center shrink-0">
+                                    <span class="text-xs text-gray-600 bg-white px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-sm font-medium">共 {{ (currentAfterSale.dishDetails || []).reduce((acc, d) => acc + d.quantity, 0) }} 件</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="mb-6">
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">问题描述</h4>
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <p class="text-gray-900">{{ currentAfterSale.description }}</p>
-                    </div>
+                     </div>
+
+                <!-- 状态分流逻辑 -->
+                <div v-if="getAfterSaleStatusText(currentAfterSale.status) === '商家未回复'" class="bg-orange-50 border border-orange-100 rounded-xl p-6 text-center">
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-xl">
+                            <i class="fas fa-hourglass-half"></i>
+                 </div>
+                        <h3 class="text-base font-medium text-gray-900">等待商家回复</h3>
+                        <p class="text-sm text-gray-500 max-w-md">
+                            商家需要在规定时间内对售后申请进行反馈。请在商家回复后再进行平台介入处理。
+                        </p>
+                 </div>
                 </div>
-                <div class="mb-6">
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">处罚措施</h4>
-                    <!-- 【修改】添加 disabled 属性 -->
+
+                <template v-else>
+                    <!-- 商家回复卡片 -->
+                    <div class="bg-white rounded-xl shadow-sm border border-blue-100 overflow-hidden">
+                        <div class="bg-blue-50/50 px-5 py-3 border-b border-blue-100 flex justify-between items-center">
+                            <h4 class="text-sm font-semibold text-blue-800 flex items-center gap-2">
+                                <i class="fas fa-store"></i> 商家回复
+                            </h4>
+                        </div>
+                        <div class="p-5">
+                            <p class="text-sm text-gray-800 leading-relaxed">
+                                {{ currentAfterSale.merchantReply || '商家暂无详细文字回复' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 平台处理卡片 -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" :class="{'border-orange-200 ring-4 ring-orange-50': isAfterSaleEditable}">
+                        <div class="px-5 py-3 border-b border-gray-100 flex justify-between items-center" :class="isAfterSaleEditable ? 'bg-orange-50/50' : 'bg-gray-50/50'">
+                            <h4 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                <i class="fas fa-gavel" :class="isAfterSaleEditable ? 'text-orange-500' : 'text-gray-400'"></i>
+                                平台处理
+                            </h4>
+                            <span v-if="isAfterSaleEditable" class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">待处理</span>
+                            <span v-else class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">已归档</span>
+                        </div>
+                        
+                        <div class="p-5 space-y-5">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1.5">处理结果</label>
                     <el-select 
                         v-model="selectedPunishment" 
-                        class="w-full mb-4" 
-                        placeholder="请选择处罚措施"
-                        :disabled="currentAfterSale.status !== '待处理'"
+                                    class="w-full" 
+                        :class="{ 'select-readonly': !isAfterSaleEditable }"
+                        placeholder="请选择处理措施"
+                        :disabled="!isAfterSaleEditable"
                     >
                         <el-option 
                             v-for="option in punishmentOptions.afterSales" 
@@ -682,266 +770,457 @@
                             :value="option.value" 
                         />
                     </el-select>
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">处罚原因</h4>
-                    <!-- 【修改】添加 disabled 属性 -->
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1.5">处理原因 / 备注</label>
                     <el-input 
+                                    v-if="isAfterSaleEditable"
                         v-model="punishmentReason" 
                         type="textarea" 
                         :rows="3" 
-                        placeholder="请输入处罚原因" 
+                                    placeholder="请输入详细的处理原因..." 
                         maxlength="500"
                         show-word-limit 
-                        :disabled="currentAfterSale.status !== '待处理'"
                     />
+                                <div v-else class="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm text-gray-600 min-h-[60px]">
+                                    {{ currentAfterSale.punishmentReason || '无详细原因' }}
                 </div>
-                <div class="flex justify-end space-x-4">
+                            </div>
+
+                            <div v-if="!isAfterSaleEditable" class="pt-4 border-t border-gray-100">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs font-medium text-gray-500">用户评分</span>
+                                    <el-rate :model-value="currentAfterSale.consumerRating || 0" :max="5" disabled size="small" />
+                                    <span class="text-xs text-gray-400">{{ currentAfterSale.consumerRating != null ? `${currentAfterSale.consumerRating}分` : '暂无评分' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="isAfterSaleEditable" class="px-5 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
                     <el-button @click="showAfterSaleDetail = false">取消</el-button>
-                    <el-button v-if="currentAfterSale.status === '待处理'" type="primary" @click="handleAfterSaleAction">
-                        执行处罚
+                            <el-button type="primary" @click="handleAfterSaleAction" :disabled="!selectedPunishment">
+                                确认处理
                     </el-button>
                 </div>
+                        <div v-else class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end">
+                            <el-button @click="showAfterSaleDetail = false" size="small">关闭</el-button>
+                        </div>
+                    </div>
+                </template>
             </div>
         </el-dialog>
         <!-- 投诉详情弹窗 -->
         <el-dialog v-model="showComplaintDetail" title="投诉详情" width="800px" class="complaint-detail-dialog">
-            <div v-if="currentComplaint" class="complaint-detail">
-                <div class="border-b border-gray-200 pb-6 mb-6">
-                    <div class="flex items-start justify-between">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-gray-400"></i>
+            <div v-if="currentComplaint" class="complaint-detail space-y-6 bg-gray-50/50 p-1">
+                <!-- 顶部卡片 -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 relative overflow-hidden">
+                    <!-- 状态标签 -->
+                    <div class="absolute top-0 right-0">
+                        <span :class="getStatusClass(currentComplaint.status)" class="px-4 py-1.5 rounded-bl-xl text-xs font-medium shadow-sm block">
+                            {{ currentComplaint.status }}
+                        </span>
                             </div>
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-900">投诉编号：{{
-                                    currentComplaint.complaintId }}</h3>
-                                <p class="text-sm text-gray-500">提交时间：{{ currentComplaint.applicationTime }}</p>
+
+                    <div class="flex justify-between items-start mb-6 pt-6">
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-sm font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded">投诉编号</span>
+                                <span class="text-lg font-bold text-gray-900 font-mono">{{ currentComplaint.complaintId }}</span>
+                            </div>
+                            <p class="text-xs text-gray-500">提交时间：{{ currentComplaint.applicationTime }}</p>
+                        </div>
+                        
+                        <!-- 投诉对象信息 -->
+                        <div class="text-right">
+                            <div class="inline-block text-left bg-blue-50 rounded-lg px-3 py-2 border border-blue-100">
+                                <p class="text-xs text-blue-500 mb-0.5">投诉对象</p>
+                                <p class="text-sm font-bold text-blue-900">{{ currentComplaint.target }}</p>
                             </div>
                         </div>
-                        <span :class="getStatusClass(currentComplaint.status)" class="px-3 py-1 rounded-full text-sm">
-                            {{ currentComplaint.status }}
+                    </div>
+
+                    <!-- 骑手信息 -->
+                    <div class="bg-gray-50 rounded-lg border border-gray-100 overflow-hidden">
+                        <div class="grid grid-cols-2 divide-x divide-gray-200">
+                            <div class="p-4">
+                                <p class="text-xs text-gray-400 mb-2 flex items-center gap-1">
+                                    <i class="fas fa-motorcycle"></i> 配送骑手
+                                </p>
+                                <div class="flex flex-col items-start gap-1">
+                                    <span class="font-bold text-gray-900 text-sm">{{ currentComplaint.courierName || '未知骑手' }}</span>
+                                    <span class="text-xs text-gray-500 font-mono bg-white px-1.5 py-0.5 rounded border border-gray-200">
+                                        {{ currentComplaint.courierPhone || '无联系方式' }}
                         </span>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">投诉对象</h4>
-                        <div class="p-4 bg-gray-50 rounded-lg">
-                            <p class="text-gray-900 font-medium">{{ currentComplaint.target }}</p>
+                            <div class="p-4">
+                                <p class="text-xs text-gray-400 mb-2 flex items-center gap-1">
+                                    <i class="fas fa-clock"></i> 配送时间
+                                </p>
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center text-xs">
+                                        <span class="w-8 text-gray-400 shrink-0">接单</span>
+                                        <span class="text-gray-700 font-mono">{{ currentComplaint.acceptTime || '-' }}</span>
                         </div>
+                                    <div class="flex items-center text-xs">
+                                        <span class="w-8 text-gray-400 shrink-0">送达</span>
+                                        <span class="text-gray-700 font-mono">{{ currentComplaint.completionTime || '-' }}</span>
                     </div>
-                    <div>
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">投诉类型</h4>
-                        <div class="p-4 bg-gray-50 rounded-lg">
-                            <p class="text-gray-900">服务态度问题</p>
                         </div>
                     </div>
                 </div>
-                <div class="mb-6">
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">投诉内容</h4>
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <p class="text-gray-900">{{ currentComplaint.content }}</p>
                     </div>
                 </div>
-                <div class="mb-6">
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">处罚措施</h4>
-                    <!-- 【修改】添加 disabled 属性 -->
+
+                <!-- 投诉内容 -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                    <h4 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-align-left text-orange-500"></i>
+                        投诉详情
+                    </h4>
+                    <div class="space-y-4">
+                        <p class="text-sm text-gray-800 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            {{ currentComplaint.content }}
+                        </p>
+                        
+                        <div v-if="(currentComplaint.images?.length || 0) > 0">
+                            <p class="text-xs text-gray-400 mb-2">凭证图片</p>
+                            <div class="flex justify-center gap-3">
+                                <div v-for="(img, idx) in currentComplaint.images" :key="idx" class="relative w-20 h-20">
+                            <img 
+                                :src="normalizeImageUrl(img)" 
+                                alt="投诉图片" 
+                                        class="w-full h-full object-cover rounded-lg border border-gray-200 cursor-zoom-in hover:opacity-90"
+                                @error="handleImageError"
+                                @click="previewImage(normalizeImageUrl(img))"
+                            />
+                        </div>
+                    </div>
+                </div>
+                    </div>
+                </div>
+
+                <!-- 平台处理 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" :class="{'border-orange-200 ring-4 ring-orange-50': currentComplaint.status === '待处理'}">
+                    <div class="px-5 py-3 border-b border-gray-100 flex justify-between items-center" :class="currentComplaint.status === '待处理' ? 'bg-orange-50/50' : 'bg-gray-50/50'">
+                        <h4 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                            <i class="fas fa-gavel" :class="currentComplaint.status === '待处理' ? 'text-orange-500' : 'text-gray-400'"></i>
+                            处理结果
+                        </h4>
+                        <span v-if="currentComplaint.status === '待处理'" class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">待处理</span>
+                        <span v-else class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">已归档</span>
+                    </div>
+
+                    <div class="p-5 space-y-5">
+                        <div class="grid grid-cols-2 gap-5">
+                            <!-- 处理措施 -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1.5">处罚类型</label>
                     <el-select 
+                                    v-if="currentComplaint.status === '待处理'"
                         v-model="selectedComplaintPunishment" 
-                        class="w-full mb-4" 
-                        placeholder="请选择处罚措施"
-                        :disabled="currentComplaint.status !== '待处理'"
+                                    class="w-full" 
+                                    placeholder="请选择"
                     >
-                        <el-option v-for="option in punishmentOptions.complaints" :key="option.value"
-                            :label="option.label" :value="option.value" />
+                                    <el-option v-for="option in punishmentOptions.complaints" :key="option.value" :label="option.label" :value="option.value" />
                     </el-select>
+                                <div v-else class="bg-gray-50 p-2.5 rounded-lg border border-gray-200 text-sm text-gray-900">
+                                    {{ getPunishmentLabel(currentComplaint.punishment, 'complaint') }}
+                                </div>
+                            </div>
                     
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">罚款金额</h4>
-                    <!-- 【修改】添加 disabled 属性 -->
+                            <!-- 罚款金额 -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1.5">罚款金额 (元)</label>
                     <el-input-number 
+                                    v-if="currentComplaint.status === '待处理'"
                         v-model="complaintFine" 
-                        :min="0" 
-                        :precision="2" 
-                        :step="10"
+                                    :min="0" :precision="2" :step="10" 
                         controls-position="right"
-                        placeholder="请输入罚款金额" 
-                        class="w-full mb-4" 
-                        :disabled="currentComplaint.status !== '待处理'"
+                                    class="w-full"
                     />
+                                <div v-else class="bg-gray-50 p-2.5 rounded-lg border border-gray-200 text-sm text-gray-900 font-mono">
+                                    ¥{{ currentComplaint.fine || '0.00' }}
+                                </div>
+                            </div>
+                        </div>
                     
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">处罚原因</h4>
-                    <!-- 【修改】添加 disabled 属性 -->
+                        <!-- 处理原因 -->
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1.5">处理原因 / 备注</label>
                     <el-input 
+                                v-if="currentComplaint.status === '待处理'"
                         v-model="complaintPunishmentReason" 
                         type="textarea" 
                         :rows="3" 
-                        placeholder="请输入处罚原因"
+                                placeholder="请输入详细的处理原因..." 
                         maxlength="500" 
                         show-word-limit 
-                        class="mb-4"
-                        :disabled="currentComplaint.status !== '待处理'"
                     />
+                            <div v-else class="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm text-gray-600 min-h-[60px]">
+                                {{ currentComplaint.punishmentReason || '无详细原因' }}
                 </div>
-                <div class="flex justify-end space-x-4">
+                        </div>
+                    </div>
+
+                    <!-- 操作栏 -->
+                    <div v-if="currentComplaint.status === '待处理'" class="px-5 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
                     <el-button @click="showComplaintDetail = false">取消</el-button>
-                    <el-button v-if="currentComplaint.status === '待处理'" type="primary"
-                        @click="handleComplaintProcess">执行处罚</el-button>
+                        <el-button type="primary" @click="handleComplaintProcess">
+                            确认处理
+                        </el-button>
+                    </div>
+                    <div v-else class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end">
+                        <el-button @click="showComplaintDetail = false" size="small">关闭</el-button>
+                    </div>
                 </div>
             </div>
         </el-dialog>
         <!-- 违规举报详情弹窗 -->
         <el-dialog v-model="showViolationDetail" title="违规举报详情" width="800px" class="violation-detail-dialog">
-            <div v-if="currentViolation" class="violation-detail">
-                <div class="border-b border-gray-200 pb-6 mb-6">
-                    <div class="flex items-start justify-between">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-store text-gray-400"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-900">{{ currentViolation.storeName }}
-                                </h3>
-                                <p class="text-sm text-gray-500">处罚编号：{{ currentViolation.punishmentId }}</p>
-                            </div>
-                        </div>
-                        <span :class="getStatusClass(currentViolation.status)" class="px-3 py-1 rounded-full text-sm">
+            <div v-if="currentViolation" class="violation-detail space-y-6 bg-gray-50/50 p-1">
+                <!-- 顶部卡片 -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 relative overflow-hidden">
+                    <!-- 状态标签 -->
+                    <div class="absolute top-0 right-0">
+                        <span :class="getStatusClass(currentViolation.status)" class="px-4 py-1.5 rounded-bl-xl text-xs font-medium shadow-sm block">
                             {{ currentViolation.status }}
                         </span>
+                            </div>
+
+                    <div class="flex justify-between items-start mb-6 pt-6">
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-sm font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded">处罚编号</span>
+                                <span class="text-lg font-bold text-gray-900 font-mono">{{ currentViolation.punishmentId }}</span>
+                            </div>
+                            <p class="text-xs text-gray-500">处罚时间：{{ currentViolation.punishmentTime }}</p>
+                        </div>
+                        
+                        <div class="text-right">
+                            <div class="inline-block text-left bg-purple-50 rounded-lg px-3 py-2 border border-purple-100">
+                                <p class="text-xs text-purple-500 mb-0.5">违规店铺</p>
+                                <p class="text-sm font-bold text-purple-900 flex items-center gap-1">
+                                    <i class="fas fa-store text-xs"></i>
+                                    {{ currentViolation.storeName }}
+                                </p>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-6 mb-6">
+                        </div>
+                </div>
+
+                <!-- 违规详情 -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                    <h4 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-exclamation-circle text-red-500"></i>
+                        违规详情
+                    </h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">违规类型</span>
+                            <span class="text-sm font-medium text-gray-900">食品安全</span>
+                    </div>
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">处罚时间</h4>
-                        <div class="p-4 bg-gray-50 rounded-lg">
-                            <p class="text-gray-900">{{ currentViolation.punishmentTime }}</p>
+                            <p class="text-xs text-gray-400 mb-1.5">违规原因说明</p>
+                            <p class="text-sm text-gray-800 leading-relaxed bg-red-50 p-3 rounded-lg border border-red-100">
+                                {{ currentViolation.reason }}
+                            </p>
                         </div>
                     </div>
-                    <div>
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">违规类型</h4>
-                        <div class="p-4 bg-gray-50 rounded-lg">
-                            <p class="text-gray-900">食品安全</p>
-                        </div>
-                    </div>
                 </div>
-                <div class="mb-6">
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">违规原因</h4>
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <p class="text-gray-900">{{ currentViolation.reason }}</p>
+
+                <!-- 处罚执行 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" :class="{'border-orange-200 ring-4 ring-orange-50': currentViolation.status === '待处理'}">
+                    <div class="px-5 py-3 border-b border-gray-100 flex justify-between items-center" :class="currentViolation.status === '待处理' ? 'bg-orange-50/50' : 'bg-gray-50/50'">
+                        <h4 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                            <i class="fas fa-gavel" :class="currentViolation.status === '待处理' ? 'text-orange-500' : 'text-gray-400'"></i>
+                            处罚执行
+                        </h4>
+                        <span v-if="currentViolation.status === '待处理'" class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">待处理</span>
+                        <span v-else class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">已执行</span>
                     </div>
-                </div>
-                <div class="grid grid-cols-2 gap-6 mb-6">
+
+                    <div class="p-5 space-y-5">
+                        <div class="grid grid-cols-2 gap-5">
+                            <!-- 商家处罚 -->
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">商家处罚措施</h4>
-                        <!-- 【核心修改】将 v-if 替换为 :disabled -->
+                                <label class="block text-xs font-medium text-gray-500 mb-1.5">商家处罚</label>
                         <el-select 
+                                    v-if="currentViolation.status === '待处理'"
                             v-model="selectedMerchantPunishment"
                             class="w-full" 
-                            placeholder="请选择商家处罚措施"
-                            :disabled="currentViolation.status !== '待处理'"
+                                    placeholder="请选择"
                         >
-                            <el-option v-for="option in punishmentOptions.violations.merchant" :key="option.value"
-                                :label="option.label" :value="option.value" />
+                                    <el-option v-for="option in punishmentOptions.violations.merchant" :key="option.value" :label="option.label" :value="option.value" />
                         </el-select>
-                        <!-- 【修改】删除原来的 v-else 显示区域，因为 el-select 在禁用时会自动显示已选值 -->
+                                <div v-else class="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm text-gray-900 font-medium">
+                                    {{ getPunishmentLabel(currentViolation.merchantPunishment, 'merchant') }}
                     </div>
+                            </div>
+
+                            <!-- 店铺处罚 -->
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">店铺处罚措施</h4>
-                        <!-- 【核心修改】将 v-if 替换为 :disabled -->
+                                <label class="block text-xs font-medium text-gray-500 mb-1.5">店铺处罚</label>
                         <el-select 
+                                    v-if="currentViolation.status === '待处理'"
                             v-model="selectedStorePunishment"
                             class="w-full" 
-                            placeholder="请选择店铺处罚措施"
-                            :disabled="currentViolation.status !== '待处理'"
+                                    placeholder="请选择"
                         >
-                            <el-option v-for="option in punishmentOptions.violations.store" :key="option.value"
-                                :label="option.label" :value="option.value" />
+                                    <el-option v-for="option in punishmentOptions.violations.store" :key="option.value" :label="option.label" :value="option.value" />
                         </el-select>
-                        <!-- 【修改】删除原来的 v-else 显示区域 -->
+                                <div v-else class="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm text-gray-900 font-medium">
+                                    {{ getPunishmentLabel(currentViolation.storePunishment, 'store') }}
                     </div>
                 </div>
-                <div class="flex justify-end space-x-4">
+                        </div>
+                    </div>
+
+                    <!-- 操作栏 -->
+                    <div v-if="currentViolation.status === '待处理'" class="px-5 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
                     <el-button @click="showViolationDetail = false">取消</el-button>
-                    <el-button v-if="currentViolation.status === '待处理'" type="primary"
-                        @click="handleViolationAction('complete')">完成处理</el-button>
+                        <el-button type="primary" @click="handleViolationAction('complete')">
+                            执行处罚
+                        </el-button>
+                    </div>
+                    <div v-else class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end">
+                        <el-button @click="showViolationDetail = false" size="small">关闭</el-button>
+                    </div>
                 </div>
             </div>
         </el-dialog>
         <!-- 评论详情弹窗 -->
         <el-dialog v-model="showReviewDetail" title="评论详情" width="800px" class="review-detail-dialog">
-            <div v-if="currentReview" class="review-detail">
-                <!-- 用户和评分信息 (这部分不变) -->
-                <div class="border-b border-gray-200 pb-6 mb-6">
-                    <div class="flex items-start justify-between">
-                        <div class="flex items-center space-x-4">
+            <div v-if="currentReview" class="review-detail space-y-6 bg-gray-50/50 p-1">
+                <!-- 顶部卡片：用户评分 -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 relative overflow-hidden">
+                    <!-- 状态标签 -->
+                    <div class="absolute top-0 right-0">
+                        <span :class="getStatusClass(currentReview.status)" class="px-4 py-1.5 rounded-bl-xl text-xs font-medium shadow-sm block">
+                            {{ currentReview.status }}
+                        </span>
+                    </div>
+
+                    <div class="flex items-start justify-between mb-4 pt-6">
+                        <div class="flex items-center gap-4">
+                            <!-- 商家回复：显示店铺信息 -->
+                            <template v-if="currentReview.type === '回复评论'">
+                                <img 
+                                    v-if="currentReview.storeImage"
+                                    :src="normalizeImageUrl(currentReview.storeImage)" 
+                                    :alt="currentReview.storeName || '店铺'"
+                                    class="w-12 h-12 rounded-lg object-cover border border-gray-200 shadow-sm"
+                                    @error="handleImageError"
+                                />
+                                <div v-else class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center border border-orange-200">
+                                    <i class="fas fa-store text-orange-500"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-gray-900">{{ currentReview.storeName || '未知店铺' }}</h3>
+                                    <p class="text-xs text-gray-500 mt-0.5">{{ currentReview.submitTime }}</p>
+                                </div>
+                            </template>
+                            <!-- 普通评论：显示用户信息 -->
+                            <template v-else>
+                                <img 
+                                    v-if="currentReview.avatar"
+                                    :src="normalizeImageUrl(currentReview.avatar)" 
+                                    :alt="currentReview.username"
+                                    class="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm"
+                                    @error="handleImageError"
+                                />
+                                <div v-else class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-gray-400"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-gray-900">{{ currentReview.username }}</h3>
+                                    <p class="text-xs text-gray-500 mt-0.5">{{ currentReview.submitTime }}</p>
+                                </div>
+                            </template>
+                        </div>
+                        </div>
+                    
+                    <!-- 评分展示（仅普通评论显示） -->
+                    <div v-if="currentReview.type !== '回复评论'" class="flex items-center gap-3 bg-yellow-50/50 p-3 rounded-lg border border-yellow-100">
+                        <span class="text-xs font-medium text-gray-600">综合评分</span>
+                        <div class="flex items-center gap-1 text-yellow-400">
+                            <i v-for="star in 5" :key="star" :class="star <= currentReview.rating ? 'fas fa-star' : 'far fa-star'"></i>
+                    </div>
+                        <span class="text-sm font-bold text-yellow-600">{{ currentReview.rating }} 分</span>
+                </div>
+                        </div>
+
+                <!-- 原评论信息（仅商家回复显示） -->
+                <div v-if="currentReview.type === '回复评论' && currentReview.originalCommentContent" class="bg-white rounded-xl p-5 shadow-sm border border-blue-200">
+                    <h4 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-comment text-blue-500"></i>
+                        原评论信息
+                    </h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs text-gray-500 bg-blue-100 px-2 py-1 rounded">评论用户</span>
+                            <span class="text-sm font-medium text-gray-900">{{ currentReview.originalCommentUsername || '未知用户' }}</span>
+                            <span v-if="currentReview.originalCommentTime" class="text-xs text-gray-400 ml-auto">{{ currentReview.originalCommentTime }}</span>
+                        </div>
+                        <p class="text-sm text-gray-800 leading-relaxed bg-blue-50 p-3 rounded-lg border border-blue-100">
+                            {{ currentReview.originalCommentContent }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 评论内容 -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100" :class="{'border-orange-200': currentReview.type === '回复评论'}">
+                    <h4 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i :class="currentReview.type === '回复评论' ? 'fas fa-reply text-orange-500' : 'fas fa-comment-dots text-blue-500'"></i>
+                        {{ currentReview.type === '回复评论' ? '商家回复内容' : '评论内容' }}
+                    </h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">类型</span>
+                            <span class="text-sm font-medium text-gray-900">{{ currentReview.type }}</span>
+                    </div>
+                        <p class="text-sm text-gray-800 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            {{ currentReview.content }}
+                        </p>
+                        
+                        <div v-if="reviewImages.length > 0">
+                            <p class="text-xs text-gray-400 mb-2">评论配图</p>
+                            <div class="flex justify-center gap-3">
+                                <div v-for="(img, idx) in reviewImages" :key="idx" class="relative w-20 h-20">
                             <img 
-                                v-if="currentReview.avatar"
-                                :src="normalizeImageUrl(currentReview.avatar)" 
-                                :alt="currentReview.username"
-                                class="w-12 h-12 rounded-full object-cover border border-gray-300"
+                                        :src="normalizeImageUrl(img)" 
+                                        class="w-full h-full object-cover rounded-lg border border-gray-200 cursor-zoom-in hover:opacity-90"
                                 @error="handleImageError"
+                                        @click="previewImage(normalizeImageUrl(img))"
                             />
-                            <div v-else class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-gray-400"></i>
+                                </div>
                             </div>
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-900">{{ currentReview.username }}
-                                </h3>
-                                <p class="text-sm text-gray-500">{{ currentReview.submitTime }}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-1 text-yellow-400">
-                            <i v-for="star in 5" :key="star"
-                                :class="star <= currentReview.rating ? 'fas fa-star' : 'far fa-star'"></i>
-                            <span class="ml-2 text-gray-700">{{ currentReview.rating }} 分</span>
-                        </div>
-                    </div>
-                </div>
-                <!-- 店铺和评论信息 (这部分不变) -->
-                <div class="grid grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">评论类型</h4>
-                        <div class="p-4 bg-gray-50 rounded-lg">
-                            <p class="text-gray-900 font-medium">{{ currentReview.type }}</p>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">评论状态</h4>
-                        <div class="p-4 bg-gray-50 rounded-lg">
-                            <span :class="getStatusClass(currentReview.status)"
-                                class="inline-block px-3 py-1 rounded-full text-sm">
-                                {{ currentReview.status }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="mb-6">
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">评论内容</h4>
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <p class="text-gray-900">{{ currentReview.content }}</p>
-                    </div>
-                </div>
-                <div v-if="reviewImages.length > 0" class="mb-6">
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">图片附件</h4>
-                    <div class="flex justify-center flex-wrap gap-4">
-                        <div v-for="(image, index) in reviewImages" :key="index" class="relative aspect-square w-24 h-24">
-                            <img 
-                                :src="normalizeImageUrl(image)" 
-                                alt="评论图片" 
-                                class="w-full h-full object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
-                                @error="handleImageError"
-                                @click="previewImage(normalizeImageUrl(image))"
-                            />
                         </div>
                     </div>
                 </div>
 
-                <!-- 【核心修改】将原来的表单替换为新的按钮组 -->
-                <div class="flex justify-end space-x-4">
+                <!-- 平台审核 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" :class="{'border-orange-200 ring-4 ring-orange-50': currentReview.status === '待处理'}">
+                    <div class="px-5 py-3 border-b border-gray-100 flex justify-between items-center" :class="currentReview.status === '待处理' ? 'bg-orange-50/50' : 'bg-gray-50/50'">
+                        <h4 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                            <i class="fas fa-check-circle" :class="currentReview.status === '待处理' ? 'text-orange-500' : 'text-gray-400'"></i>
+                            审核处理
+                        </h4>
+                        <span v-if="currentReview.status === '待处理'" class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">待处理</span>
+                        <span v-else-if="currentReview.status === '通过'" class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded font-medium">通过</span>
+                        <span v-else class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{{ currentReview.status }}</span>
+                    </div>
+
+                    <!-- 操作栏 -->
+                    <div v-if="currentReview.status === '待处理'" class="px-5 py-4 bg-gray-50 flex justify-end gap-3">
                     <el-button @click="showReviewDetail = false">取消</el-button>
-                    <!-- 只在“待处理”状态下显示操作按钮 -->
-                    <template v-if="currentReview.status === '待处理'">
                         <el-button type="danger" @click="processReview('reject')">判定违规</el-button>
                         <el-button type="success" @click="processReview('approve')">审核通过</el-button>
-                    </template>
+                    </div>
+                    <div v-else class="px-5 py-3 bg-gray-50 flex justify-end">
+                        <el-button @click="showReviewDetail = false" size="small">关闭</el-button>
+                    </div>
                 </div>
             </div>
         </el-dialog>
@@ -1004,9 +1283,15 @@ interface AfterSaleItem {
     orderId: string;
     applicationTime: string;
     description: string;
-    status: '待处理' | '已完成';
+    status: string;
     punishment: string;
     punishmentReason?: string;
+    // 新增：管理员详情所需的字段
+    user?: { name: string; phoneNumber: number; avatar?: string };
+    images?: string[];
+    dishDetails?: Array<{ dishName: string; dishImage: string; quantity: number; price: number }>;
+    merchantReply?: string;
+    consumerRating?: number;
 }
 
 interface ComplaintItem {
@@ -1014,10 +1299,17 @@ interface ComplaintItem {
     target: string;
     content: string;
     applicationTime: string;
-    status: '待处理' | '已完成';
+    status: string;
     punishment: string;
     fine: string;
     punishmentReason?: string;
+    // 新增：投诉图片与骑手信息、时间
+    images?: string[];
+    courierName?: string;
+    courierPhone?: string;
+    acceptTime?: string | null;
+    pickupTime?: string | null;
+    completionTime?: string | null;
 }
 
 interface ViolationItem {
@@ -1027,7 +1319,7 @@ interface ViolationItem {
     merchantPunishment: string;
     storePunishment: string;
     punishmentTime: string;
-    status: '待处理' | '已完成';
+    status: string;
 }
 
 interface ReviewItem {
@@ -1038,8 +1330,13 @@ interface ReviewItem {
     content: string;
     rating: number;
     submitTime: string;
-    status: '待处理' | '已完成' | '违规';
+    status: string;
     image?: string; // 评论图片（逗号分隔的字符串）
+    originalCommentContent?: string; // 原评论内容（如果是回复评论）
+    originalCommentUsername?: string; // 原评论用户名（如果是回复评论）
+    originalCommentTime?: string; // 原评论时间（如果是回复评论）
+    storeName?: string; // 店铺名称（如果是商家回复）
+    storeImage?: string; // 店铺图片（如果是商家回复）
 }
 
 // =================================================================
@@ -1224,11 +1521,30 @@ const hasChanges = computed(() => {
 
 // 静态数据
 const commonStatuses = [{ label: '全部', value: 'all' }, { label: '待处理', value: '待处理' }, { label: '已完成', value: '已完成' }];
-const afterSalesStatuses = commonStatuses;
+const afterSalesStatuses = [
+    { label: '全部', value: 'all' },
+    { label: '商家未回复', value: '未回复' },
+    { label: '商家已回复', value: '已回复' },
+    { label: '已完成', value: '已完成' }
+];
 const complaintStatuses = commonStatuses;
 const violationStatuses = [{ label: '全部', value: 'all' }, { label: '待处理', value: '待处理' }, { label: '已完成', value: '已完成' }];
-const reviewStatuses = commonStatuses;
+const reviewStatuses = [{ label: '全部', value: 'all' }, { label: '待处理', value: '待处理' }, { label: '通过', value: '通过' }];
 const punishmentOptions = { afterSales: [{ label: '全额退款', value: 'full_refund' }, { label: '部分退款', value: 'partial_refund' }, { label: '重新配送', value: 'redelivery' }, { label: '商家道歉', value: 'apology' }, { label: '赔偿用户', value: 'compensation' }], complaints: [{ label: '警告处分', value: 'warning' }, { label: '暂停接单3天', value: 'suspend_3days' }, { label: '暂停接单7天', value: 'suspend_7days' }, { label: '罚款处理', value: 'fine' }, { label: '终止合作', value: 'terminate' }], violations: { merchant: [{ label: '口头警告', value: 'verbal_warning' }, { label: '书面警告', value: 'written_warning' }, { label: '罚款500元', value: 'fine_500' }, { label: '罚款1000元', value: 'fine_1000' }], store: [{ label: '限期整改', value: 'correction' }, { label: '暂停营业3天', value: 'suspend_3days' }, { label: '暂停营业7天', value: 'suspend_7days' }, { label: '永久下架', value: 'permanent_removal' }] }, reviews: [{ label: '通过审核', value: 'approve' }, { label: '删除评论', value: 'delete' }, { label: '禁止评论7天', value: 'ban_7days' }, { label: '禁止评论30天', value: 'ban_30days' }, { label: '永久禁言', value: 'permanent_ban' }] };
+
+// 辅助函数：将处罚 value 转换为 label
+const getPunishmentLabel = (value: string | undefined, type: 'merchant' | 'store' | 'complaint' | 'afterSale'): string => {
+    if (!value) return '未记录';
+    
+    let options: Array<{ label: string; value: string }> = [];
+    if (type === 'merchant') options = punishmentOptions.violations.merchant;
+    else if (type === 'store') options = punishmentOptions.violations.store;
+    else if (type === 'complaint') options = punishmentOptions.complaints;
+    else if (type === 'afterSale') options = punishmentOptions.afterSales;
+    
+    const found = options.find(opt => opt.value === value);
+    return found?.label || value;
+};
 
 // 4.2 ----------------- 数据获取 -----------------
 onMounted(async () => {
@@ -1286,12 +1602,28 @@ onMounted(async () => {
 });
 
 // 4.3 ----------------- 计算属性和工具函数 (不变) -----------------
+const getAfterSaleStatusText = (status: string) => {
+    // 统一映射为三种：商家未回复 / 商家已回复 / 已完成
+    if (status === '商家反馈' || status === '待审核') return '商家已回复';
+    if (status === '待处理') return '商家未回复';
+    return status; // 已完成 或 其它保持原样（默认后端已是"已完成"）
+};
+
+const getAfterSaleFilterKey = (status: string) => {
+    const t = getAfterSaleStatusText(status);
+    if (t === '商家未回复') return '未回复';
+    if (t === '商家已回复') return '已回复';
+    if (t === '已完成') return '已完成';
+    return '其它';
+};
+
 const filteredAfterSales = computed(() =>
-    afterSalesList.value.filter(item =>
-        (selectedAfterSalesStatus.value === 'all' || item.status === selectedAfterSalesStatus.value) &&
-        ((item.applicationId?.toLowerCase() || '').includes((searchQuery.value?.toLowerCase() || '')) ||
-            (item.orderId?.toLowerCase() || '').includes((searchQuery.value?.toLowerCase() || '')))
-    )
+    afterSalesList.value.filter(item => {
+        const matchSearch = (item.applicationId?.toLowerCase() || '').includes((searchQuery.value?.toLowerCase() || '')) ||
+            (item.orderId?.toLowerCase() || '').includes((searchQuery.value?.toLowerCase() || ''));
+        if (selectedAfterSalesStatus.value === 'all') return matchSearch;
+        return matchSearch && (getAfterSaleFilterKey(item.status) === selectedAfterSalesStatus.value);
+    })
 );
 
 const filteredComplaints = computed(() =>
@@ -1319,39 +1651,54 @@ const filteredReviews = computed(() =>
 );
 
 const getBreadcrumb = () => ({ admin: '管理员信息', afterSales: '售后处理中心', complaints: '投诉处理中心', violations: '违规举报处理', reviews: '评论审核管理' })[activeMenu.value] || '控制台';
-const getStatusClass = (status: string) => ({ '待处理': 'bg-yellow-100 text-yellow-800', '已完成': 'bg-green-100 text-green-800' })[status] || 'bg-gray-100 text-gray-800';
+const getStatusClass = (status: string) => ({
+    '商家未回复': 'bg-gray-100 text-gray-800',
+    '商家已回复': 'bg-yellow-100 text-yellow-800',
+    '已完成': 'bg-green-100 text-green-800',
+    '通过': 'bg-green-100 text-green-800',
+    '待处理': 'bg-yellow-100 text-yellow-800',
+    '待审核': 'bg-yellow-100 text-yellow-800',
+    '审核通过': 'bg-green-100 text-green-800',
+    '违规': 'bg-red-100 text-red-800',
+})[status] || 'bg-gray-100 text-gray-800';
 
-const openAfterSaleDetail = (item: AfterSaleItem) => {
+const openAfterSaleDetail = async (item: AfterSaleItem) => {
+    // 先用列表数据占位，避免空白闪烁
     currentAfterSale.value = { ...item };
-    
-    if (item.status === '待处理') {
-        // 待处理：清空输入框，准备填写
+    showAfterSaleDetail.value = true;
+
+    // 拉取完整详情（含用户、图片、菜品）
+    try {
+        const detailRes = await apiClient.get<AfterSaleItem>(`/admin/after-sales/${Number(item.applicationId)}`);
+        const detail = detailRes.data;
+        if (detail) {
+            currentAfterSale.value = { ...currentAfterSale.value, ...detail };
+        }
+    } catch (e) {
+        // 忽略详情加载失败，仍然显示基础信息
+        console.error('加载售后详情失败', e);
+    }
+
+    if (getAfterSaleStatusText(currentAfterSale.value.status) === '商家已回复') {
         selectedPunishment.value = '';
         punishmentReason.value = '';
     } else {
-        // 已完成：填充已保存的数据，供查看
-        selectedPunishment.value = item.punishment || '';
-        punishmentReason.value = item.punishmentReason || '';
+        selectedPunishment.value = currentAfterSale.value.punishment || '';
+        punishmentReason.value = currentAfterSale.value.punishmentReason || '';
     }
-    
-    showAfterSaleDetail.value = true;
 };
 
 const openComplaintDetail = (item: ComplaintItem) => {
     currentComplaint.value = { ...item };
-    
     if (item.status === '待处理') {
-        // 待处理：清空输入框，准备填写
         selectedComplaintPunishment.value = '';
         complaintPunishmentReason.value = '';
         complaintFine.value = 0.00; 
     } else {
-        // 已完成：填充已保存的数据，供查看
         selectedComplaintPunishment.value = item.punishment || '';
         complaintPunishmentReason.value = item.punishmentReason || '';
         complaintFine.value = item.fine ? Number(item.fine) : 0.00;
     }
-    
     showComplaintDetail.value = true;
 };
 
@@ -1658,12 +2005,12 @@ const processReview = async (decision: 'approve' | 'reject') => {
     if (!currentReview.value) return;
 
     // 根据决定设置提示文字和最终的处罚说明
-    const newStatus = decision === 'approve' ? '已完成' : '违规';
+    const newStatus = decision === 'approve' ? '通过' : '违规';
     const actionText = decision === 'approve' ? '审核通过' : '判定违规'
 
     try {
         // 弹出确认框
-        await ElMessageBox.confirm(`确定要将此评论标记为“${actionText}”吗？`, '确认操作', { type: 'warning' });
+        await ElMessageBox.confirm(`确定要将此评论标记为"${actionText}"吗？`, '确认操作', { type: 'warning' });
 
         // 准备要发送到后端的数据
         const updatedItem: ReviewItem = {
@@ -1695,6 +2042,8 @@ const processReview = async (decision: 'approve' | 'reject') => {
         }
     }
 };
+
+const isAfterSaleEditable = computed(() => getAfterSaleStatusText(currentAfterSale.value?.status || '') === '商家已回复');
 
 </script>
 <style scoped>
@@ -1733,4 +2082,44 @@ input[type="number"] {
 ::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
+</style>
+
+<style scoped>
+/* 取消禁用时的"变暗"效果（仅用于处罚措施选择框） */
+.no-dim-disabled :deep(.el-select.is-disabled .el-input__wrapper) {
+  opacity: 1 !important;
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  filter: none !important;
+}
+.no-dim-disabled :deep(.el-select.is-disabled .el-input__inner) {
+  -webkit-text-fill-color: inherit !important;
+  color: inherit !important;
+}
+
+.no-dim-disabled.select-readonly :deep(.el-input__wrapper),
+.no-dim-disabled :deep(.el-select.is-disabled .el-input__wrapper) {
+   opacity: 1 !important;
+   background-color: rgba(255, 255, 255, 0.8) !important;
+   filter: none !important;
+ }
+.no-dim-disabled.select-readonly :deep(.el-input__inner),
+.no-dim-disabled :deep(.el-select.is-disabled .el-input__inner) {
+   -webkit-text-fill-color: inherit !important;
+   color: inherit !important;
+ }
+/* 兼容文本域禁用/只读的不变暗（仅在容器带有 no-dim-disabled 时生效） */
+.no-dim-disabled :deep(.el-textarea.is-disabled .el-textarea__inner),
+.no-dim-disabled :deep(.el-textarea .el-textarea__inner[readonly]) {
+  opacity: 1 !important;
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+}
+
+/* 非编辑态下隐藏下拉箭头 */
+.select-readonly :deep(.el-input__suffix),
+.select-readonly :deep(.el-select__caret) {
+  display: none !important;
+}
+
 </style>

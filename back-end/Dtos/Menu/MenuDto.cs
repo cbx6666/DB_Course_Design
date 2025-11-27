@@ -44,6 +44,47 @@ namespace BackEnd.DTOs.Menu
     }
     
     /// <summary>
+    /// 轻量化的菜品基础信息
+    /// </summary>
+    public class MenuBasicResponseDto
+    {
+        /// <summary>
+        /// 菜品ID
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// 菜品名称
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 简要描述（前端可选展示）
+        /// </summary>
+        public string Description { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 价格
+        /// </summary>
+        public decimal Price { get; set; }
+
+        /// <summary>
+        /// 图片
+        /// </summary>
+        public string Image { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 是否售罄
+        /// </summary>
+        public int IsSoldOut { get; set; }
+
+        /// <summary>
+        /// 所属分类
+        /// </summary>
+        public int? CategoryId { get; set; }
+    }
+    
+    /// <summary>
     /// 菜单数据传输对象
     /// </summary>
     public class MenuDto

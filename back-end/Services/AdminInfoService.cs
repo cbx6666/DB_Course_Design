@@ -38,6 +38,39 @@ namespace BackEnd.Services
 
                 var user = administrator.User;
 
+                // 计算问题处理评分：售后评分与配送投诉评分的均值（0-5）
+                decimal computedAverage = 0m;
+                var afterRatings = administrator.EvaluateAfterSales
+                    .Select(e => e.Application?.ConsumerRating)
+                    .Where(r => r.HasValue)
+                    .Select(r => (decimal)r!.Value)
+                    .ToList();
+                var complaintRatings = administrator.EvaluateComplaints
+                    .Select(e => e.Complaint?.ConsumerRating)
+                    .Where(r => r.HasValue)
+                    .Select(r => (decimal)r!.Value)
+                    .ToList();
+
+                decimal? afterAvg = afterRatings.Count > 0 ? afterRatings.Average() : null;
+                decimal? complaintAvg = complaintRatings.Count > 0 ? complaintRatings.Average() : null;
+
+                if (afterAvg.HasValue && complaintAvg.HasValue)
+                {
+                    computedAverage = Math.Round(((afterAvg.Value + complaintAvg.Value) / 2m), 1, MidpointRounding.AwayFromZero);
+                }
+                else if (afterAvg.HasValue)
+                {
+                    computedAverage = Math.Round(afterAvg.Value, 1, MidpointRounding.AwayFromZero);
+                }
+                else if (complaintAvg.HasValue)
+                {
+                    computedAverage = Math.Round(complaintAvg.Value, 1, MidpointRounding.AwayFromZero);
+                }
+                else
+                {
+                    computedAverage = 0m;
+                }
+
                 return new GetAdminInfo
                 {
                     Id = user.UserID.ToString(),
@@ -49,7 +82,7 @@ namespace BackEnd.Services
                     Email = user.Email,
                     Gender = user.Gender ?? string.Empty,
                     ManagementScope = administrator.ManagedEntities,
-                    AverageRating = administrator.IssueHandlingScore,
+                    AverageRating = computedAverage,
                 };
             }
             catch (Exception)

@@ -139,6 +139,12 @@ namespace BackEnd.Repositories
         public async Task<List<DeliveryComplaint>> GetByCourierIdAsync(int courierId)
         {
             return await _context.DeliveryComplaints
+                .Include(c => c.DeliveryTask)
+                    .ThenInclude(dt => dt.Order)
+                        .ThenInclude(o => o.DeliveryInfo)
+                .Include(c => c.DeliveryTask)
+                    .ThenInclude(dt => dt.Order)
+                        .ThenInclude(o => o.Store)
                 .Where(c => c.CourierID == courierId)
                 .OrderByDescending(c => c.ComplaintTime)
                 .ToListAsync();
@@ -156,6 +162,8 @@ namespace BackEnd.Repositories
                 .Include(ec => ec.Complaint)
                     .ThenInclude(c => c.Courier)
                         .ThenInclude(courier => courier.User)
+                .Include(ec => ec.Complaint)
+                    .ThenInclude(c => c.DeliveryTask)
                 .Select(ec => ec.Complaint)
                 .ToListAsync();
         }

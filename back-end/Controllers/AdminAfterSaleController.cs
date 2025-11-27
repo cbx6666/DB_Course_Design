@@ -43,6 +43,19 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
+        /// 获取单条售后申请详情
+        /// </summary>
+        /// <param name="id">申请ID</param>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAfterSaleApplicationDetail([FromRoute] int id)
+        {
+            var detail = await _adminAfterSaleService.GetApplicationDetailAsync(id);
+            return detail == null
+                ? NotFound(new ApiResponseDto { Success = false, Code = 404, Message = "售后申请不存在" })
+                : Ok(detail);
+        }
+
+        /// <summary>
         /// 更新售后申请信息
         /// </summary>
         /// <param name="request">售后申请更新请求</param>

@@ -44,7 +44,14 @@ namespace BackEnd.Services
                 Type = GetCommentTypeString(comment.CommentType),
                 Rating = comment.Rating ?? 0,
                 SubmitTime = comment.PostedAt.ToString("yyyy-MM-dd HH:mm"),
-                Status = GetCommentStatusString(comment.CommentState)
+                Status = GetCommentStatusString(comment.CommentState),
+                // 如果是回复评论，加载原评论信息
+                OriginalCommentContent = comment.ReplyToComment?.Content,
+                OriginalCommentUsername = comment.ReplyToComment?.Commenter?.User?.Username,
+                OriginalCommentTime = comment.ReplyToComment?.PostedAt.ToString("yyyy-MM-dd HH:mm"),
+                // 如果是商家回复，加载店铺信息
+                StoreName = comment.CommentType == CommentType.Comment ? comment.Store?.StoreName : null,
+                StoreImage = comment.CommentType == CommentType.Comment ? comment.Store?.StoreImage : null
             });
         }
 
@@ -87,6 +94,7 @@ namespace BackEnd.Services
                 {
                     "待处理" => CommentState.Pending,
                     "已完成" => CommentState.Completed,
+                    "通过" => CommentState.Completed,  // "通过"等同于"已完成"
                     "违规" => CommentState.Illegal,
                     _ => (CommentState?)null
                 };
@@ -170,7 +178,7 @@ namespace BackEnd.Services
             return commentState switch
             {
                 CommentState.Pending => "待处理",
-                CommentState.Completed => "已完成",
+                CommentState.Completed => "通过",
                 CommentState.Illegal => "违规",
                 _ => "未知状态"
             };

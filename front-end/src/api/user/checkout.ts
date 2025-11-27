@@ -24,7 +24,13 @@ export interface MenuItem {
     categoryId?: number;
 }
 
-export const getMenuItem = (StoreID: string) => getData<MenuItem[]>(`/customer/stores/${StoreID}/menu`);
+export const getMenuItemPage = (StoreID: string, params: { categoryId?: number; page?: number; pageSize?: number }) =>
+    getData<{ items: MenuItem[]; hasMore: boolean }>(`/customer/stores/${StoreID}/menu/basic`, { params });
+
+export const getMenuItem = async (StoreID: string) => {
+    const result = await getMenuItemPage(StoreID, { page: 1, pageSize: 1000 });
+    return result.items;
+};
 export const getShoppingCart = (StoreID: string, userId?: number) => getData<ShoppingCart>(`/cart/store/${StoreID}`);
 export const addOrUpdateCartItem = (cartId: number, dishId: number, quantity: number) => postData<ShoppingCartItem>('/cart/item/update', { cartId, dishId, quantity });
 export const removeCartItem = (cartId: number, dishId: number) => deleteData('/cart/item/remove', { cartId, dishId });

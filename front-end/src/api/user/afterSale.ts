@@ -1,4 +1,4 @@
-import { getData } from '@/api/multiuse_function'
+import { getData, postData } from '@/api/multiuse_function'
 
 /**
  * 订单菜品详情
@@ -23,6 +23,8 @@ export interface AfterSaleListItem {
     status: string
     processingResult?: string
     processingReason?: string
+    merchantReply?: string
+    consumerRating?: number
     dishDetails: OrderDishItem[]
 }
 
@@ -77,6 +79,8 @@ export interface CommentListItem {
     postedAt: string
     status: string
     dishDetails: OrderDishItem[]
+    merchantReply?: string
+    merchantReplyTime?: string
 }
 
 /**
@@ -85,6 +89,17 @@ export interface CommentListItem {
 export async function getMyAfterSales(): Promise<AfterSaleListItem[]> {
     const response = await getData<AfterSaleListItem[]>('/customer/after-sales/mine')
     return response || []
+}
+
+/**
+ * 提交售后申请评分
+ */
+export async function rateAfterSale(applicationId: number, score: number): Promise<boolean> {
+    const res = await postData<{ success: boolean; code: number; message: string }, { score: number }>(
+        `/customer/after-sales/${applicationId}/rating`,
+        { score }
+    )
+    return !!res?.success
 }
 
 /**

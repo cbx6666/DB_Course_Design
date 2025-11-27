@@ -424,62 +424,105 @@
 
                         <!-- 投诉记录列表 -->
                         <div class="bg-white rounded-lg shadow-sm">
-                            <!-- ▼▼▼ 新增的子导航栏 ▼▼▼ -->
-                            <div class="flex border-b">
-                                <div v-for="tab in complaintTabs" :key="tab.key"
-                                    class="flex-1 py-3 text-center cursor-pointer text-sm font-medium" :class="{
-                                        'text-orange-500 border-b-2 border-orange-500': activeComplaintTab === tab.key,
-                                        'text-gray-600': activeComplaintTab !== tab.key
-                                    }" @click="activeComplaintTab = tab.key">
-                                    {{ tab.label }}
+                            <!-- 列表内容 -->
+                            <div class="p-4 space-y-4">
+                                <!-- 显示所有投诉 -->
+                                <div v-for="complaint in complaints" :key="complaint.complaintID"
+                                    class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+                                    <!-- 头部：投诉编号和状态 -->
+                                    <div class="bg-gradient-to-r from-red-50 to-orange-50 px-4 py-3 border-b border-gray-200">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                                    <i class="fas fa-exclamation"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                                        <span class="text-xs text-gray-500 bg-white px-2 py-0.5 rounded">投诉编号</span>
+                                                        <span class="font-mono">{{ complaint.complaintID }}</span>
+                                                    </div>
+                                                    <p class="text-xs text-gray-500 mt-0.5">{{ complaint.complaintTime }}</p>
+                                                </div>
+                                            </div>
+                                            <span v-if="complaint.processingResult" class="px-2.5 py-1 bg-red-500 text-white text-xs rounded-full font-medium">
+                                                已处罚
+                                            </span>
+                                            <span v-else class="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                                待处理
+                                            </span>
                                 </div>
                             </div>
 
-                            <!-- 列表内容 -->
-                            <div class="p-4 space-y-4">
-                                <!-- ▼▼▼ 修改点：v-for 循环现在使用 filteredComplaints ▼▼▼ -->
-                                <div v-for="complaint in filteredComplaints" :key="complaint.complaintID"
-                                    class="border rounded-lg p-4">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="text-sm font-medium text-red-500">
-                                            #{{ complaint.complaintID }}
+                                    <!-- 配送信息 -->
+                                    <div class="px-4 py-3 bg-blue-50/30">
+                                        <h4 class="text-xs font-semibold text-gray-500 mb-3 flex items-center justify-center gap-1">
+                                            <i class="fas fa-shipping-fast text-blue-500"></i> 配送任务信息
+                                        </h4>
+                                        <div class="space-y-2.5 text-xs">
+                                            <div class="flex items-center justify-center gap-2">
+                                                <span class="text-gray-400 shrink-0">任务编号</span>
+                                                <span class="text-gray-900 font-mono bg-white px-2 py-0.5 rounded border border-gray-200">{{ complaint.deliveryTaskID }}</span>
                                         </div>
-                                        <div class="text-xs text-gray-500">
-                                            {{ complaint.complaintTime }}
+                                            <div class="text-center">
+                                                <p class="text-gray-400 mb-1">取餐地址</p>
+                                                <p class="text-gray-700 font-medium">{{ complaint.pickupAddress || '地址信息暂缺' }}</p>
                                         </div>
+                                            <div class="text-center">
+                                                <p class="text-gray-400 mb-1">送货地址</p>
+                                                <p class="text-gray-700 font-medium">{{ complaint.deliveryAddress || '地址信息暂缺' }}</p>
                                     </div>
-                                    <div class="text-sm text-gray-900 mb-2">
-                                        订单号：{{ complaint.deliveryTaskID }}
+                                            <div class="flex items-center justify-center gap-2">
+                                                <span class="text-gray-400 shrink-0">接单时间</span>
+                                                <span class="text-gray-700 font-mono">{{ complaint.acceptTime || '-' }}</span>
                                     </div>
-                                    <div class="bg-red-50 rounded-lg p-3 mb-3">
-                                        <div class="text-sm text-gray-700">
+                                            <div class="flex items-center justify-center gap-2">
+                                                <span class="text-gray-400 shrink-0">到店时间</span>
+                                                <span class="text-gray-700 font-mono">{{ complaint.pickupTime || '-' }}</span>
+                                        </div>
+                                            <div class="flex items-center justify-center gap-2">
+                                                <span class="text-gray-400 shrink-0">送达时间</span>
+                                                <span class="text-gray-700 font-mono">{{ complaint.completionTime || '-' }}</span>
+                                    </div>
+                                        </div>
+                                        </div>
+
+                                    <!-- 投诉原因 -->
+                                    <div class="px-4 py-3">
+                                        <h4 class="text-xs font-semibold text-gray-500 mb-2 flex items-center gap-1">
+                                            <i class="fas fa-comment-dots text-red-500"></i> 投诉原因
+                                        </h4>
+                                        <div class="bg-red-50 rounded-lg p-3 border border-red-100">
+                                            <p class="text-sm text-gray-800 leading-relaxed">
                                             {{ complaint.complaintReason }}
+                                            </p>
                                         </div>
                                     </div>
-                                    <div v-if="complaint.punishment"
-                                        class="bg-orange-50 rounded-lg p-3 border border-orange-100">
-                                        <div class="flex items-center mb-2">
-                                            <el-icon class="text-orange-500 mr-2">
-                                                <Warning />
-                                            </el-icon>
-                                            <span class="text-sm font-medium text-orange-500">{{
-                                                complaint.punishment.type }}</span>
+
+                                    <!-- 处罚措施 -->
+                                    <div v-if="complaint.processingResult" class="px-4 py-3 bg-orange-50/50 border-t border-gray-200">
+                                        <h4 class="text-xs font-semibold text-orange-700 mb-2 flex items-center gap-1">
+                                            <i class="fas fa-gavel"></i> 平台处罚
+                                        </h4>
+                                        <div class="bg-white rounded-lg p-3 border border-orange-200">
+                                            <p class="text-sm text-gray-800 font-medium">
+                                                {{ complaint.processingResult }}
+                                            </p>
                                         </div>
-                                        <div class="text-sm text-gray-600">
-                                            {{ complaint.punishment.description }}
-                                        </div>
-                                        <div v-if="complaint.punishment.duration" class="text-xs text-orange-500 mt-1">
-                                            处罚时长：{{ complaint.punishment.duration }}
-                                        </div>
+                                    </div>
+                                    <div v-else class="px-4 py-3 bg-gray-50 border-t border-gray-200 text-center">
+                                        <p class="text-xs text-gray-400">
+                                            <i class="fas fa-hourglass-half mr-1"></i>
+                                            等待平台处理中...
+                                        </p>
                                     </div>
                                 </div>
 
-                                <!-- ▼▼▼ 新增：当筛选后列表为空时的提示 ▼▼▼ -->
-                                <div v-if="filteredComplaints.length === 0" class="text-center text-gray-400 py-12">
+                                <!-- 空状态提示 -->
+                                <div v-if="complaints.length === 0" class="text-center text-gray-400 py-12">
                                     <el-icon class="text-4xl mb-2">
                                         <DocumentCopy />
                                     </el-icon>
-                                    <p>当前分类下没有记录</p>
+                                    <p>暂无投诉记录</p>
                                 </div>
 
                             </div>
@@ -824,11 +867,14 @@ interface Complaint {
     deliveryTaskID: string;
     complaintTime: string;
     complaintReason: string;
-    punishment?: { // punishment 是可选的
-        type: string;
-        description: string;
-        duration?: string; // duration 也是可选的
-    };
+    processingResult?: string;
+    // 配送信息
+    deliveryAddress?: string;
+    acceptTime?: string;
+    pickupTime?: string;
+    completionTime?: string;
+    // 店铺信息
+    pickupAddress?: string;
 }
 
 // --- 状态定义 ---
@@ -849,12 +895,7 @@ const availableOrders = ref<Order[]>([]);
 
 const complaints = ref<Complaint[]>([]);
 
-const activeComplaintTab = ref<'all' | 'punished'>('all');
 
-const complaintTabs = [
-    { key: 'all', label: '全部投诉' },
-    { key: 'punished', label: '含处罚记录' }
-] as const;
 
 const pendingOrderCount = ref(0);
 const deliveringOrderCount = ref(0);
@@ -885,19 +926,6 @@ const orderTabs = [
 
 // --- API 调用逻辑 ---
 
-const filteredComplaints = computed(() => {
-    // 如果原始数据还没加载，返回空数组
-    if (!complaints.value) return [];
-
-    // 如果当前选择的是“含处罚记录”
-    if (activeComplaintTab.value === 'punished') {
-        // 则只返回那些 punishment 字段存在的投诉
-        return complaints.value.filter(c => c.punishment);
-    }
-
-    // 否则（选择的是'all'），返回全部投诉
-    return complaints.value;
-});
 
 const todayIncome = computed(() => {
     // 直接使用后端返回的今日收入
@@ -973,9 +1001,25 @@ const handleDeliverOrder = async (orderId: string) => {
     try {
         await api.deliverOrderAPI(orderId);
         ElMessage.success('操作成功！订单已完成');
-        await refreshOrderList(); // 操作成功后刷新列表
+        
+        // 刷新订单列表和今日收入
+        await Promise.all([
+            refreshOrderList(),
+            refreshIncome()
+        ]);
     } catch (error) {
         ElMessage.error("确认送达操作失败，请重试");
+    }
+};
+
+// 刷新今日收入
+const refreshIncome = async () => {
+    try {
+        const incomeRes = await api.fetchIncomeData() as any;
+        const incomeData = incomeRes.data?.data;
+        income.value = typeof incomeData === 'number' ? incomeData : (parseFloat(String(incomeData)) || 0);
+    } catch (error) {
+        console.error('刷新收入失败:', error);
     }
 };
 

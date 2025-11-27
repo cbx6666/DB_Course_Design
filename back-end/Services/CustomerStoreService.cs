@@ -16,13 +16,17 @@ namespace BackEnd.Services
     public class CustomerStoreService : ICustomerStoreService
     {
         private readonly IStoreRepository _storeRepository;
+        private readonly IDishRepository _dishRepository;
+        private readonly IDishCategoryRepository _dishCategoryRepository;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public CustomerStoreService(IStoreRepository storeRepository)
+        public CustomerStoreService(IStoreRepository storeRepository, IDishRepository dishRepository, IDishCategoryRepository dishCategoryRepository)
         {
             _storeRepository = storeRepository;
+            _dishRepository = dishRepository;
+            _dishCategoryRepository = dishCategoryRepository;
         }
 
         /// <summary>
@@ -100,30 +104,7 @@ namespace BackEnd.Services
         /// </summary>
         public async Task<List<CategoryResponseDto>> GetStoreCategoriesAsync(int storeId)
         {
-            var store = await _storeRepository.GetByIdAsync(storeId);
-            if (store == null || store.Menus == null) return new List<CategoryResponseDto>();
-
-            var allCategories = new List<CategoryResponseDto>();
-
-            foreach (var menu in store.Menus.Where(m => m.IsActive))
-            {
-                if (menu.MenuDishCategories != null)
-                {
-                    foreach (var mdc in menu.MenuDishCategories)
-                    {
-                        if (!allCategories.Any(c => c.Id == mdc.DishCategory.CategoryID))
-                        {
-                            allCategories.Add(new CategoryResponseDto
-                            {
-                                Id = mdc.DishCategory.CategoryID,
-                                Name = mdc.DishCategory.CategoryName
-                            });
-                        }
-                    }
-                }
-            }
-
-            return allCategories.OrderBy(c => c.Name).ToList();
+            return await _dishCategoryRepository.GetCategoriesByStoreIdAsync(storeId);
         }
 
         /// <summary>
@@ -131,7 +112,7 @@ namespace BackEnd.Services
         /// </summary>
         public async Task<List<MenuResponseDto>> GetMenuAsync(int storeId)
         {
-            var dishes = await _storeRepository.GetDishesByStoreIdAsync(storeId);
+            var dishes = await _dishRepository.GetDishesByStoreIdAsync(storeId);
 
             if (dishes == null || !dishes.Any()) return new List<MenuResponseDto>();
 
@@ -145,6 +126,15 @@ namespace BackEnd.Services
                 IsSoldOut = (int)d.IsSoldOut,
                 CategoryId = d.CategoryID
             }).ToList();
+        }
+
+        /// <summary>
+        /// 获取轻量化菜品基础信息
+        /// </summary>
+        public async Task<(List<MenuBasicResponseDto> Items, bool HasMore)> GetMenuBasicAsync(int storeId, int? categoryId, int page, int pageSize)
+        {
+            var dishes = await _dishRepository.GetMenuBasicByStoreIdAsync(storeId, categoryId, page, pageSize);
+            return dishes;
         }
     }
 }

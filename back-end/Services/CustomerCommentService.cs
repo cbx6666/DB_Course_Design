@@ -41,17 +41,26 @@ namespace BackEnd.Services
                 .Where(c => c.StoreID == storeId && c.CommentState == CommentState.Completed)
                 .OrderByDescending(c => c.PostedAt);
 
-            return comments.Select(c => new CustomerCommentDto
+            return comments.Select(c =>
             {
-                Id = c.CommentID,
-                Username = c.Commenter?.User?.Username ?? "匿名用户",
-                Rating = c.Rating,
-                Date = c.PostedAt,
-                Content = c.Content,
-                Avatar = c.Commenter?.User?.Avatar ?? "/images/user/default.png",
-                Images = string.IsNullOrWhiteSpace(c.CommentImage)
-                        ? Array.Empty<string>()
-                        : c.CommentImage.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                // 只获取已通过的商家回复（CommentState = Completed）
+                var merchantReply = c.CommentReplies?
+                    .FirstOrDefault(r => r.CommentType == CommentType.Comment && r.CommentState == CommentState.Completed);
+
+                return new CustomerCommentDto
+                {
+                    Id = c.CommentID,
+                    Username = c.Commenter?.User?.Username ?? "匿名用户",
+                    Rating = c.Rating,
+                    Date = c.PostedAt,
+                    Content = c.Content,
+                    Avatar = c.Commenter?.User?.Avatar ?? "/images/user/default.png",
+                    Images = string.IsNullOrWhiteSpace(c.CommentImage)
+                            ? Array.Empty<string>()
+                            : c.CommentImage.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                    MerchantReply = merchantReply?.Content,
+                    MerchantReplyTime = merchantReply?.PostedAt.ToString("yyyy-MM-dd HH:mm:ss")
+                };
             }).ToList();
         }
 
@@ -129,28 +138,37 @@ namespace BackEnd.Services
         {
             var comments = await _commentRepository.GetByCommenterIdAsync(userId);
 
-            var result = comments.Select(comment => new CustomerMyCommentListItemDto
+            var result = comments.Select(comment =>
             {
-                CommentId = comment.CommentID,
-                OrderId = comment.FoodOrderID,
-                StoreId = comment.StoreID ?? 0,
-                StoreName = comment.Store?.StoreName ?? "未知店铺",
-                Rating = comment.Rating ?? 0,
-                Content = comment.Content,
-                Images = string.IsNullOrWhiteSpace(comment.CommentImage)
-                    ? Array.Empty<string>()
-                    : comment.CommentImage.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
-                PostedAt = comment.PostedAt,
-                Status = comment.CommentState.ToString(),
-                DishDetails = comment.FoodOrder?.Cart?.ShoppingCartItems?
-                    .Select(item => new OrderDishDto
-                    {
-                        DishName = item.Dish?.DishName ?? "未知菜品",
-                        DishImage = item.Dish?.DishImage ?? "",
-                        Quantity = item.Quantity,
-                        Price = item.Dish?.Price ?? 0m
-                    })
-                    .ToList() ?? new List<OrderDishDto>()
+                // 只获取已通过的商家回复（CommentState = Completed）
+                var merchantReply = comment.CommentReplies?
+                    .FirstOrDefault(r => r.CommentType == CommentType.Comment && r.CommentState == CommentState.Completed);
+
+                return new CustomerMyCommentListItemDto
+                {
+                    CommentId = comment.CommentID,
+                    OrderId = comment.FoodOrderID,
+                    StoreId = comment.StoreID ?? 0,
+                    StoreName = comment.Store?.StoreName ?? "未知店铺",
+                    Rating = comment.Rating ?? 0,
+                    Content = comment.Content,
+                    Images = string.IsNullOrWhiteSpace(comment.CommentImage)
+                        ? Array.Empty<string>()
+                        : comment.CommentImage.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                    PostedAt = comment.PostedAt,
+                    Status = comment.CommentState.ToString(),
+                    DishDetails = comment.FoodOrder?.Cart?.ShoppingCartItems?
+                        .Select(item => new OrderDishDto
+                        {
+                            DishName = item.Dish?.DishName ?? "未知菜品",
+                            DishImage = item.Dish?.DishImage ?? "",
+                            Quantity = item.Quantity,
+                            Price = item.Dish?.Price ?? 0m
+                        })
+                        .ToList() ?? new List<OrderDishDto>(),
+                    MerchantReply = merchantReply?.Content,
+                    MerchantReplyTime = merchantReply?.PostedAt.ToString("yyyy-MM-dd HH:mm:ss")
+                };
             }).ToList();
 
             return result;
