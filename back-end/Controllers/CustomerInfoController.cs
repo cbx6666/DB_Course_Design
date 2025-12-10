@@ -44,6 +44,22 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
+        /// 获取用户的收藏夹列表
+        /// </summary>
+        [HttpGet("favorites")]
+        public async Task<IActionResult> GetFavoritesFolders()
+        {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+            {
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "无效的Token" });
+            }
+
+            var folders = await _customerService.GetFavoritesFoldersAsync(userId.Value);
+            return Ok(new ApiResponseDto<List<FavoritesFolderDto>> { Success = true, Code = 200, Message = "获取成功", Data = folders });
+        }
+
+        /// <summary>
         /// 获取用户个人资料
         /// </summary>
         [HttpGet("profile/userProfile")]

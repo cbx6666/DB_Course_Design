@@ -97,7 +97,8 @@ namespace BackEnd.Repositories
         {
             return await _context.FavoritesFolders
                 .Where(ff => ff.CustomerID == customerId)
-                .Include(ff => ff.FavoriteItems)
+                .Include(ff => ff.FavoriteItems!)
+                    .ThenInclude(fi => fi.Store)
                 .OrderBy(ff => ff.FolderID)
                 .ToListAsync();
         }
@@ -109,8 +110,9 @@ namespace BackEnd.Repositories
         /// <returns>是否存在默认收藏夹</returns>
         public async Task<bool> HasDefaultFolderAsync(int customerId)
         {
-            return await _context.FavoritesFolders
-                .AnyAsync(ff => ff.CustomerID == customerId && ff.FolderName == "默认收藏夹");
+            var count = await _context.FavoritesFolders
+                .CountAsync(ff => ff.CustomerID == customerId && ff.FolderName == "默认收藏夹");
+            return count > 0;
         }
     }
 }

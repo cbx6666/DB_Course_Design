@@ -35,6 +35,7 @@ namespace BackEnd.Services
             _storeRepository = storeRepository;
             _configuration = configuration;
             _context = context;
+            _favoritesFolderRepository = favoritesFolderRepository;
         }
 
         /// <summary>

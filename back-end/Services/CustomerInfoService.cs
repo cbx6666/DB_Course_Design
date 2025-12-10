@@ -6,6 +6,7 @@ using BackEnd.DTOs.Coupon;
 using BackEnd.DTOs.Store;
 using BackEnd.DTOs.DeliveryTask;
 using BackEnd.DTOs.Courier;
+using BackEnd.Models;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
 using BackEnd.Data;
@@ -24,17 +25,20 @@ namespace BackEnd.Services
         private readonly ICustomerRepository _customerRepository;
         private readonly IImageUploadService _imageUploadService;
         private readonly IWebHostEnvironment _env;
+        private readonly IFavoritesFolderRepository _favoritesFolderRepository;
 
         public CustomerInfoService(
             IUserRepository userRepository,
             ICustomerRepository customerRepository,
             IImageUploadService imageUploadService,
-            IWebHostEnvironment env)
+            IWebHostEnvironment env,
+            IFavoritesFolderRepository favoritesFolderRepository)
         {
             _userRepository = userRepository;
             _customerRepository = customerRepository;
             _imageUploadService = imageUploadService;
             _env = env;
+            _favoritesFolderRepository = favoritesFolderRepository;
         }
 
 
@@ -266,5 +270,53 @@ namespace BackEnd.Services
             return new ApiResponseDto { Success = true, Code = 200, Message = "默认收货地址设置成功" };
         }
 
+        /// <summary>
+        /// 获取用户的收藏夹列表
+        /// </summary>
+        public async Task<List<FavoritesFolderDto>> GetFavoritesFoldersAsync(int userId)
+        {
+            var customer = await _customerRepository.GetByIdAsync(userId);
+            if (customer == null)
+            {
+                return new List<FavoritesFolderDto>();
+            }
+
+            // 获取所有收藏夹（已包含 FavoriteItems 和 Store 导航属性）
+            var folders = await _favoritesFolderRepository.GetByCustomerIdAsync(customer.UserID);
+            
+            // 如果用户没有收藏夹（旧数据），创建默认收藏夹
+            if (folders.Count == 0)
+            {
+                var hasDefaultFolder = await _favoritesFolderRepository.HasDefaultFolderAsync(customer.UserID);
+                if (!hasDefaultFolder)
+                {
+                    var newDefaultFolder = new FavoritesFolder
+                    {
+                        FolderName = "默认收藏夹",
+                        CustomerID = customer.UserID
+                    };
+
+                    await _favoritesFolderRepository.AddAsync(newDefaultFolder);
+                    
+                    // 重新查询以确保包含所有导航属性
+                    folders = await _favoritesFolderRepository.GetByCustomerIdAsync(customer.UserID);
+                }
+            }
+            
+            return folders.Select(folder => new FavoritesFolderDto
+            {
+                FolderID = folder.FolderID,
+                FolderName = folder.FolderName,
+                FavoriteItems = folder.FavoriteItems?.Select(item => new FavoriteItemDto
+                {
+                    ItemID = item.ItemID,
+                    StoreID = item.StoreID,
+                    StoreName = item.Store?.StoreName ?? "未知店铺",
+                    StoreImage = item.Store?.StoreImage,
+                    FavoritedAt = item.FavoritedAt,
+                    FavoriteReason = item.FavoriteReason
+                }).ToList() ?? new List<FavoriteItemDto>()
+            }).ToList();
+        }
     }
 }

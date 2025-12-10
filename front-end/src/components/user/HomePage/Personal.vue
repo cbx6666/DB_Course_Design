@@ -62,6 +62,7 @@
 
           <AddrSetting v-model:showAddressForm="showAddressForm" />
           <CouponSetting v-model:showCouponForm="showCouponForm" />
+          <FavoritesSetting v-model:showFavoritesForm="showFavoritesForm" />
           <AccountSetting 
             v-model:showAccountForm="showAccountForm" 
             @update:account="handleAccountUpdate"
@@ -83,6 +84,7 @@ import { restoreUserState } from "@/utils/auth";
 
 import AddrSetting from "./PersonalTransition/AddrSetting.vue";
 import CouponSetting from "./PersonalTransition/CouponSetting.vue";
+import FavoritesSetting from "./PersonalTransition/FavoritesSetting.vue";
 import AccountSetting from "./PersonalTransition/AccountSetting.vue";
 import ExitAccount from "./PersonalTransition/ExitAccount.vue";
 
@@ -152,6 +154,7 @@ function handleAccountUpdate(updatedAccount: any) {
 const showUserPanel = ref(false);
 const showAddressForm = ref(false);
 const showCouponForm = ref(false);
+const showFavoritesForm = ref(false);
 const showAccountForm = ref(false);
 const showExitForm = ref(false);
 
@@ -159,6 +162,7 @@ const showExitForm = ref(false);
 const userMenus = [
   { icon: "fas fa-map-marker-alt", label: "收货地址管理", action: ()=>openForm(showAddressForm) },
   { icon: "fas fa-ticket-alt", label: "我的优惠券", action: ()=>openForm(showCouponForm) },
+  { icon: "fas fa-heart", label: "我的收藏夹", action: ()=>openForm(showFavoritesForm) },
   { icon: "fas fa-cog", label: "账户设置", action: ()=>openForm(showAccountForm) }
 ];
 

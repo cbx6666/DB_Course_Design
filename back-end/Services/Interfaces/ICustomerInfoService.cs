@@ -48,5 +48,12 @@ namespace BackEnd.Services.Interfaces
         /// 设置默认收货地址
         /// </summary>
         Task<ApiResponseDto> SetDefaultAddressAsync(int userId, int addressId);
+
+        /// <summary>
+        /// 获取用户的收藏夹列表
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>收藏夹列表</returns>
+        Task<List<FavoritesFolderDto>> GetFavoritesFoldersAsync(int userId);
     }
 }
