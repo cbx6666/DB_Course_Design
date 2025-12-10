@@ -60,5 +60,10 @@ namespace BackEnd.Repositories.Interfaces
         /// <param name="customerId">消费者ID</param>
         /// <returns>是否存在默认收藏夹</returns>
         Task<bool> HasDefaultFolderAsync(int customerId);
+
+        /// <summary>
+        /// 检查名称是否已存在（同一用户下）
+        /// </summary>
+        Task<bool> ExistsByNameAsync(int customerId, string folderName);
     }
 }

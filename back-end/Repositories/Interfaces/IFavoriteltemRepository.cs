@@ -46,5 +46,15 @@ namespace BackEnd.Repositories.Interfaces
         /// </summary>
         /// <returns>任务</returns>
         Task SaveAsync();
+
+        /// <summary>
+        /// 检查同一收藏夹是否已存在指定店铺
+        /// </summary>
+        Task<bool> ExistsAsync(int folderId, int storeId);
+
+        /// <summary>
+        /// 根据收藏夹和店铺查询收藏项
+        /// </summary>
+        Task<FavoriteItem?> GetByFolderAndStoreAsync(int folderId, int storeId);
     }
 }

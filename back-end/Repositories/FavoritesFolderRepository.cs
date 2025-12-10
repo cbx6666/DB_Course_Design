@@ -114,5 +114,15 @@ namespace BackEnd.Repositories
                 .CountAsync(ff => ff.CustomerID == customerId && ff.FolderName == "默认收藏夹");
             return count > 0;
         }
+
+        /// <summary>
+        /// 检查同一用户下名称是否已存在
+        /// </summary>
+        public async Task<bool> ExistsByNameAsync(int customerId, string folderName)
+        {
+            var count = await _context.FavoritesFolders
+                .CountAsync(ff => ff.CustomerID == customerId && ff.FolderName == folderName);
+            return count > 0;
+        }
     }
 }

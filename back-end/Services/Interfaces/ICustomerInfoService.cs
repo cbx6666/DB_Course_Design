@@ -55,5 +55,25 @@ namespace BackEnd.Services.Interfaces
         /// <param name="userId">用户ID</param>
         /// <returns>收藏夹列表</returns>
         Task<List<FavoritesFolderDto>> GetFavoritesFoldersAsync(int userId);
+
+        /// <summary>
+        /// 新建收藏夹
+        /// </summary>
+        Task<ApiResponseDto> CreateFavoritesFolderAsync(int userId, string folderName);
+
+        /// <summary>
+        /// 删除收藏夹（不可删除默认收藏夹）
+        /// </summary>
+        Task<ApiResponseDto> DeleteFavoritesFolderAsync(int userId, int folderId);
+
+        /// <summary>
+        /// 向收藏夹添加店铺
+        /// </summary>
+        Task<ApiResponseDto> AddFavoriteItemAsync(int userId, int folderId, AddFavoriteItemDto request);
+
+        /// <summary>
+        /// 从收藏夹删除店铺
+        /// </summary>
+        Task<ApiResponseDto> RemoveFavoriteItemAsync(int userId, int folderId, int storeId);
     }
 }

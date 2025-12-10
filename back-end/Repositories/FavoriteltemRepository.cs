@@ -87,5 +87,27 @@ namespace BackEnd.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        /// <summary>
+        /// 检查同一收藏夹是否已存在指定店铺
+        /// </summary>
+        public async Task<bool> ExistsAsync(int folderId, int storeId)
+        {
+            // 使用 CountAsync 兼容 Oracle，避免生成 TRUE/FALSE 标识符
+            var count = await _context.FavoriteItems
+                .CountAsync(fi => fi.FolderID == folderId && fi.StoreID == storeId);
+            return count > 0;
+        }
+
+        /// <summary>
+        /// 根据收藏夹与店铺获取收藏项
+        /// </summary>
+        public async Task<FavoriteItem?> GetByFolderAndStoreAsync(int folderId, int storeId)
+        {
+            return await _context.FavoriteItems
+                .Include(fi => fi.Store)
+                .Include(fi => fi.Folder)
+                .FirstOrDefaultAsync(fi => fi.FolderID == folderId && fi.StoreID == storeId);
+        }
     }
 }

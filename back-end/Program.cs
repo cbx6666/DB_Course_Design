@@ -225,50 +225,50 @@ app.Run();
 static void ConfigureStaticFiles(WebApplication app, string contentRootPath)
 {
     // 根目录静态文件（wwwroot）
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
             Path.Combine(contentRootPath, "wwwroot")),
-        RequestPath = ""
-    });
+    RequestPath = ""
+});
 
     // 头像文件服务
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
             Path.Combine(contentRootPath, "wwwroot", "avatars")),
-        RequestPath = "/avatars"
-    });
+    RequestPath = "/avatars"
+});
 
     // 店铺图片文件服务
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
             Path.Combine(contentRootPath, "wwwroot", "images", "stores")),
-        RequestPath = "/images/stores"
-    });
+    RequestPath = "/images/stores"
+});
 
     // 菜品图片文件服务
     var dishesImagesPath = Path.Combine(contentRootPath, "wwwroot", "images", "dishes");
-    if (!Directory.Exists(dishesImagesPath))
-    {
-        Directory.CreateDirectory(dishesImagesPath);
-    }
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(dishesImagesPath),
-        RequestPath = "/images/dishes"
-    });
+if (!Directory.Exists(dishesImagesPath))
+{
+    Directory.CreateDirectory(dishesImagesPath);
+}
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(dishesImagesPath),
+    RequestPath = "/images/dishes"
+});
 
     // 通用上传图片文件服务
     var uploadsImagesPath = Path.Combine(contentRootPath, "wwwroot", "images", "uploads");
-    if (!Directory.Exists(uploadsImagesPath))
-    {
-        Directory.CreateDirectory(uploadsImagesPath);
-    }
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsImagesPath),
-        RequestPath = "/images/uploads"
-    });
+if (!Directory.Exists(uploadsImagesPath))
+{
+    Directory.CreateDirectory(uploadsImagesPath);
+}
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsImagesPath),
+    RequestPath = "/images/uploads"
+});
 }

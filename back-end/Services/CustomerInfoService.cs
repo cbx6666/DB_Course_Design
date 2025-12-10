@@ -26,19 +26,25 @@ namespace BackEnd.Services
         private readonly IImageUploadService _imageUploadService;
         private readonly IWebHostEnvironment _env;
         private readonly IFavoritesFolderRepository _favoritesFolderRepository;
+        private readonly IFavoriteItemRepository _favoriteItemRepository;
+        private readonly IStoreRepository _storeRepository;
 
         public CustomerInfoService(
             IUserRepository userRepository,
             ICustomerRepository customerRepository,
             IImageUploadService imageUploadService,
             IWebHostEnvironment env,
-            IFavoritesFolderRepository favoritesFolderRepository)
+            IFavoritesFolderRepository favoritesFolderRepository,
+            IFavoriteItemRepository favoriteItemRepository,
+            IStoreRepository storeRepository)
         {
             _userRepository = userRepository;
             _customerRepository = customerRepository;
             _imageUploadService = imageUploadService;
             _env = env;
             _favoritesFolderRepository = favoritesFolderRepository;
+            _favoriteItemRepository = favoriteItemRepository;
+            _storeRepository = storeRepository;
         }
 
 
@@ -317,6 +323,144 @@ namespace BackEnd.Services
                     FavoriteReason = item.FavoriteReason
                 }).ToList() ?? new List<FavoriteItemDto>()
             }).ToList();
+        }
+
+        /// <summary>
+        /// 创建收藏夹
+        /// </summary>
+        public async Task<ApiResponseDto> CreateFavoritesFolderAsync(int userId, string folderName)
+        {
+            if (string.IsNullOrWhiteSpace(folderName))
+            {
+                return new ApiResponseDto { Success = false, Code = 400, Message = "收藏夹名称不能为空" };
+            }
+
+            var customer = await _customerRepository.GetByIdAsync(userId);
+            if (customer == null)
+            {
+                return new ApiResponseDto { Success = false, Code = 404, Message = "用户不存在或不是顾客" };
+            }
+
+            // 重名校验（同一用户下）
+            var exists = await _favoritesFolderRepository.ExistsByNameAsync(customer.UserID, folderName.Trim());
+            if (exists)
+            {
+                return new ApiResponseDto { Success = false, Code = 400, Message = "已存在同名收藏夹" };
+            }
+
+            var folder = new FavoritesFolder
+            {
+                CustomerID = customer.UserID,
+                FolderName = folderName.Trim()
+            };
+
+            await _favoritesFolderRepository.AddAsync(folder);
+            return new ApiResponseDto { Success = true, Code = 200, Message = "创建成功" };
+        }
+
+        /// <summary>
+        /// 删除收藏夹（不可删除默认收藏夹）
+        /// </summary>
+        public async Task<ApiResponseDto> DeleteFavoritesFolderAsync(int userId, int folderId)
+        {
+            var customer = await _customerRepository.GetByIdAsync(userId);
+            if (customer == null)
+            {
+                return new ApiResponseDto { Success = false, Code = 404, Message = "用户不存在或不是顾客" };
+            }
+
+            var folder = await _favoritesFolderRepository.GetByIdAsync(folderId);
+            if (folder == null || folder.CustomerID != customer.UserID)
+            {
+                return new ApiResponseDto { Success = false, Code = 404, Message = "收藏夹不存在" };
+            }
+
+            if (folder.FolderName == "默认收藏夹")
+            {
+                return new ApiResponseDto { Success = false, Code = 400, Message = "默认收藏夹不可删除" };
+            }
+
+            await _favoritesFolderRepository.DeleteAsync(folder);
+            return new ApiResponseDto { Success = true, Code = 200, Message = "删除成功" };
+        }
+
+        /// <summary>
+        /// 向收藏夹添加店铺
+        /// </summary>
+        public async Task<ApiResponseDto> AddFavoriteItemAsync(int userId, int folderId, AddFavoriteItemDto request)
+        {
+            if (request.StoreId <= 0)
+            {
+                return new ApiResponseDto { Success = false, Code = 400, Message = "无效的店铺ID" };
+            }
+
+            var customer = await _customerRepository.GetByIdAsync(userId);
+            if (customer == null)
+            {
+                return new ApiResponseDto { Success = false, Code = 404, Message = "用户不存在或不是顾客" };
+            }
+
+            var folder = await _favoritesFolderRepository.GetByIdAsync(folderId);
+            if (folder == null || folder.CustomerID != customer.UserID)
+            {
+                return new ApiResponseDto { Success = false, Code = 404, Message = "收藏夹不存在" };
+            }
+
+            var store = await _storeRepository.GetByIdAsync(request.StoreId);
+            if (store == null)
+            {
+                return new ApiResponseDto { Success = false, Code = 404, Message = "店铺不存在" };
+            }
+
+            // 去重：同一收藏夹不可重复
+            var exists = await _favoriteItemRepository.ExistsAsync(folderId, request.StoreId);
+            if (exists)
+            {
+                return new ApiResponseDto { Success = false, Code = 400, Message = "该店铺已在该收藏夹中" };
+            }
+
+            var item = new FavoriteItem
+            {
+                FolderID = folderId,
+                StoreID = request.StoreId,
+                FavoriteReason = string.IsNullOrWhiteSpace(request.FavoriteReason) ? "收藏这个店铺" : request.FavoriteReason,
+                FavoritedAt = DateTime.Now
+            };
+
+            await _favoriteItemRepository.AddAsync(item);
+            return new ApiResponseDto { Success = true, Code = 200, Message = "收藏成功" };
+        }
+
+        /// <summary>
+        /// 从收藏夹删除店铺
+        /// </summary>
+        public async Task<ApiResponseDto> RemoveFavoriteItemAsync(int userId, int folderId, int storeId)
+        {
+            if (storeId <= 0)
+            {
+                return new ApiResponseDto { Success = false, Code = 400, Message = "无效的店铺ID" };
+            }
+
+            var customer = await _customerRepository.GetByIdAsync(userId);
+            if (customer == null)
+            {
+                return new ApiResponseDto { Success = false, Code = 404, Message = "用户不存在或不是顾客" };
+            }
+
+            var folder = await _favoritesFolderRepository.GetByIdAsync(folderId);
+            if (folder == null || folder.CustomerID != customer.UserID)
+            {
+                return new ApiResponseDto { Success = false, Code = 404, Message = "收藏夹不存在" };
+            }
+
+            var favItem = await _favoriteItemRepository.GetByFolderAndStoreAsync(folderId, storeId);
+            if (favItem == null)
+            {
+                return new ApiResponseDto { Success = false, Code = 404, Message = "收藏项不存在" };
+            }
+
+            await _favoriteItemRepository.DeleteAsync(favItem);
+            return new ApiResponseDto { Success = true, Code = 200, Message = "删除成功" };
         }
     }
 }

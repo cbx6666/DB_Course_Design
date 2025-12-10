@@ -56,5 +56,30 @@ namespace BackEnd.DTOs.Customer
         /// </summary>
         public List<FavoriteItemDto> FavoriteItems { get; set; } = new List<FavoriteItemDto>();
     }
+
+    /// <summary>
+    /// 新建收藏夹请求
+    /// </summary>
+    public class CreateFavoritesFolderDto
+    {
+        public string FolderName { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// 添加收藏项请求
+    /// </summary>
+    public class AddFavoriteItemDto
+    {
+        public int StoreId { get; set; }
+        public string? FavoriteReason { get; set; }
+    }
+
+    /// <summary>
+    /// 删除收藏项请求
+    /// </summary>
+    public class RemoveFavoriteItemDto
+    {
+        public int StoreId { get; set; }
+    }
 }
 

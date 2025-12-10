@@ -60,6 +60,70 @@ namespace BackEnd.Controllers
         }
 
         /// <summary>
+        /// 新建收藏夹
+        /// </summary>
+        [HttpPost("favorites")]
+        public async Task<IActionResult> CreateFavoritesFolder([FromBody] CreateFavoritesFolderDto dto)
+        {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+            {
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "无效的Token" });
+            }
+
+            var result = await _customerService.CreateFavoritesFolderAsync(userId.Value, dto.FolderName);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// 删除收藏夹（不可删除默认收藏夹）
+        /// </summary>
+        [HttpDelete("favorites/{folderId}")]
+        public async Task<IActionResult> DeleteFavoritesFolder(int folderId)
+        {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+            {
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "无效的Token" });
+            }
+
+            var result = await _customerService.DeleteFavoritesFolderAsync(userId.Value, folderId);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// 向收藏夹添加店铺
+        /// </summary>
+        [HttpPost("favorites/{folderId}/items")]
+        public async Task<IActionResult> AddFavoriteItem(int folderId, [FromBody] AddFavoriteItemDto dto)
+        {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+            {
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "无效的Token" });
+            }
+
+            var result = await _customerService.AddFavoriteItemAsync(userId.Value, folderId, dto);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// 从收藏夹删除店铺
+        /// </summary>
+        [HttpDelete("favorites/{folderId}/items")]
+        public async Task<IActionResult> RemoveFavoriteItem(int folderId, [FromBody] RemoveFavoriteItemDto dto)
+        {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+            {
+                return Unauthorized(new ApiResponseDto { Success = false, Code = 401, Message = "无效的Token" });
+            }
+
+            var result = await _customerService.RemoveFavoriteItemAsync(userId.Value, folderId, dto.StoreId);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// 获取用户个人资料
         /// </summary>
         [HttpGet("profile/userProfile")]
