@@ -79,14 +79,14 @@
           <!-- 处罚记录 -->
           <div v-if="activeAftersaleTab === 'penalties'">
           <!-- 筛选条件 -->
-          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
-            <div class="flex items-center gap-2">
-              <el-select v-model="penaltyKeywordType" placeholder="选择筛选字段" size="small" class="w-32">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
+            <div class="flex items-center gap-3">
+              <el-select v-model="penaltyKeywordType" placeholder="筛选字段" size="small" teleported style="position: relative; z-index: 1; width: 100px; flex-shrink: 0;">
                     <el-option label="全部" value="" />
                     <el-option label="处罚编号" value="id" />
                     <el-option label="处罚原因" value="reason" />
                   </el-select>
-              <el-input v-model="penaltyFilters.keyword" placeholder="处罚编号/原因关键词" size="small" clearable class="flex-1" />
+              <el-input v-model="penaltyFilters.keyword" placeholder="处罚编号/原因关键词" size="small" clearable style="position: relative; z-index: 2; flex: 1; min-width: 0;" />
               <el-button type="warning" size="small" @click="loadPenalties()">筛选</el-button>
                 </div>
               </div>
@@ -152,14 +152,14 @@
           <div v-if="activeAftersaleTab === 'aftersale'">
             <!-- 筛选条件 -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
-              <div class="flex items-center gap-2 mb-3">
-                <el-select v-model="asKeywordType" placeholder="内容/用户名/订单号" size="small" class="w-32">
+              <div class="flex items-center gap-3 mb-3">
+                <el-select v-model="asKeywordType" placeholder="筛选字段" size="small" teleported style="position: relative; z-index: 1; width: 100px; flex-shrink: 0;">
                     <el-option label="全部" value="" />
                     <el-option label="内容" value="content" />
                     <el-option label="订单号" value="orderNo" />
                     <el-option label="用户名" value="user.name" />
                   </el-select>
-                <el-input v-model="asFilters.keyword" placeholder="内容/用户名/订单号" size="small" clearable class="flex-1" />
+                <el-input v-model="asFilters.keyword" placeholder="内容/用户名/订单号" size="small" clearable style="position: relative; z-index: 2; flex: 1; min-width: 0;" />
                 <el-button type="warning" size="small" @click="loadAfterSales(1)">查询</el-button>
                 <el-button size="small" @click="resetAsFilters">重置</el-button>
                 </div>
@@ -403,14 +403,14 @@
           <div v-if="activeAftersaleTab === 'reviews'">
             <!-- 筛选条件 -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
-              <div class="flex items-center gap-2">
-                <el-select v-model="reviewKeywordType" placeholder="选择筛选字段" size="small" class="w-32">
+              <div class="flex items-center gap-3">
+                <el-select v-model="reviewKeywordType" placeholder="筛选字段" size="small" teleported style="position: relative; z-index: 1; width: 100px; flex-shrink: 0;">
                     <el-option label="全部" value="" />
                     <el-option label="内容" value="content" />
                     <el-option label="订单号" value="orderNo" />
                     <el-option label="用户名" value="user.name" />
                   </el-select>
-                <el-input v-model="reviewFilters.keyword" placeholder="内容/订单号" size="small" clearable class="flex-1" />
+                <el-input v-model="reviewFilters.keyword" placeholder="内容/订单号" size="small" clearable style="position: relative; z-index: 2; flex: 1; min-width: 0;" />
                 <el-button type="warning" size="small" @click="fetchReviews(1)">筛选</el-button>
                 <el-button size="small" @click="resetReviewFilters">重置</el-button>
                 </div>

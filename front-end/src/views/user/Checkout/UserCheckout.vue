@@ -64,7 +64,7 @@
               :key="item.id"
               :item="item"
               @updateQuantity="updateQuantity"
-              @onRemove="removeItem"
+              @remove="removeItem"
             />
           </div>
             <div v-else class="flex flex-col items-center justify-center h-full">
@@ -144,6 +144,7 @@
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
+import { ElMessage } from 'element-plus';
 
 import type { UserAddress as Address, MenuItem, ShoppingCart, CouponInfo, StoreInfo, DeliveryTask } from '@/api/user';
 import { getMenuItem, getShoppingCart, addOrUpdateCartItem, removeCartItem, submitOrder, getDeliveryTasks, getStoreInfo } from '@/api/user';
@@ -236,8 +237,14 @@ async function updateQuantity(dish: MenuItem, quantity: number) {
 // 移除菜品
 async function removeItem(dish: MenuItem) {
   if (!cart.value.cartId) return;
-  await removeCartItem(cart.value.cartId, dish.id);
-  await refreshCart();
+  try {
+    await removeCartItem(cart.value.cartId, dish.id);
+    await refreshCart();
+  } catch (error) {
+    console.error('删除购物车项失败:', error);
+    ElMessage.error('删除失败，请稍后重试');
+    await refreshCart(); // 即使失败也刷新，确保UI同步
+  }
 }
 
 // 支付结算

@@ -209,9 +209,22 @@ const cartItemCount = computed(() =>
   cart.value.items.reduce((sum, item) => sum + item.quantity, 0)
 )
 
-const cartTotalPrice = computed(() =>
-  cart.value.items.reduce((sum, item) => sum + (item.totalPrice ?? 0), 0).toFixed(2)
-)
+// 购物车金额，优先使用菜品单价 * 数量，若缺失则回退 totalPrice
+const cartTotalPrice = computed(() => {
+  const priceMap: Record<number, number> = {}
+  flattenedMenuItems.value.forEach(mi => { priceMap[mi.id] = mi.price ?? 0 })
+
+  const total = cart.value.items.reduce((sum, item) => {
+    const unit = priceMap[item.dishId] ?? (
+      item.quantity > 0 && item.totalPrice != null
+        ? item.totalPrice / item.quantity
+        : 0
+    )
+    return sum + unit * item.quantity
+  }, 0)
+
+  return total.toFixed(2)
+})
 
 const currentCategoryName = computed(() => {
   const target = currentCategoryId.value
