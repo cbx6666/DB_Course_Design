@@ -126,13 +126,6 @@
                   <span class="text-gray-600">{{ punishmentDict[item.platformAction] || item.platformAction }}</span>
                 </div>
               </div>
-              <div class="mt-3 flex justify-end">
-                <button 
-                  @click.stop="openPenaltyAppeal(item)"
-                  class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-full text-xs transition-colors cursor-pointer shadow-sm">
-                  申诉
-                </button>
-              </div>
             </div>
             </div>
             <!-- 处罚详情抽屉 -->
@@ -153,20 +146,6 @@
                 </div>
               </div>
             </el-drawer>
-            <!-- 处罚申诉弹窗 -->
-            <el-dialog v-model="penaltyAppealVisible" title="处罚申诉" width="460px" class="modern-dialog">
-              <div class="space-y-4">
-                <div>
-                  <el-input v-model="penaltyAppealReason" type="textarea" placeholder="请填写申诉理由" :rows="4"
-                    class="modern-textarea" />
-                </div>
-              </div>
-              <template #footer>
-                <el-button @click="penaltyAppealVisible = false" class="modern-btn-secondary">取消</el-button>
-                <el-button class="modern-btn-primary" :disabled="!penaltyAppealReason"
-                  @click="submitPenaltyAppeal">提交申诉</el-button>
-              </template>
-            </el-dialog>
           </div>
 
           <!-- 售后申请列表 -->
@@ -823,10 +802,6 @@
                   <i class="fas fa-check-circle text-green-500 mt-0.5 shrink-0"></i>
                   <p>积极回复评论有助于改善店铺形象</p>
                 </div>
-                <div class="flex items-start gap-2">
-                  <i class="fas fa-check-circle text-green-500 mt-0.5 shrink-0"></i>
-                  <p>处罚记录可在规定时间内申诉</p>
-                </div>
               </div>
             </div>
 
@@ -865,7 +840,7 @@ import { ref, reactive, onMounted, nextTick, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 
 // API 导入
-import { replyReview, getReviewList, getPenaltyList, getPenaltyDetail, appealPenalty, type Review } from '@/api/merchant';
+import { replyReview, getReviewList, getPenaltyList, getPenaltyDetail, type Review } from '@/api/merchant';
 import type { AfterSaleApplication, AfterSaleListParams, AfterSaleUserInfo } from '@/api/merchant';
 import { getAfterSaleList, getAfterSaleDetail, replyAfterSale } from '@/api/merchant';
 import { type PenaltyRecord } from '@/api/merchant';
@@ -1003,27 +978,6 @@ async function openPenaltyDetail(row: PenaltyRecord) {
     penaltyDetailVisible.value = true;
   } catch (error) {
     console.error('获取处罚详情失败:', error);
-  }
-}
-
-// 处罚申诉弹窗
-const penaltyAppealVisible = ref(false);
-const penaltyAppealReason = ref('');
-let penaltyAppealTarget: PenaltyRecord | null = null;
-
-function openPenaltyAppeal(row: PenaltyRecord) {
-  penaltyAppealTarget = row;
-  penaltyAppealReason.value = '';
-  penaltyAppealVisible.value = true;
-}
-
-async function submitPenaltyAppeal() {
-  if (!penaltyAppealTarget || !penaltyAppealReason.value) return;
-  try {
-    await appealPenalty(penaltyAppealTarget.id, penaltyAppealReason.value);
-  } finally {
-    penaltyAppealVisible.value = false;
-    await loadPenalties();
   }
 }
 

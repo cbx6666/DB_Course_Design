@@ -98,30 +98,5 @@ namespace BackEnd.Services
                 PlatformAction = penalty.StorePenalty ?? ""
             };
         }
-
-        /// <summary>
-        /// 申诉处罚
-        /// </summary>
-        public async Task<ApiResponseDto?> AppealPenaltyAsync(string id, AppealPenaltyDto appealDto)
-        {
-            // 从ID中提取数字部分
-            if (!int.TryParse(id.Replace("PEN", ""), out int penaltyId))
-            {
-                return null;
-            }
-
-            var penalty = await _penaltyRepository.GetByIdAsync(penaltyId);
-            if (penalty == null)
-            {
-                return null;
-            }
-
-            return new ApiResponseDto
-            {
-                Success = true,
-                Code = 200,
-                Message = "申诉提交成功"
-            };
-        }
     }
 }

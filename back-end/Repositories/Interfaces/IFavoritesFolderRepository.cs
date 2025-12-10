@@ -46,5 +46,19 @@ namespace BackEnd.Repositories.Interfaces
         /// </summary>
         /// <returns>任务</returns>
         Task SaveAsync();
+
+        /// <summary>
+        /// 根据消费者ID获取收藏夹列表
+        /// </summary>
+        /// <param name="customerId">消费者ID</param>
+        /// <returns>收藏夹列表</returns>
+        Task<List<FavoritesFolder>> GetByCustomerIdAsync(int customerId);
+
+        /// <summary>
+        /// 检查消费者是否有默认收藏夹
+        /// </summary>
+        /// <param name="customerId">消费者ID</param>
+        /// <returns>是否存在默认收藏夹</returns>
+        Task<bool> HasDefaultFolderAsync(int customerId);
     }
 }

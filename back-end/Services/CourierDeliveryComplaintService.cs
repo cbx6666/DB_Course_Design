@@ -47,6 +47,9 @@ namespace BackEnd.Services
                     ProcessingResult = (!string.IsNullOrEmpty(complaint.ProcessingResult) && complaint.ProcessingResult != "-") 
                         ? complaint.ProcessingResult 
                         : null,
+                    FineAmount = complaint.FineAmount.HasValue && complaint.FineAmount.Value > 0
+                        ? complaint.FineAmount.Value.ToString("F2")
+                        : null,
                     DeliveryAddress = deliveryInfo?.Address,
                     AcceptTime = task?.AcceptTime.ToString("yyyy-MM-dd HH:mm"),
                     PickupTime = task?.PickupTime?.ToString("yyyy-MM-dd HH:mm"),

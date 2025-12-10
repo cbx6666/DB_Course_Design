@@ -19,6 +19,7 @@ namespace BackEnd.Services
         private readonly ICourierRepository _courierRepository;
         private readonly IDeliveryTaskRepository _deliveryTaskRepository;
         private readonly IImageUploadService _imageUploadService;
+        private readonly IDeliveryComplaintRepository _deliveryComplaintRepository;
 
         /// <summary>
         /// 构造函数
@@ -27,16 +28,19 @@ namespace BackEnd.Services
         /// <param name="courierRepository">配送员仓储</param>
         /// <param name="deliveryTaskRepository">配送任务仓储</param>
         /// <param name="imageUploadService">图片上传服务</param>
+        /// <param name="deliveryComplaintRepository">配送投诉仓储</param>
         public CourierInfoService(
             IUserRepository userRepository,
             ICourierRepository courierRepository,
             IDeliveryTaskRepository deliveryTaskRepository,
-            IImageUploadService imageUploadService)
+            IImageUploadService imageUploadService,
+            IDeliveryComplaintRepository deliveryComplaintRepository)
         {
             _userRepository = userRepository;
             _courierRepository = courierRepository;
             _deliveryTaskRepository = deliveryTaskRepository;
             _imageUploadService = imageUploadService;
+            _deliveryComplaintRepository = deliveryComplaintRepository;
         }
 
         /// <summary>
@@ -53,6 +57,14 @@ namespace BackEnd.Services
                 return null;
             }
 
+            var courier = await _courierRepository.GetByIdAsync(courierId);
+            if (courier != null)
+            {
+                courier.ReputationPoints = await CalculateCreditScoreAsync(courierId);
+                await _courierRepository.UpdateAsync(courier);
+                await _courierRepository.SaveAsync();
+            }
+
             return new CourierProfileDto
             {
                 Id = user.UserID.ToString(),
@@ -60,7 +72,7 @@ namespace BackEnd.Services
                 FullName = user.FullName,
                 RegisterDate = user.AccountCreationTime.ToString("yyyy-MM-dd"),
                 Rating = user.Courier?.AverageRating ?? 0,
-                CreditScore = user.Courier?.ReputationPoints ?? 0,
+                CreditScore = courier?.ReputationPoints ?? 0,
                 Avatar = string.IsNullOrWhiteSpace(user.Avatar) ? "/images/default-avatar.jpg" : user.Avatar,
                 Gender = user.Gender
             };
@@ -267,6 +279,23 @@ namespace BackEnd.Services
             {
                 return (false, $"上传失败: {ex.Message}", null);
             }
+        }
+
+        /// <summary>
+        /// 计算骑手的信誉积分
+        /// </summary>
+        /// <param name="courierId">骑手ID</param>
+        /// <returns>信誉积分</returns>
+        public async Task<int> CalculateCreditScoreAsync(int courierId)
+        {
+            var complaints = await _deliveryComplaintRepository.GetRecentComplaintsAsync(courierId);
+            if (complaints == null || complaints.Count == 0)
+            {
+                return 100;
+            }
+
+            var totalComplaints = complaints.Count;
+            return Math.Max(0, 100 - totalComplaints * 2);
         }
     }
 }

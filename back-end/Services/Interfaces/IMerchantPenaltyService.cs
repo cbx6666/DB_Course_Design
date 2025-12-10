@@ -23,13 +23,5 @@ namespace BackEnd.Services.Interfaces
         /// <param name="id">处罚记录ID</param>
         /// <returns>处罚记录详情</returns>
         Task<MerchantPenaltyRecordDto?> GetPenaltyByIdAsync(string id);
-
-        /// <summary>
-        /// 申诉处罚
-        /// </summary>
-        /// <param name="id">处罚记录ID</param>
-        /// <param name="appealDto">申诉请求</param>
-        /// <returns>申诉结果</returns>
-        Task<ApiResponseDto?> AppealPenaltyAsync(string id, AppealPenaltyDto appealDto);
     }
 }

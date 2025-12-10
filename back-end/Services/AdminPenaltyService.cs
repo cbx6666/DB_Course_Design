@@ -40,7 +40,10 @@ namespace BackEnd.Services
                 MerchantPunishment = penalty.SellerPenalty ?? "-",
                 StorePunishment = penalty.StorePenalty ?? "-",
                 PunishmentTime = penalty.PenaltyTime?.ToString("yyyy-MM-dd HH:mm") ?? "",
-                Status = penalty.ViolationPenaltyState == ViolationPenaltyState.Pending ? "待处理" : "已完成"
+                Status = penalty.ViolationPenaltyState == ViolationPenaltyState.Pending ? "待处理" : "已完成",
+                Images = string.IsNullOrWhiteSpace(penalty.ReportImages)
+                    ? Array.Empty<string>()
+                    : penalty.ReportImages!.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             });
 
             return penaltyDtos;
@@ -139,7 +142,10 @@ namespace BackEnd.Services
                     MerchantPunishment = existingPenalty.SellerPenalty ?? "-",
                     StorePunishment = existingPenalty.StorePenalty ?? "-",
                     PunishmentTime = existingPenalty.PenaltyTime?.ToString("yyyy-MM-dd HH:mm") ?? "",
-                    Status = request.Status
+                    Status = request.Status,
+                    Images = string.IsNullOrWhiteSpace(existingPenalty.ReportImages)
+                        ? Array.Empty<string>()
+                        : existingPenalty.ReportImages!.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 };
 
                 return new UpdatePenaltyResponseDto

@@ -153,6 +153,11 @@ namespace BackEnd.DTOs.DeliveryComplaint
         public string? ProcessingResult { get; set; }
 
         /// <summary>
+        /// 罚款金额
+        /// </summary>
+        public string? FineAmount { get; set; }
+
+        /// <summary>
         /// 配送地址
         /// </summary>
         public string? DeliveryAddress { get; set; }

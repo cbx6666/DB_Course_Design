@@ -75,10 +75,4 @@ export const getPenaltyDetail = async (id: string) => {
     return (response.data?.data ?? response.data) as PenaltyRecord;
 };
 
-export const appealPenalty = async (id: string, reason: string) => {
-    const response = await apiClient.post(`/merchant/penalties/${id}/appeal`, { reason });
-    // 后端返回 ApiResponseDto，需要提取 data
-    return response.data?.data ?? response.data;
-};
-
 

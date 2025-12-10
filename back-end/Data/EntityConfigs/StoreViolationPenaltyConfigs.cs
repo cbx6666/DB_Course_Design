@@ -41,20 +41,7 @@ namespace BackEnd.Data.EntityConfigs
 
             // 外键配置
             builder.Property(svp => svp.StoreID).HasColumnName("STOREID").IsRequired();
-            builder.Property(svp => svp.CustomerID).HasColumnName("CUSTOMERID").IsRequired(false);
-            builder.Property(svp => svp.CourierID).HasColumnName("COURIERID").IsRequired(false);
-
-            // 仅 Pending 唯一约束（带筛选的唯一索引）
-            // 保证同一 用户-店铺 在 Pending 状态下最多一条举报；骑手-店铺同理
-            builder.HasIndex(svp => new { svp.StoreID, svp.CustomerID })
-                .HasDatabaseName("UX_StoreCustomer_Pending")
-                .HasFilter("[CUSTOMERID] IS NOT NULL AND [VIOLATIONPENALTYSTATE] = 'Pending'")
-                .IsUnique();
-
-            builder.HasIndex(svp => new { svp.StoreID, svp.CourierID })
-                .HasDatabaseName("UX_StoreCourier_Pending")
-                .HasFilter("[COURIERID] IS NOT NULL AND [VIOLATIONPENALTYSTATE] = 'Pending'")
-                .IsUnique();
+            builder.Property(svp => svp.CustomerID).HasColumnName("CUSTOMERID").IsRequired();
 
             // 关系配置
             ConfigureRelationships(builder);
@@ -72,17 +59,11 @@ namespace BackEnd.Data.EntityConfigs
                 .HasForeignKey(svp => svp.StoreID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // 配置与Customer的多对一关系（可选）
+            // 配置与Customer的多对一关系
             builder.HasOne(svp => svp.Customer)
                 .WithMany()
                 .HasForeignKey(svp => svp.CustomerID)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            // 配置与Courier的多对一关系（可选）
-            builder.HasOne(svp => svp.Courier)
-                .WithMany()
-                .HasForeignKey(svp => svp.CourierID)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

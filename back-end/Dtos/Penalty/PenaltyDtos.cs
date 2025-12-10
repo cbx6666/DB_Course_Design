@@ -3,15 +3,15 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BackEnd.DTOs.Penalty
 {
-    // ========== 用户举报 ==========
+    // ========== 消费者举报 ==========
 
     /// <summary>
-    /// 用户举报店铺请求DTO（消费者端）
+    /// 消费者举报店铺请求DTO
     /// </summary>
     public class ReportStoreDto
     {
         /// <summary>
-        /// 用户ID
+        /// 消费者ID
         /// </summary>
         [Required]
         public int UserId { get; set; }
@@ -36,7 +36,7 @@ namespace BackEnd.DTOs.Penalty
     }
 
     /// <summary>
-    /// 店铺举报列表项DTO（消费者和骑手共用）
+    /// 店铺举报列表项DTO（消费者端）
     /// </summary>
     public class StoreReportListItemDto
     {
@@ -129,17 +129,6 @@ namespace BackEnd.DTOs.Penalty
         public string? PlatformAction { get; set; }
     }
 
-    /// <summary>
-    /// 申诉处罚请求DTO（商家端）
-    /// </summary>
-    public class AppealPenaltyDto
-    {
-        /// <summary>
-        /// 申诉原因
-        /// </summary>
-        public string? Reason { get; set; }
-    }
-
     // ========== 管理员处理 ==========
 
     /// <summary>
@@ -163,12 +152,12 @@ namespace BackEnd.DTOs.Penalty
         public string Reason { get; set; } = null!;
 
         /// <summary>
-        /// 商家方处理措施
+        /// 商家处罚措施
         /// </summary>
         public string MerchantPunishment { get; set; } = null!;
 
         /// <summary>
-        /// 平台方处理措施
+        /// 店铺处罚措施
         /// </summary>
         public string StorePunishment { get; set; } = null!;
 
@@ -181,6 +170,11 @@ namespace BackEnd.DTOs.Penalty
         /// 当前状态
         /// </summary>
         public string Status { get; set; } = null!;
+
+        /// <summary>
+        /// 举报图片URL列表
+        /// </summary>
+        public string[] Images { get; set; } = Array.Empty<string>();
     }
 
     /// <summary>
@@ -199,12 +193,12 @@ namespace BackEnd.DTOs.Penalty
         public string Reason { get; set; } = null!;
 
         /// <summary>
-        /// 商家方处理措施
+        /// 商家处罚措施
         /// </summary>
         public string MerchantPunishment { get; set; } = null!;
 
         /// <summary>
-        /// 平台方处理措施
+        /// 店铺处罚措施
         /// </summary>
         public string StorePunishment { get; set; } = null!;
 

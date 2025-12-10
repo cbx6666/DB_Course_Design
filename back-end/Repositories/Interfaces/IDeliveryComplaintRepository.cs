@@ -74,5 +74,12 @@ namespace BackEnd.Repositories.Interfaces
         /// <param name="adminId">管理员ID</param>
         /// <returns>配送投诉列表</returns>
         Task<List<DeliveryComplaint>> GetByAdminIdAsync(int adminId);
+
+        /// <summary>
+        /// 根据骑手ID获取近三个月已处理的配送投诉列表
+        /// </summary>
+        /// <param name="courierId">骑手ID</param>
+        /// <returns>配送投诉列表</returns>
+        Task<List<DeliveryComplaint>> GetRecentComplaintsAsync(int courierId);
     }
 }

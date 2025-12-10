@@ -59,23 +59,5 @@ namespace BackEnd.Controllers
                 : Ok(penalty);
         }
 
-        /// <summary>
-        /// 对处罚记录进行申诉
-        /// </summary>
-        /// <param name="id">处罚记录ID</param>
-        /// <param name="appealDto">申诉请求</param>
-        /// <returns>申诉结果</returns>
-        [HttpPost("{id}/appeal")]
-        public async Task<IActionResult> AppealPenalty(string id, [FromBody] AppealPenaltyDto appealDto)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new ApiResponseDto { Success = false, Code = 400, Message = "请求参数错误" });
-            }
-
-            var result = await _merchantPenaltyService.AppealPenaltyAsync(id, appealDto);
-            return Ok(result);
-        }
-
     }
 }

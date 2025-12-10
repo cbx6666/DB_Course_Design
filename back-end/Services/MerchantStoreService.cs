@@ -17,6 +17,8 @@ namespace BackEnd.Services
         private readonly IMerchantRepository _merchantRepository;
         private readonly IConfiguration _configuration;
         private readonly IImageUploadService _imageUploadService;
+        private readonly IStoreViolationPenaltyRepository _storeViolationPenaltyRepository;
+        private readonly ISellerRepository _sellerRepository;
 
         /// <summary>
         /// 构造函数
@@ -24,11 +26,15 @@ namespace BackEnd.Services
         public MerchantStoreService(
             IMerchantRepository merchantRepository,
             IConfiguration configuration,
-            IImageUploadService imageUploadService)
+            IImageUploadService imageUploadService,
+            IStoreViolationPenaltyRepository storeViolationPenaltyRepository,
+            ISellerRepository sellerRepository)
         {
             _merchantRepository = merchantRepository;
             _configuration = configuration;
             _imageUploadService = imageUploadService;
+            _storeViolationPenaltyRepository = storeViolationPenaltyRepository;
+            _sellerRepository = sellerRepository;
         }
 
         /// <summary>
@@ -65,6 +71,11 @@ namespace BackEnd.Services
             }
 
             var seller = await _merchantRepository.GetSellerByIdAsync(sellerId);
+            if (seller != null)
+            {
+                seller.ReputationPoints = await CalculateCreditScoreAsync(sellerId);
+                await _sellerRepository.UpdateAsync(seller);
+            }
 
             return new ShopInfoResponseDto
             {
@@ -248,6 +259,23 @@ namespace BackEnd.Services
             {
                 return new ApiResponseDto { Success = false, Code = 500, Message = $"更新失败: {ex.Message}" };
             }
+        }
+
+        /// <summary>
+        /// 计算商家的信誉积分
+        /// </summary>
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>信誉积分</returns>
+        public async Task<int> CalculateCreditScoreAsync(int sellerId)
+        {
+            var penalties = await _storeViolationPenaltyRepository.GetRecentPenaltiesAsync(sellerId);
+            if (penalties == null || penalties.Count == 0)
+            {
+                return 100;
+            }
+
+            var totalPenalty = penalties.Count;
+            return Math.Max(0, 100 - totalPenalty * 2);
         }
     }
 }

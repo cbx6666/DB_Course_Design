@@ -22,12 +22,14 @@ namespace BackEnd.Services
         private readonly IStoreRepository _storeRepository;
         private readonly IConfiguration _configuration;
         private readonly AppDbContext _context;
+        private readonly IFavoritesFolderRepository _favoritesFolderRepository;
 
         public AuthService(
             IUserRepository userRepository,
             IStoreRepository storeRepository,
             IConfiguration configuration,
-            AppDbContext context)
+            AppDbContext context,
+            IFavoritesFolderRepository favoritesFolderRepository)
         {
             _userRepository = userRepository;
             _storeRepository = storeRepository;
@@ -168,6 +170,12 @@ namespace BackEnd.Services
                     await CreateStoreAsync(req.StoreInfo, user.UserID);
                 }
 
+                // 如果是消费者，自动创建默认收藏夹
+                if (req.Role.ToLower() == "customer" && user.Customer != null)
+                {
+                    await CreateDefaultFavoritesFolderAsync(user.UserID);
+                }
+
                 await transaction.CommitAsync();
 
                 return new ApiResponseDto
@@ -287,6 +295,28 @@ namespace BackEnd.Services
             };
 
             await _storeRepository.AddAsync(store);
+        }
+
+        /// <summary>
+        /// 为消费者创建默认收藏夹
+        /// </summary>
+        /// <param name="customerId">消费者ID</param>
+        private async Task CreateDefaultFavoritesFolderAsync(int customerId)
+        {
+            // 检查是否已存在默认收藏夹
+            var hasDefaultFolder = await _favoritesFolderRepository.HasDefaultFolderAsync(customerId);
+            if (hasDefaultFolder)
+            {
+                return; // 已存在，不需要创建
+            }
+
+            var defaultFolder = new FavoritesFolder
+            {
+                FolderName = "默认收藏夹",
+                CustomerID = customerId
+            };
+
+            await _favoritesFolderRepository.AddAsync(defaultFolder);
         }
 
         /// <summary>

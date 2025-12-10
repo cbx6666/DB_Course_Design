@@ -4,7 +4,6 @@ using BackEnd.Models;
 using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using BackEnd.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace BackEnd.Services
 {
@@ -60,7 +59,6 @@ namespace BackEnd.Services
             };
 
             await _penaltyRepository.AddAsync(penalty);
-            await _penaltyRepository.SaveAsync();
 
             var supervise = new Supervise_
             {

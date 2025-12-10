@@ -77,26 +77,15 @@ namespace BackEnd.Models
         public Store Store { get; set; } = null!;
 
         /// <summary>
-        /// 举报消费者ID（外键，可选）
+        /// 举报消费者ID（外键）
         /// </summary>
-        public int? CustomerID { get; set; }
+        public int CustomerID { get; set; }
 
         /// <summary>
         /// 关联的举报消费者
         /// </summary>
         [ForeignKey("CustomerID")]
-        public Customer? Customer { get; set; }
-
-        /// <summary>
-        /// 举报骑手ID（外键，可选）
-        /// </summary>
-        public int? CourierID { get; set; }
-
-        /// <summary>
-        /// 关联的举报骑手
-        /// </summary>
-        [ForeignKey("CourierID")]
-        public Courier? Courier { get; set; }
+        public Customer Customer { get; set; } = null!;
 
         /// <summary>
         /// 监督记录集合

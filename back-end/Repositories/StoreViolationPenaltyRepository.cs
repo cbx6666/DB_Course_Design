@@ -119,20 +119,6 @@ namespace BackEnd.Repositories
         }
 
         /// <summary>
-        /// 根据骑手ID获取店铺举报列表（包含店铺信息）
-        /// </summary>
-        /// <param name="courierId">骑手ID</param>
-        /// <returns>店铺举报列表</returns>
-        public async Task<List<StoreViolationPenalty>> GetByCourierIdAsync(int courierId)
-        {
-            return await _context.StoreViolationPenalties
-                .Include(p => p.Store)
-                .Where(p => p.CourierID == courierId)
-                .OrderByDescending(p => p.PenaltyTime)
-                .ToListAsync();
-        }
-
-        /// <summary>
         /// 根据管理员ID获取违规处罚列表（包含店铺信息）
         /// </summary>
         /// <param name="adminId">管理员ID</param>
@@ -163,17 +149,18 @@ namespace BackEnd.Repositories
         }
 
         /// <summary>
-        /// 根据骑手ID和店铺ID获取未完成的举报列表
+        /// 根据商家ID获取近三个月的违规处罚列表
         /// </summary>
-        /// <param name="courierId">骑手ID</param>
-        /// <param name="storeId">店铺ID</param>
-        /// <returns>未完成的举报列表</returns>
-        public async Task<List<StoreViolationPenalty>> GetPendingByCourierIdAndStoreIdAsync(int courierId, int storeId)
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>违规处罚列表</returns>
+        public async Task<List<StoreViolationPenalty>> GetRecentPenaltiesAsync(int sellerId)
         {
             return await _context.StoreViolationPenalties
-                .Where(p => p.CourierID == courierId 
-                    && p.StoreID == storeId 
-                    && p.ViolationPenaltyState != ViolationPenaltyState.Completed)
+                .Include(p => p.Store)
+                .Where(p => p.Store.SellerID == sellerId 
+                    && p.PenaltyTime >= DateTime.Now.AddMonths(-3) 
+                    && p.ViolationPenaltyState == ViolationPenaltyState.Completed)
+                .OrderByDescending(p => p.PenaltyTime)
                 .ToListAsync();
         }
     }

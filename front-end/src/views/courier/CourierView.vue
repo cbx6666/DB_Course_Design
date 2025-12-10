@@ -503,10 +503,14 @@
                                         <h4 class="text-xs font-semibold text-orange-700 mb-2 flex items-center gap-1">
                                             <i class="fas fa-gavel"></i> 平台处罚
                                         </h4>
-                                        <div class="bg-white rounded-lg p-3 border border-orange-200">
+                                        <div class="bg-white rounded-lg p-3 border border-orange-200 space-y-2">
                                             <p class="text-sm text-gray-800 font-medium">
                                                 {{ complaint.processingResult }}
                                             </p>
+                                            <div v-if="complaint.fineAmount" class="flex items-center justify-between pt-2 border-t border-orange-100">
+                                                <span class="text-xs text-gray-500">罚款金额：</span>
+                                                <span class="text-sm font-bold text-red-600">¥{{ complaint.fineAmount }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div v-else class="px-4 py-3 bg-gray-50 border-t border-gray-200 text-center">
@@ -868,6 +872,7 @@ interface Complaint {
     complaintTime: string;
     complaintReason: string;
     processingResult?: string;
+    fineAmount?: string;
     // 配送信息
     deliveryAddress?: string;
     acceptTime?: string;

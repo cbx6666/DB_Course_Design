@@ -1027,6 +1027,22 @@
                                 {{ currentViolation.reason }}
                             </p>
                         </div>
+                        
+                        <!-- 举报图片 -->
+                        <div v-if="(currentViolation.images?.length || 0) > 0">
+                            <p class="text-xs text-gray-400 mb-2">举报图片</p>
+                            <div class="flex flex-wrap gap-3 justify-center">
+                                <div v-for="(img, idx) in currentViolation.images" :key="idx" class="relative w-20 h-20">
+                                    <img 
+                                        :src="normalizeImageUrl(img)" 
+                                        alt="举报图片" 
+                                        class="w-full h-full object-cover rounded-lg border border-gray-200 cursor-zoom-in hover:opacity-90"
+                                        @error="handleImageError"
+                                        @click="previewImage(normalizeImageUrl(img))"
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1320,6 +1336,7 @@ interface ViolationItem {
     storePunishment: string;
     punishmentTime: string;
     status: string;
+    images?: string[];
 }
 
 interface ReviewItem {

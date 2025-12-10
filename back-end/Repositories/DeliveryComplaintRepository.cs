@@ -1,5 +1,6 @@
 using BackEnd.Data;
 using BackEnd.Models;
+using BackEnd.Models.Enums;
 using BackEnd.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -165,6 +166,22 @@ namespace BackEnd.Repositories
                 .Include(ec => ec.Complaint)
                     .ThenInclude(c => c.DeliveryTask)
                 .Select(ec => ec.Complaint)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 根据骑手ID获取近三个月已处理的配送投诉列表
+        /// </summary>
+        /// <param name="courierId">骑手ID</param>
+        /// <returns>配送投诉列表</returns>
+        public async Task<List<DeliveryComplaint>> GetRecentComplaintsAsync(int courierId)
+        {
+            var threeMonthsAgo = DateTime.Now.AddMonths(-3);
+            return await _context.DeliveryComplaints
+                .Where(c => c.CourierID == courierId 
+                    && c.ComplaintState == ComplaintState.Completed
+                    && c.ComplaintTime >= threeMonthsAgo)
+                .OrderByDescending(c => c.ComplaintTime)
                 .ToListAsync();
         }
     }

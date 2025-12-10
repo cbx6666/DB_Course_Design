@@ -62,13 +62,6 @@ namespace BackEnd.Repositories.Interfaces
         Task<List<StoreViolationPenalty>> GetByCustomerIdAsync(int customerId);
 
         /// <summary>
-        /// 根据骑手ID获取店铺举报列表（包含店铺信息）
-        /// </summary>
-        /// <param name="courierId">骑手ID</param>
-        /// <returns>店铺举报列表</returns>
-        Task<List<StoreViolationPenalty>> GetByCourierIdAsync(int courierId);
-
-        /// <summary>
         /// 根据管理员ID获取违规处罚列表（包含店铺信息）
         /// </summary>
         /// <param name="adminId">管理员ID</param>
@@ -84,11 +77,10 @@ namespace BackEnd.Repositories.Interfaces
         Task<List<StoreViolationPenalty>> GetPendingByCustomerIdAndStoreIdAsync(int customerId, int storeId);
 
         /// <summary>
-        /// 根据骑手ID和店铺ID获取未完成的举报列表
+        /// 根据商家ID获取近三个月的违规处罚列表
         /// </summary>
-        /// <param name="courierId">骑手ID</param>
-        /// <param name="storeId">店铺ID</param>
-        /// <returns>未完成的举报列表</returns>
-        Task<List<StoreViolationPenalty>> GetPendingByCourierIdAndStoreIdAsync(int courierId, int storeId);
+        /// <param name="sellerId">商家ID</param>
+        /// <returns>违规处罚列表</returns>
+        Task<List<StoreViolationPenalty>> GetRecentPenaltiesAsync(int sellerId);
     }
 }

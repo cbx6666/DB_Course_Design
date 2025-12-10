@@ -87,5 +87,30 @@ namespace BackEnd.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        /// <summary>
+        /// 根据消费者ID获取收藏夹列表
+        /// </summary>
+        /// <param name="customerId">消费者ID</param>
+        /// <returns>收藏夹列表</returns>
+        public async Task<List<FavoritesFolder>> GetByCustomerIdAsync(int customerId)
+        {
+            return await _context.FavoritesFolders
+                .Where(ff => ff.CustomerID == customerId)
+                .Include(ff => ff.FavoriteItems)
+                .OrderBy(ff => ff.FolderID)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 检查消费者是否有默认收藏夹（名称为"默认收藏夹"）
+        /// </summary>
+        /// <param name="customerId">消费者ID</param>
+        /// <returns>是否存在默认收藏夹</returns>
+        public async Task<bool> HasDefaultFolderAsync(int customerId)
+        {
+            return await _context.FavoritesFolders
+                .AnyAsync(ff => ff.CustomerID == customerId && ff.FolderName == "默认收藏夹");
+        }
     }
 }
